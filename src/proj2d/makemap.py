@@ -1,4 +1,5 @@
 import numpy as np
+import math as mt
 import pygadgetreader as pygr
 from tqdm import tqdm
 
@@ -100,10 +101,10 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
     mass = pygr.readsnap(filename, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]
     if qty == 'rho':  # Int(rho*dl)
         q = mass / pixsize ** 2  # comoving [10^10 h M_Sun kpc^-2]
-        w = np.full(ngas, 1.)  # [---]
+        w = np.full(ngas, 0.)  # [---]
     elif qty == 'rho2':  # Int(rho2*dl)
         q = mass * pygr.readsnap(filename, 'rho', 'gas', units=0) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
-        w = np.full(ngas, 1.)  # [---]
+        w = np.full(ngas, 0.)  # [---]
     elif qty in ['Tmw', 'Tew', 'Tsl']:
         if not 'temp' in locals():
             temp = pygr.readsnap(filename, 'u', 'gas', units=1)  # internal energy per unit mass [km^2 s^-2]
@@ -146,10 +147,10 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
 
         step = 1. / hsml[ipart]  # 1 pixel-shift in units of hsml
 
-        i_beg = max(int(np.floor(x[ipart] - hsml[ipart])), 0)
-        i_end = min(int(np.ceil(x[ipart] + hsml[ipart])), npix)
-        j_beg = max(int(np.floor(y[ipart] - hsml[ipart])), 0)
-        j_end = min(int(np.ceil(y[ipart] + hsml[ipart])), npix)
+        i_beg = max(mt.floor(x[ipart] - hsml[ipart]), 0)
+        i_end = min(mt.ceil(x[ipart] + hsml[ipart]), npix)
+        j_beg = max(mt.floor(y[ipart] - hsml[ipart]), 0)
+        j_end = min(mt.ceil(y[ipart] + hsml[ipart]), npix)
         x0 = (i_beg - x[ipart]) * step
         wkx0 = intkernel(x0)
         for imap in range(i_beg, i_end):
@@ -187,6 +188,7 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
             'norm': wmap,
             'xrange': (xmap0, xmap0 + size),  # [h^-1 kpc] comoving
             'yrange': (ymap0, ymap0 + size),  # [h^-1 kpc] comoving
+            'pixel_size': pixsize,  # [h^-1 kpc] comoving
             'units': units[qty]['map'],
             'norm_units': units[qty]['norm'],
             'coord_units': 'h^-1 kpc'
