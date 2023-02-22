@@ -151,22 +151,34 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
         i_end = min(mt.ceil(x[ipart] + hsml[ipart]), npix)
         j_beg = max(mt.floor(y[ipart] - hsml[ipart]), 0)
         j_end = min(mt.ceil(y[ipart] + hsml[ipart]), npix)
-        x0 = (i_beg - x[ipart]) * step
-        wkx0 = intkernel(x0)
-        for imap in range(i_beg, i_end):
-            x1 = x0 + step
-            wkx1 = intkernel(x1)
-            wkx = wkx1 - wkx0
+
+        if (i_end > i_beg) & (j_end > j_beg):
+            nx, ny = i_end - i_beg, j_end - j_beg
+            wx, wy = np.empty(nx), np.empty(ny)
+
+            x0 = (i_beg - x[ipart]) * step
+            wkx0 = intkernel(x0)
+            for i in range(nx):
+                x1 = x0 + step
+                wkx1 = intkernel(x1)
+                wx[i] = wkx1 - wkx0
+                x0, wkx0 = x1, wkx1
+
             y0 = (j_beg - y[ipart]) * step
             wky0 = intkernel(y0)
-            for jmap in range(j_beg, j_end):
+            for j in range(ny):
                 y1 = y0 + step
                 wky1 = intkernel(y1)
-                wk = (wky1 - wky0) * wkx
-                qmap[imap, jmap] += q[ipart] * wk
-                wmap[imap, jmap] += w[ipart] * wk
+                wy[j] = wky1 - wky0
                 y0, wky0 = y1, wky1
-            x0, wkx0 = x1, wkx1
+
+            for i in range(nx):
+                imap = i_beg + i
+                for j in range(ny):
+                    jmap = j_beg + j
+                    ww = wx[i] * wy[j]
+                    qmap[imap, jmap] += q[ipart] * ww
+                    wmap[imap, jmap] += w[ipart] * ww
 
     qmap[np.where(wmap != 0.)] /= wmap[np.where(wmap != 0.)]
 
