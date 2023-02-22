@@ -1,5 +1,6 @@
-import numpy as np
 import math as mt
+
+import numpy as np
 import pygadgetreader as pygr
 from tqdm import tqdm
 
@@ -21,6 +22,8 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
     :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False TODO: info
     :return:
     """
+
+    intkernel_vec = np.vectorize(intkernel)
 
     # Reading header variables
     redshift = pygr.readhead(filename, 'redshift')
@@ -89,13 +92,13 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
     # Create linked list and cutting out particles
     if tcut > 0.:
         temp = pygr.readsnap(filename, 'u', 'gas', units=1)  # [K]
-        index_to_map = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix) & (temp > tcut))[0]
+        valid = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix) & (temp > tcut))[0]
         if qty not in ['Tmw', 'Tew', 'Tsl']:
             del temp
     else:
-        index_to_map = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix))[0]
-    particle_list = index_to_map[linkedlist2d(x[index_to_map], y[index_to_map], npix, npix)]
-    del index_to_map
+        valid = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix))[0]
+    particle_list = valid[linkedlist2d(x[valid], y[valid], npix, npix)]
+    del valid
 
     # Calculating quantity (q) to integrate and weight (w)
     mass = pygr.readsnap(filename, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]
@@ -145,38 +148,33 @@ def makemap(filename: str, qty, npix=256, center=None, size=None, proj='z', tcut
 
     for ipart in tqdm(particle_list[::sample]):
 
-        step = 1. / hsml[ipart]  # 1 pixel-shift in units of hsml
-
         i_beg = max(mt.floor(x[ipart] - hsml[ipart]), 0)
-        i_end = min(mt.ceil(x[ipart] + hsml[ipart]), npix)
+        i_end = min(mt.floor(x[ipart] + hsml[ipart]), npix - 1)
         j_beg = max(mt.floor(y[ipart] - hsml[ipart]), 0)
-        j_end = min(mt.ceil(y[ipart] + hsml[ipart]), npix)
+        j_end = min(mt.floor(y[ipart] + hsml[ipart]), npix - 1)
 
-        if (i_end > i_beg) & (j_end > j_beg):
-            nx, ny = i_end - i_beg, j_end - j_beg
-            wy = np.empty(ny)
+        if (i_end >= i_beg) & (j_end >= j_beg):
+            step = 1. / hsml[ipart]  # 1 pixel-shift in units of hsml
+            nx, ny = i_end - i_beg + 1, j_end - j_beg + 1
+            wx, wy = np.empty(nx), np.empty(ny)
 
-            y0 = (j_beg - y[ipart]) * step
-            wky0 = intkernel(y0)
+            xpix = (np.arange(i_beg, i_end + 2) - x[ipart]) * step
+            intwx = intkernel_vec(xpix)
+            for i in range(nx):
+                wx[i] = intwx[i + 1] - intwx[i]
+
+            ypix = (np.arange(j_beg, j_end + 2) - y[ipart]) * step
+            intwy = intkernel_vec(ypix)
             for j in range(ny):
-                y1 = y0 + step
-                wky1 = intkernel(y1)
-                wy[j] = wky1 - wky0
-                y0, wky0 = y1, wky1
+                wy[j] = intwy[j + 1] - intwy[j]
 
-            x0 = (i_beg - x[ipart]) * step
-            wkx0 = intkernel(x0)
             for i in range(nx):
                 imap = i_beg + i
-                x1 = x0 + step
-                wkx1 = intkernel(x1)
-                wx = wkx1 - wkx0
                 for j in range(ny):
+                    ww = wx[i] * wy[j]
                     jmap = j_beg + j
-                    ww = wx * wy[j]
                     qmap[imap, jmap] += q[ipart] * ww
                     wmap[imap, jmap] += w[ipart] * ww
-                x0, wkx0 = x1, wkx1
 
     qmap[np.where(wmap != 0.)] /= wmap[np.where(wmap != 0.)]
 
