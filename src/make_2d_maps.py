@@ -7,7 +7,7 @@ import time as t
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 infile = 'snap_128'
 
-#mass_snap = sum(pygr.readsnap(indir+infile, 'mass', 'gas', units=0)) # [10^10 h^-1 M_Sun]
+mass_snap = sum(pygr.readsnap(indir+infile, 'mass', 'gas', units=0)) # [10^10 h^-1 M_Sun]
 
 #res = makemap(indir + infile, 'rho', struct = True, npix=512, center=[500000., 500000.], size=10000., tcut=-1.e5, sample=100)
 start = t.time()
