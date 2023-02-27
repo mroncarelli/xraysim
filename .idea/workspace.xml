@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Vectorized mapping bottlneck to gain: this one worked!">
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proj2d/intkernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proj2d/intkernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proj2d/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proj2d/makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,7 +120,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677063716259</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Vectorized mapping bottlneck to gain: this one worked! Several refactorings in addition">
+      <created>1677164203273</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1677164203273</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -131,14 +136,15 @@
     <MESSAGE value="Corrected errors, added arguments to makemap" />
     <MESSAGE value="Faster mapping method" />
     <MESSAGE value="Slightly faster mapping method" />
-    <option name="LAST_COMMIT_MESSAGE" value="Slightly faster mapping method" />
+    <MESSAGE value="Vectorized mapping bottlneck to gain: this one worked! Several refactorings in addition" />
+    <option name="LAST_COMMIT_MESSAGE" value="Vectorized mapping bottlneck to gain: this one worked! Several refactorings in addition" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/make_2d_maps.py</url>
-          <line>19</line>
+          <line>24</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
       </breakpoints>
