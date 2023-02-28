@@ -106,7 +106,8 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         qty = mass / pixsize ** 2  # comoving [10^10 h M_Sun kpc^-2]
         nrm = np.full(ngas, 0.)  # [---]
     elif quantity == 'rho2':  # Int(rho2*dl)
-        qty = mass * pygr.readsnap(filename, 'rho', 'gas', units=0) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
+        qty = mass * pygr.readsnap(filename, 'rho', 'gas',
+                                   units=0) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
         nrm = np.full(ngas, 0.)  # [---]
     elif quantity in ['Tmw', 'Tew', 'Tsl']:
         if not 'temp' in locals():
@@ -127,7 +128,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             del rho
         del mass, temp
 
-    elif quantity in ['vmw', 'vew']:
+    elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
         vel = pygr.readsnap(filename, 'vel', 'gas', units=0)[:, projInd] / (1 + redshift)  # [km s^-1]
         if quantity == 'vmw':
             qty = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
@@ -137,14 +138,27 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             qty = mass * rho * vel / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km s^-1]
             nrm = mass * rho / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5]
             del rho
+        elif quantity == 'wmw':
+            qty = mass * vel ** 2 / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km^2 s^-2]
+            nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
+            qty2 = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
+        elif quantity == 'wew':
+            rho = pygr.readsnap(filename, 'rho', 'gas', units=0)  # [10^10 h^2 M_Sun kpc^-3]
+            qty = mass * rho * vel ** 2 / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km^2 s^-2]
+            nrm = mass * rho / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
+            qty2 = mass * rho * vel / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km s^-1]
+            del rho
         del mass, vel
     else:
-        print("Invalid mapping quantity: ", quantity, "Must be one of 'rho', 'rho2', 'Tmw', 'Tew', 'Tsl', 'vmw', 'vew'")
+        print("Invalid mapping quantity: ", quantity,
+              "Must be one of 'rho', 'rho2', 'Tmw', 'Tew', 'Tsl', 'vmw', 'vew', 'wmw', 'wew'")
         raise ValueError
 
     # Mapping
     qty_map = np.full((npix, npix), 0.)
     nrm_map = np.full((npix, npix), 0.)
+    if quantity in ['wmw', 'wew']:
+        qty2_map = np.full((npix, npix), 0.)
 
     for ipart in tqdm(particle_list[::sample]):
         # Indexes of first and last pixel to map in both axes
@@ -170,8 +184,12 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         # Adding to maps
         qty_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * qty[ipart]
         nrm_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * nrm[ipart]
+        if quantity in ['wmw', 'wew']:
+            qty2_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * qty2[ipart]
 
     qty_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
+    if quantity in ['wmw', 'wew']:
+        qty_map = np.sqrt(qty_map - qty2_map ** 2)
 
     # Output
     if struct:
@@ -183,7 +201,9 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             'Tew': {'map': 'K', 'norm': '10^20 h^3 M_Sun^2 kpc^-5'},
             'Tsl': {'map': 'K', 'norm': '10^20 h^3 M_Sun^2 kpc^-5 K^-0.75'},
             'vmw': {'map': 'km s^-1', 'norm': '10^10 h M_Sun kpc^-2'},
-            'vew': {'map': 'km s^-1', 'norm': '10^20 h^3 M_Sun^2 kpc^-5'}
+            'vew': {'map': 'km s^-1', 'norm': '10^20 h^3 M_Sun^2 kpc^-5'},
+            'wmw': {'map': 'km s^-1', 'map2': 'km s^-1', 'norm': '10^10 h M_Sun kpc^-2'},
+            'wew': {'map': 'km s^-1', 'map2': 'km s^-1', 'norm': '10^20 h^3 M_Sun^2 kpc^-5'}
         }
 
         result = {
@@ -196,6 +216,9 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             'norm_units': units[quantity]['norm'],
             'coord_units': 'h^-1 kpc'
         }
+        if quantity in ['wmw', 'wew']:
+            result['map2'] = qty2_map
+            result['map2_units'] = units[quantity]['map2']
 
         return result
 

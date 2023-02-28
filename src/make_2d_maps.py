@@ -12,7 +12,7 @@ mass_snap = sum(pygr.readsnap(indir+infile, 'mass', 'gas', units=0)) # [10^10 h^
 
 start = t.time()
 #res = makemap(indir + infile, 'rho', struct = True, npix=512, tcut=1.e5)
-res = makemap(indir + infile, 'vew', struct = True, npix=2048, center=[500000., 500000.], size=5000., sample=1, tcut=1.e5)
+res = makemap(indir + infile, 'wew', struct = True, npix=512, center=[500000., 500000.], size=5000., sample=1, tcut=1.e5)
 end = t.time()
 mass_map = sum(sum(res['map'])) * res['pixel_size'] ** 2
 print('Mass snapshot = ', mass_snap)
