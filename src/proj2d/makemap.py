@@ -8,7 +8,8 @@ from .intkernel import intkernel
 from .linkedlist import linkedlist2d
 
 
-def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z', tcut=0., sample=1, struct=False):
+def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., sample=1,
+            struct=False, nosmooth=False):
     """
 
     :param filename: (str) input file
@@ -17,9 +18,18 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     :param center: (float 2) comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
     :param size: (float) map comoving size [h^-1 kpc], default: encloses all gas particles
     :param proj: (str/int) direction of projection ('x', 'y', 'z' or 0, 1, 2)
+    :param zrange: (float 2) range in the l.o.s. axis
     :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
     :param sample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
-    :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False TODO: info
+    :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False
+                    - norm: normalization map
+                    - x(y)range: map range in the x(y) direction
+                    - pixel_size: pixel size
+                    - units: units of the map
+                    - norm_units: units of the normalization map
+                    - coord_units: units of x(y) range, i.e. h^-1 kpc comoving
+                    - other info present for some specific options
+    :param nosmooth: (bool): if set the SPH smoothing is turned off, and particles ar treated as points, default: False
     :return:
     """
 
@@ -34,24 +44,29 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     # Reading positions of particles
     pos = pygr.readsnap(filename, 'pos', 'gas', units=0)  # [h^-1 kpc] comoving
     if proj == 'x' or proj == 0:
-        projInd = 0
+        proj_ind = 0
         x = pos[:, 1]
         y = pos[:, 2]
+        if zrange: z = pos[:, proj_ind]
     elif proj == 'y' or proj == 1:
-        projInd = 1
+        proj_ind = 1
         x = pos[:, 2]
         y = pos[:, 0]
+        if zrange: z = pos[:, proj_ind]
     elif proj == 'z' or proj == 2:
-        projInd = 2
+        proj_ind = 2
         x = pos[:, 0]
         y = pos[:, 1]
+        if zrange: z = pos[:, proj_ind]
     else:
         print("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1), 'z' (2)")
         raise ValueError
     del pos
 
+    # Reading smoothing length or assigning it to zero if smoothing is turned off
+    hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(filename, 'hsml', 'gas', units=0)  # [h^-1 kpc] comoving
+
     # Defining center and map size
-    hsml = pygr.readsnap(filename, 'hsml', 'gas', units=0)  # [h^-1 kpc] comoving
     if center is None:
         xmin, xmax = min(x - hsml), max(x + hsml)
         ymin, ymax = min(y - hsml), max(y + hsml)
@@ -86,22 +101,34 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     # Normalizing coordinates in pixel units (0 = left/bottom border, npix = right/top border)
     x = (x - xmap0) / size * npix
     y = (y - ymap0) / size * npix
-    hsml = hsml / size * npix
-    pixsize = size / npix  # comoving [h^-1 kpc]
+    if zrange: hsml_z = hsml  # saving hsml in physical coordinates
+    hsml = hsml / size * npix  # [h^-1 kpc] comoving
+    pixsize = size / npix  # [h^-1 kpc] comoving
 
-    # Create linked list and cutting out particles outside the f.o.v.
+    # Cutting out particles outside the f.o.v. and for other conditions
+    valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
     if tcut > 0.:
         temp = pygr.readsnap(filename, 'u', 'gas', units=1)  # [K]
-        valid = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix) & (temp > tcut))[0]
+        valid_mask = valid_mask & (temp > tcut)
         if quantity not in ['Tmw', 'Tew', 'Tsl']:
             del temp
-    else:
-        valid = np.where((x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix))[0]
+    if zrange:
+        valid_mask = valid_mask & (z + hsml_z > zrange[0]) & (z - hsml_z < zrange[1])
+    valid = np.where(valid_mask)[0]
+    del valid_mask
+
+    # Creating linked list
     particle_list = valid[linkedlist2d(x[valid], y[valid], npix, npix)]
     del valid
 
     # Calculating quantity (q) to integrate and weight (w)
     mass = pygr.readsnap(filename, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]
+    if zrange:
+        # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
+        for ipart in particle_list[::sample]:
+            mass[ipart] *= intkernel_vec((zrange[1] - z[ipart]) / hsml_z[ipart]) - intkernel_vec((zrange[0] - z[ipart]))
+        del z, hsml_z
+
     if quantity == 'rho':  # Int(rho*dl)
         qty = mass / pixsize ** 2  # comoving [10^10 h M_Sun kpc^-2]
         nrm = np.full(ngas, 0.)  # [---]
@@ -129,7 +156,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         del mass, temp
 
     elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
-        vel = pygr.readsnap(filename, 'vel', 'gas', units=0)[:, projInd] / (1 + redshift)  # [km s^-1]
+        vel = pygr.readsnap(filename, 'vel', 'gas', units=0)[:, proj_ind] / (1 + redshift)  # [km s^-1]
         if quantity == 'vmw':
             qty = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
             nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
@@ -216,9 +243,13 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             'norm_units': units[quantity]['norm'],
             'coord_units': 'h^-1 kpc'
         }
+        if nosmooth:
+            result['smoothing'] = 'OFF'
         if quantity in ['wmw', 'wew']:
             result['map2'] = qty2_map
             result['map2_units'] = units[quantity]['map2']
+        if zrange:
+            result['zrange'] = zrange  # [h^-1 kpc] comoving
 
         return result
 
