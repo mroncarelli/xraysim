@@ -216,6 +216,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
 
     qty_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
     if quantity in ['wmw', 'wew']:
+        qty2_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
         qty_map = np.sqrt(qty_map - qty2_map ** 2)
 
     # Output
