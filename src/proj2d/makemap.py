@@ -8,8 +8,8 @@ from .intkernel import intkernel
 from .linkedlist import linkedlist2d
 
 
-def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., sample=1,
-            struct=False, nosmooth=False):
+def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., nsample=None,
+            struct=False, nosmooth=False, progress=False):
     """
 
     :param filename: (str) input file
@@ -20,7 +20,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     :param proj: (str/int) direction of projection ('x', 'y', 'z' or 0, 1, 2)
     :param zrange: (float 2) range in the l.o.s. axis
     :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
-    :param sample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
+    :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
     :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False
                     - norm: normalization map
                     - x(y)range: map range in the x(y) direction
@@ -32,6 +32,9 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     :param nosmooth: (bool): if set the SPH smoothing is turned off, and particles ar treated as points, default: False
     :return:
     """
+
+    if nsample is None:
+        nsample = 1
 
     intkernel_vec = np.vectorize(intkernel)
 
@@ -125,7 +128,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     mass = pygr.readsnap(filename, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]
     if zrange:
         # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
-        for ipart in particle_list[::sample]:
+        for ipart in particle_list[::nsample]:
             mass[ipart] *= intkernel_vec((zrange[1] - z[ipart]) / hsml_z[ipart]) - intkernel_vec((zrange[0] - z[ipart]))
         del z, hsml_z
 
@@ -187,7 +190,9 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     if quantity in ['wmw', 'wew']:
         qty2_map = np.full((npix, npix), 0.)
 
-    for ipart in tqdm(particle_list[::sample]):
+    iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
+
+    for ipart in iter_:
         # Indexes of first and last pixel to map in both axes
         i_beg = max(mt.floor(x[ipart] - hsml[ipart]), 0)
         i_end = min(mt.floor(x[ipart] + hsml[ipart]), npix - 1)

@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Corrected error in makemap.py and created pipeline to create maps">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/proj2d/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proj2d/makemap.py" afterDir="false" />
     </list>
@@ -149,7 +149,21 @@
       <option name="project" value="LOCAL" />
       <updated>1677684224622</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Corrected error in makemap.py and created pipeline to create maps">
+      <created>1678462878629</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1678462878629</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Corrected error in makemap.py and created pipeline to create maps">
+      <created>1678462973983</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1678462973983</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -161,24 +175,20 @@
     <MESSAGE value="Vectorized mapping bottlneck to gain: this one worked! Several refactorings in addition" />
     <MESSAGE value="Added velocity dispersion maps" />
     <MESSAGE value="Added zrange and nosmooth options to makemap. Other minor modifications" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added zrange and nosmooth options to makemap. Other minor modifications" />
+    <MESSAGE value="Corrected error in makemap.py and created pipeline to create maps" />
+    <option name="LAST_COMMIT_MESSAGE" value="Corrected error in makemap.py and created pipeline to create maps" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/make_2d_maps.py</url>
-          <line>107</line>
-          <option name="timeStamp" value="131" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/proj2d/makemap.py</url>
-          <line>228</line>
+          <line>227</line>
           <option name="timeStamp" value="136" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/proj2d/makemap.py</url>
-          <line>222</line>
+          <line>221</line>
           <option name="timeStamp" value="138" />
         </line-breakpoint>
       </breakpoints>
