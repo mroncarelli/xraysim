@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.io import fits
-from proj2d.makemap import makemap
+from src.pkg.proj2d.makemap import makemap
 
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 outdir = '/Users/mauro/XRISM/Maps'

@@ -4,11 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Corrected error in makemap.py and created pipeline to create maps">
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Restructured project">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/proj2d/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/proj2d/makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,15 +15,15 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Setup Script" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="setup" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -44,7 +41,8 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/mauro/IdeaProjects/xraysim/src/proj2d&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/mauro/IdeaProjects/xraysim&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.19656284&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.3632184&quot;,
@@ -53,10 +51,12 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/pkg" />
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
   </component>
@@ -163,7 +163,21 @@
       <option name="project" value="LOCAL" />
       <updated>1678462973983</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Added keyword in makemap.py and modified pipeline to create maps">
+      <created>1678719187371</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1678719187371</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Restructured project">
+      <created>1679052365889</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1679052365889</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -176,22 +190,12 @@
     <MESSAGE value="Added velocity dispersion maps" />
     <MESSAGE value="Added zrange and nosmooth options to makemap. Other minor modifications" />
     <MESSAGE value="Corrected error in makemap.py and created pipeline to create maps" />
-    <option name="LAST_COMMIT_MESSAGE" value="Corrected error in makemap.py and created pipeline to create maps" />
+    <MESSAGE value="Added keyword in makemap.py and modified pipeline to create maps" />
+    <MESSAGE value="Restructured project" />
+    <option name="LAST_COMMIT_MESSAGE" value="Restructured project" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/proj2d/makemap.py</url>
-          <line>227</line>
-          <option name="timeStamp" value="136" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/src/proj2d/makemap.py</url>
-          <line>221</line>
-          <option name="timeStamp" value="138" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
