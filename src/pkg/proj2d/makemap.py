@@ -1,7 +1,7 @@
 import math as mt
 
 import numpy as np
-import pygadgetreader as pygr
+import src.pkg.pygadgetreader as pygr
 from tqdm import tqdm
 
 from src.pkg.proj2d.intkernel import intkernel
