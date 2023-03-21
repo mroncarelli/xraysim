@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Restructured project">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/proj2d/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/proj2d/makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -180,7 +180,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679052365889</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fixed problem with import">
+      <created>1679324855149</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1679324855149</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -196,7 +203,8 @@
     <MESSAGE value="Added keyword in makemap.py and modified pipeline to create maps" />
     <MESSAGE value="Restructured project" />
     <MESSAGE value="Environment does not install astropy. I don't understand why." />
-    <option name="LAST_COMMIT_MESSAGE" value="Environment does not install astropy. I don't understand why." />
+    <MESSAGE value="Fixed problem with import" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed problem with import" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

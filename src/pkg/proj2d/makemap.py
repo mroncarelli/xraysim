@@ -1,11 +1,11 @@
 import math as mt
 
 import numpy as np
-import src.pkg.pygadgetreader as pygr
+import pygadgetreader as pygr
 from tqdm import tqdm
 
-from src.pkg.proj2d.intkernel import intkernel
-from src.pkg.proj2d.linkedlist import linkedlist2d
+from proj2d.intkernel import intkernel
+from proj2d.linkedlist import linkedlist2d
 
 
 def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., nsample=None,

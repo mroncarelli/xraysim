@@ -2,8 +2,9 @@ from setuptools import setup
 
 setup(
     name='xraysim',
-    version='0.1',
-    packages=['src.pkg.readgadget', 'src.pkg.readgadget.modules', 'src.pkg.pygadgetreader', 'src.pkg.proj2d'],
+    version='0.2',
+    package_dir={'': 'src/pkg'},
+    packages=['readgadget', 'readgadget.modules', 'pygadgetreader', 'proj2d'],
     url='https://github.com/mroncarelli/xraysim',
     license='',
     author='Mauro Roncarelli',
