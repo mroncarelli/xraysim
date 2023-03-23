@@ -13,7 +13,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     """
 
     :param filename: (str) input file
-    :param quantity: (str) physical quantity to map
+    :param quantity: (str) physical quantity to map (one of rho, rho2, Tmw, Tew, Tsl, vmw, vew, wmw, wew)
     :param npix: (int) number of map pixels per side
     :param center: (float 2) comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
     :param size: (float) map comoving size [h^-1 kpc], default: encloses all gas particles
@@ -29,7 +29,8 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
                     - norm_units: units of the normalization map
                     - coord_units: units of x(y) range, i.e. h^-1 kpc comoving
                     - other info present for some specific options
-    :param nosmooth: (bool): if set the SPH smoothing is turned off, and particles ar treated as points, default: False
+    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
+    :param progress: (bool) if set the progress bar is shown in output, default: False
     :return:
     """
 
@@ -50,20 +51,19 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         proj_ind = 0
         x = pos[:, 1]
         y = pos[:, 2]
-        if zrange: z = pos[:, proj_ind]
     elif proj == 'y' or proj == 1:
         proj_ind = 1
         x = pos[:, 2]
         y = pos[:, 0]
-        if zrange: z = pos[:, proj_ind]
     elif proj == 'z' or proj == 2:
         proj_ind = 2
         x = pos[:, 0]
         y = pos[:, 1]
-        if zrange: z = pos[:, proj_ind]
     else:
         print("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1), 'z' (2)")
         raise ValueError
+
+    z = pos[:, proj_ind] if zrange else None
     del pos
 
     # Reading smoothing length or assigning it to zero if smoothing is turned off
@@ -77,19 +77,19 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         xc = 0.5 * (xmin + xmax)
         yc = 0.5 * (ymin + ymax)
         if size is None:
-            deltaX, deltaY = xmax - xmin, ymax - ymin
-            if deltaX >= deltaY:
-                size = deltaX
-                xmap0, ymap0 = xmin, ymin - 0.5 * (deltaX - deltaY)
+            delta_x, delta_y = xmax - xmin, ymax - ymin
+            if delta_x >= delta_y:
+                size = delta_x
+                xmap0, ymap0 = xmin, ymin - 0.5 * (delta_x - delta_y)
             else:
-                size = deltaY
-                xmap0, ymap0 = xmin - 0.5 * (deltaY - deltaX), ymin
+                size = delta_y
+                xmap0, ymap0 = xmin - 0.5 * (delta_y - delta_x), ymin
         else:
             xmap0, ymap0 = xc - 0.5 * size, yc - 0.5 * size
     else:
         try:
             xc, yc = float(center[0]), float(center[1])
-        except:
+        except BaseException:
             print("Invalid center: ", center, "Must be a 2d number vector")
             raise ValueError
 
@@ -105,7 +105,8 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     # Normalizing coordinates in pixel units (0 = left/bottom border, npix = right/top border)
     x = (x - xmap0) / size * npix
     y = (y - ymap0) / size * npix
-    if zrange: hsml_z = hsml  # saving hsml in physical coordinates
+    hsml_z = hsml if zrange else None  # saving hsml in physical coordinates
+
     hsml = hsml / size * npix  # [h^-1 kpc] comoving
     pixsize = size / npix  # [h^-1 kpc] comoving
 
@@ -116,6 +117,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         valid_mask = valid_mask & (temp > tcut)
         if quantity not in ['Tmw', 'Tew', 'Tsl']:
             del temp
+
     if zrange:
         valid_mask = valid_mask & (z + hsml_z > zrange[0]) & (z - hsml_z < zrange[1])
     valid = np.where(valid_mask)[0]
@@ -141,7 +143,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
                                    units=0, suppress=1) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
         nrm = np.full(ngas, 0.)  # [---]
     elif quantity in ['Tmw', 'Tew', 'Tsl']:
-        if not 'temp' in locals():
+        if 'temp' not in locals():
             temp = readtemperature(filename, f_cooling=f_cooling, suppress=1)  # [K]
 
         if quantity == 'Tmw':
@@ -158,7 +160,6 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             nrm = mass * rho * temp ** (-0.75) / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 K^-0.75]
             del rho
         del mass, temp
-
     elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
         vel = pygr.readsnap(filename, 'vel', 'gas', units=0, suppress=1)[:, proj_ind] / (1 + redshift)  # [km s^-1]
         if quantity == 'vmw':
@@ -188,8 +189,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     # Mapping
     qty_map = np.full((npix, npix), 0.)
     nrm_map = np.full((npix, npix), 0.)
-    if quantity in ['wmw', 'wew']:
-        qty2_map = np.full((npix, npix), 0.)
+    qty2_map = np.full((npix, npix), 0.) if quantity in ['wmw', 'wew'] else None
 
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
 
