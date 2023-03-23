@@ -1,21 +1,21 @@
 import numpy as np
 from astropy.io import fits
-from src.pkg.proj2d.makemap import makemap
+from sphprojection.makemap import makemap
 
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 outdir = '/Users/mauro/XRISM/Maps'
 fileList = ['snap_128']
-npix = 1024
+npix = 256
 center = [500e3, 500e3]
 size = 5.e3
 nsample = None
-tcut = 1.e5
+tcut = 1.e6
 
 for file in fileList:
 
     infile = indir + file
     for proj in ['x', 'y', 'z']:
-        outfile = outdir + '/' + file + '_' + proj + '.fits'
+        outfile = outdir + '/' + file + '_' + str(npix) + '_' + proj + '.fits'
 
         hduList = fits.HDUList()
 

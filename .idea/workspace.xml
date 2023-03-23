@@ -4,8 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Committed modified files bypassing git to eliminate a large file from history">
+      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/phys_const.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/readspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/intkernel.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/makemap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -200,6 +209,17 @@
     </task>
     <option name="localTasksCounter" value="16" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="First commit" />
