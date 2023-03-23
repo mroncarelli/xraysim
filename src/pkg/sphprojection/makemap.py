@@ -45,7 +45,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     f_cooling = pygr.readhead(filename, 'f_cooling')
 
     # Reading positions of particles
-    pos = pygr.readsnap(filename, 'pos', 'gas', units=0)  # [h^-1 kpc] comoving
+    pos = pygr.readsnap(filename, 'pos', 'gas', units=0, suppress=1)  # [h^-1 kpc] comoving
     if proj == 'x' or proj == 0:
         proj_ind = 0
         x = pos[:, 1]
@@ -68,7 +68,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
 
     # Reading smoothing length or assigning it to zero if smoothing is turned off
     hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(filename, 'hsml', 'gas',
-                                                                 units=0)  # [h^-1 kpc] comoving
+                                                                 units=0, suppress=1)  # [h^-1 kpc] comoving
 
     # Defining center and map size
     if center is None:
@@ -112,7 +112,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     # Cutting out particles outside the f.o.v. and for other conditions
     valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
     if tcut > 0.:
-        temp = readtemperature(filename, f_cooling=f_cooling)  # [K]
+        temp = readtemperature(filename, f_cooling=f_cooling, suppress=1)  # [K]
         valid_mask = valid_mask & (temp > tcut)
         if quantity not in ['Tmw', 'Tew', 'Tsl']:
             del temp
@@ -126,7 +126,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     del valid
 
     # Calculating quantity (q) to integrate and weight (w)
-    mass = pygr.readsnap(filename, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]
+    mass = pygr.readsnap(filename, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     if zrange:
         # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
         for ipart in particle_list[::nsample]:
@@ -138,34 +138,34 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
         nrm = np.full(ngas, 0.)  # [---]
     elif quantity == 'rho2':  # Int(rho2*dl)
         qty = mass * pygr.readsnap(filename, 'rho', 'gas',
-                                   units=0) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
+                                   units=0, suppress=1) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
         nrm = np.full(ngas, 0.)  # [---]
     elif quantity in ['Tmw', 'Tew', 'Tsl']:
         if not 'temp' in locals():
-            temp = readtemperature(filename, f_cooling=f_cooling)  # [K]
+            temp = readtemperature(filename, f_cooling=f_cooling, suppress=1)  # [K]
 
         if quantity == 'Tmw':
             qty = mass * temp / pixsize ** 2  # [10^10 h M_Sun kpc^-2 K]
             nrm = mass / pixsize ** 2  # comoving [10^10 h M_Sun kpc^-2]
         elif quantity == 'Tew':
-            rho = pygr.readsnap(filename, 'rho', 'gas', units=0)  # [10^10 h^2 M_Sun kpc^-3]
+            rho = pygr.readsnap(filename, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
             qty = mass * rho * temp / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 K]
             nrm = mass * rho / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5]
             del rho
         elif quantity == 'Tsl':
-            rho = pygr.readsnap(filename, 'rho', 'gas', units=0)  # [10^10 h^2 M_Sun kpc^-3]
+            rho = pygr.readsnap(filename, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
             qty = mass * rho * temp ** 0.25 / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 K^0.25]
             nrm = mass * rho * temp ** (-0.75) / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 K^-0.75]
             del rho
         del mass, temp
 
     elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
-        vel = pygr.readsnap(filename, 'vel', 'gas', units=0)[:, proj_ind] / (1 + redshift)  # [km s^-1]
+        vel = pygr.readsnap(filename, 'vel', 'gas', units=0, suppress=1)[:, proj_ind] / (1 + redshift)  # [km s^-1]
         if quantity == 'vmw':
             qty = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
             nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
         elif quantity == 'vew':
-            rho = pygr.readsnap(filename, 'rho', 'gas', units=0)  # [10^10 h^2 M_Sun kpc^-3]
+            rho = pygr.readsnap(filename, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
             qty = mass * rho * vel / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km s^-1]
             nrm = mass * rho / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5]
             del rho
@@ -174,7 +174,7 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
             nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
             qty2 = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
         elif quantity == 'wew':
-            rho = pygr.readsnap(filename, 'rho', 'gas', units=0)  # [10^10 h^2 M_Sun kpc^-3]
+            rho = pygr.readsnap(filename, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
             qty = mass * rho * vel ** 2 / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km^2 s^-2]
             nrm = mass * rho / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
             qty2 = mass * rho * vel / pixsize ** 2  # [10^20 h^3 M_Sun^2 kpc^-5 km s^-1]

@@ -5,7 +5,7 @@ from sphprojection.makemap import makemap
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 outdir = '/Users/mauro/XRISM/Maps'
 fileList = ['snap_128']
-npix = 256
+npix = 1024
 center = [500e3, 500e3]
 size = 5.e3
 nsample = None
