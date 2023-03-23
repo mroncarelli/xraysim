@@ -7,7 +7,7 @@ def almost_equal(v0: float, v1: float, tol = 1e-6):
     return abs(v1/v0 - 1) <= tol
 
 # Snapshot file on which the tests are performed
-snapshot_file = 'test/snapshots/snap_128'
+snapshot_file = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
 
 # Reading particle information
 mass_part = pygr.readsnap(snapshot_file, 'mass', 'gas', units=0)  # [10^10 h^-1 M_Sun]

@@ -5,15 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Committed modified files bypassing git to eliminate a large file from history">
-      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/phys_const.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/gadgetutils/readspecial.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/intkernel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pkg/sphprojection/makemap.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/gadget1.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/gadget2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/gadget_blockordering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/hdf5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/header.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/names.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/rs_structs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/modules/tipsy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/readfofspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/readgadget.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/readpstar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/pkg/readgadget/readrockstar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/intkernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/linkedlist.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/makemap.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/proj2d/phys_const.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/test/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
