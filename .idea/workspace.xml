@@ -7,8 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/makemap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +67,7 @@
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python tests.Python tests for test_makemap.test_average_ew_velocity_dispersion">
     <configuration name="make_2d_maps" type="PythonConfigurationType" factoryName="Python">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -88,6 +90,55 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Python tests for test_makemap.test_average_ew_velocity_dispersion" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="xraysim" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_makemap.test_average_ew_velocity_dispersion&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_makemap.test_average_velocity_dispersion" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="xraysim" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_makemap.test_average_velocity_dispersion&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_makemap.test_total_momentum" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="xraysim" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_makemap.test_total_momentum&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.Python tests for test_makemap.test_average_ew_velocity_dispersion" />
+        <item itemvalue="Python tests.Python tests for test_makemap.test_average_velocity_dispersion" />
+        <item itemvalue="Python tests.Python tests for test_makemap.test_total_momentum" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -217,7 +268,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679596409381</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Reformatted code">
+      <created>1679657594397</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1679657594397</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -249,10 +307,23 @@
     <MESSAGE value="Added first provisional test file" />
     <MESSAGE value="Added pygadgetreader packages, removed obsolete directory" />
     <MESSAGE value="Reformatted code" />
-    <option name="LAST_COMMIT_MESSAGE" value="Reformatted code" />
+    <MESSAGE value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>jar://$USER_HOME$/opt/anaconda3/lib/python3.9/site-packages/xraysim-0.2-py3.9.egg!/sphprojection/makemap.py</url>
+          <line>224</line>
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>jar://$USER_HOME$/opt/anaconda3/lib/python3.9/site-packages/xraysim-0.2-py3.9.egg!/sphprojection/makemap.py</url>
+          <line>226</line>
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">

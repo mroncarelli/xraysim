@@ -223,7 +223,10 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
     qty_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
     if quantity in ['wmw', 'wew']:
         qty2_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
-        qty_map = np.sqrt(qty_map - qty2_map ** 2)
+        # The numerical noise may cause some pixels of qty_map to have smaller values than the corresponding ones,
+        # squared, in qty2_map: this would cause the presence of nan in the result. The where condition below puts 0 in
+        # those pixels.
+        qty_map = np.where(qty_map-qty2_map**2 < 0, 0, np.sqrt(qty_map - qty2_map ** 2))
 
     # Output
     if struct:
