@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.io import fits
-from sphprojection.makemap import makemap
+from sphprojection.mapping import makemap
 
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 outdir = '/Users/mauro/XRISM/Maps'

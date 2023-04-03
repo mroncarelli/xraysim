@@ -1,7 +1,7 @@
 import numpy as np
 import pygadgetreader as pygr
 from gadgetutils.readspecial import readtemperature
-from sphprojection.makemap import makemap
+from sphprojection.mapping import makemap
 
 
 def almost_equal(v0: float, v1: float, tol=1e-6):
