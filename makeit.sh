@@ -1,5 +1,5 @@
 #!/bin/bash
 
 ./clean.sh
-python setup.py build
-python setup.py install
+/usr/local/bin/python3 setup.py build
+/usr/local/bin/python3 setup.py install

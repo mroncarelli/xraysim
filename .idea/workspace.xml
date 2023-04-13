@@ -7,13 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test/test_intkernel.py" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Refactoring. Corrected makemap. Added test on intkernel.">
+      <change afterPath="$PROJECT_DIR$/testit.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/makeit.sh" beforeDir="false" afterPath="$PROJECT_DIR$/makeit.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/intkernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/intkernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,7 +29,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="refactoring" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -50,7 +48,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "last_opened_file_path": "/Users/mauro/IdeaProjects/xraysim/src/pkg/sphprojection",
+    "last_opened_file_path": "/Users/mauro/IdeaProjects/xraysim",
     "project.structure.last.edited": "SDKs",
     "project.structure.proportion": "0.19656284",
     "project.structure.side.proportion": "0.3632184",
@@ -61,8 +59,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/pkg/sphprojection" />
       <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/src/pkg/sphprojection" />
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -71,7 +69,7 @@
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Python tests for test_intkernel.test_norm_eq_1">
+  <component name="RunManager" selected="Python.make_2d_maps">
     <configuration name="make_2d_maps" type="PythonConfigurationType" factoryName="Python">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -79,8 +77,8 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="$USER_HOME$/opt/anaconda3/bin/python" />
-      <option name="SDK_NAME" value="Python 3.9 (base)" />
+      <option name="SDK_HOME" value="/usr/local/bin/python3.11" />
+      <option name="SDK_NAME" value="Python 3.11" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -150,6 +148,13 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.make_2d_maps" />
+      <item itemvalue="Python tests.Python tests for test_intkernel.test_norm_eq_1" />
+      <item itemvalue="Python tests.Python tests for test_makemap.test_average_ew_velocity_dispersion" />
+      <item itemvalue="Python tests.Python tests for test_makemap.test_average_velocity_dispersion" />
+      <item itemvalue="Python tests.Python tests for test_makemap.test_total_momentum" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Python tests for test_intkernel.test_norm_eq_1" />
@@ -301,7 +306,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680272835150</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="Refactoring. Corrected makemap. Added test on intkernel.">
+      <created>1680526395587</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1680526395587</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -334,7 +346,8 @@
     <MESSAGE value="Added pygadgetreader packages, removed obsolete directory" />
     <MESSAGE value="Reformatted code" />
     <MESSAGE value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
+    <MESSAGE value="Refactoring. Corrected makemap. Added test on intkernel." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactoring. Corrected makemap. Added test on intkernel." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
