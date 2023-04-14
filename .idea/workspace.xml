@@ -7,11 +7,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Refactoring. Corrected makemap. Added test on intkernel.">
-      <change afterPath="$PROJECT_DIR$/testit.sh" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Switching to native python in local">
+      <change afterPath="$PROJECT_DIR$/src/pkg/intkernel_cython.pyx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/makeit.sh" beforeDir="false" afterPath="$PROJECT_DIR$/makeit.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test_intkernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_intkernel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,22 +54,23 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "last_opened_file_path": "/Users/mauro/IdeaProjects/xraysim",
-    "project.structure.last.edited": "SDKs",
+    "last_opened_file_path": "/Users/mauro/IdeaProjects/xraysim/src/pkg/sphprojection",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.19656284",
     "project.structure.side.proportion": "0.3632184",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.keymap",
+    "settings.editor.selected.configurable": "preferences.fileTypes",
     "settings.editor.splitter.proportion": "0.24770643"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/pkg/sphprojection" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/pkg" />
       <recent name="$PROJECT_DIR$/src" />
       <recent name="$PROJECT_DIR$/pkg" />
       <recent name="$PROJECT_DIR$/src/proj2d" />
@@ -313,7 +320,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680526395587</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Switching to native python in local">
+      <created>1681396192449</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1681396192449</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -347,7 +361,8 @@
     <MESSAGE value="Reformatted code" />
     <MESSAGE value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
     <MESSAGE value="Refactoring. Corrected makemap. Added test on intkernel." />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactoring. Corrected makemap. Added test on intkernel." />
+    <MESSAGE value="Switching to native python in local" />
+    <option name="LAST_COMMIT_MESSAGE" value="Switching to native python in local" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

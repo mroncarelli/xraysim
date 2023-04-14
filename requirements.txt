@@ -3,3 +3,5 @@ tqdm==4.64.1
 setuptools==63.4.1
 h5py~=3.7.0
 astropy==5.1
+pytest~=7.1.2
+cython~=0.29.34
