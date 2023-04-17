@@ -19,7 +19,7 @@ def test_total_mass(infile=snapshot_file):
     """
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     val_snap = sum(mass)
-    map_str = makemap(infile, 'rho', npix=256, struct=True)
+    map_str = makemap(infile, 'rho', npix=128, struct=True)
     val_map = np.sum(map_str['map']) * map_str['pixel_size'] ** 2
 
     assert almost_equal(val_snap, val_map)
@@ -33,7 +33,7 @@ def test_total_emission_measure(infile=snapshot_file):
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     rho = pygr.readsnap(infile, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
     val_snap = sum(mass * rho)
-    map_str = makemap(infile, 'rho2', npix=256, struct=True)
+    map_str = makemap(infile, 'rho2', npix=128, struct=True)
     val_map = np.sum(map_str['map']) * map_str['pixel_size'] ** 2
 
     assert almost_equal(val_snap, val_map)
@@ -47,7 +47,7 @@ def test_average_tmw(infile=snapshot_file):
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     temp = readtemperature(infile, suppress=1)  # [K]
     val_snap = np.sum(mass * temp) / np.sum(mass)
-    map_str = makemap(infile, 'Tmw', npix=256, struct=True)
+    map_str = makemap(infile, 'Tmw', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) / np.sum(map_str['norm'])
 
     assert almost_equal(val_snap, val_map)
@@ -62,7 +62,7 @@ def test_average_tew(infile=snapshot_file):
     rho = pygr.readsnap(infile, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
     temp = readtemperature(infile, suppress=1)  # [K]
     val_snap = np.sum(mass * rho * temp) / np.sum(mass * rho)
-    map_str = makemap(infile, 'Tew', npix=256, struct=True)
+    map_str = makemap(infile, 'Tew', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) / np.sum(map_str['norm'])
 
     assert almost_equal(val_snap, val_map)
@@ -77,7 +77,7 @@ def test_total_momentum(infile=snapshot_file):
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sum(mass * vel)
-    map_str = makemap(infile, 'vmw', npix=256, struct=True)
+    map_str = makemap(infile, 'vmw', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
 
     assert almost_equal(val_snap, val_map)
@@ -93,7 +93,7 @@ def test_total_ew_momentum(infile=snapshot_file):
     rho = pygr.readsnap(infile, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sum(mass * rho * vel)
-    map_str = makemap(infile, 'vew', npix=256, struct=True)
+    map_str = makemap(infile, 'vew', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
 
     assert almost_equal(val_snap, val_map)
@@ -109,7 +109,7 @@ def test_average_velocity_dispersion(infile=snapshot_file):
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sqrt(
         np.sum(mass * vel ** 2) / np.sum(mass) - (np.sum(mass * vel) / np.sum(mass)) ** 2)
-    map_str = makemap(infile, 'wmw', npix=256, struct=True, nosmooth=True)
+    map_str = makemap(infile, 'wmw', npix=128, struct=True, nosmooth=True)
     val1_map = np.sum((map_str['map'] ** 2 + map_str['map2'] ** 2) * map_str['norm']) / np.sum(map_str['norm'])
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)
@@ -128,7 +128,7 @@ def test_average_ew_velocity_dispersion(infile=snapshot_file):
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sqrt(
         np.sum(mass * rho * vel ** 2) / np.sum(mass * rho) - (np.sum(mass * rho * vel) / np.sum(mass * rho)) ** 2)
-    map_str = makemap(infile, 'wew', npix=256, struct=True, nosmooth=True)
+    map_str = makemap(infile, 'wew', npix=128, struct=True, nosmooth=True)
     val1_map = np.sum((map_str['map'] ** 2 + map_str['map2'] ** 2) * map_str['norm']) / np.sum(map_str['norm'])
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)

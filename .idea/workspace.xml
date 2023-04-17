@@ -7,17 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Switching to native python in local">
-      <change afterPath="$PROJECT_DIR$/src/pkg/intkernel_cython.pyx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/makeit.sh" beforeDir="false" afterPath="$PROJECT_DIR$/makeit.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/make_2d_maps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/make_2d_maps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/test_intkernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_intkernel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/intkernel_cython.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/intkernel_cython.pyx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/test_makemap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,7 +69,7 @@
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.make_2d_maps">
+  <component name="RunManager" selected="Python tests.Python tests for test_intkernel.test_norm_eq_1">
     <configuration name="make_2d_maps" type="PythonConfigurationType" factoryName="Python">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -99,6 +92,34 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Python tests for test_intkernel.test_half" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="xraysim" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_intkernel.test_half&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_intkernel.test_negative_vs_positive" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="xraysim" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_intkernel.test_negative_vs_positive&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
     <configuration name="Python tests for test_intkernel.test_norm_eq_1" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -113,7 +134,7 @@
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_makemap.test_average_ew_velocity_dispersion" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_intkernel.test_val1" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -123,11 +144,11 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_makemap.test_average_ew_velocity_dispersion&quot;" />
+      <option name="_new_target" value="&quot;test_intkernel.test_val1&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests for test_makemap.test_average_velocity_dispersion" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests for test_intkernel.test_val2" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -137,37 +158,25 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_makemap.test_average_velocity_dispersion&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
-      <method v="2" />
-    </configuration>
-    <configuration name="Python tests for test_makemap.test_total_momentum" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
-      <module name="xraysim" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_makemap.test_total_momentum&quot;" />
+      <option name="_new_target" value="&quot;test_intkernel.test_val2&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
       <method v="2" />
     </configuration>
     <list>
       <item itemvalue="Python.make_2d_maps" />
+      <item itemvalue="Python tests.Python tests for test_intkernel.test_half" />
+      <item itemvalue="Python tests.Python tests for test_intkernel.test_negative_vs_positive" />
+      <item itemvalue="Python tests.Python tests for test_intkernel.test_val1" />
+      <item itemvalue="Python tests.Python tests for test_intkernel.test_val2" />
       <item itemvalue="Python tests.Python tests for test_intkernel.test_norm_eq_1" />
-      <item itemvalue="Python tests.Python tests for test_makemap.test_average_ew_velocity_dispersion" />
-      <item itemvalue="Python tests.Python tests for test_makemap.test_average_velocity_dispersion" />
-      <item itemvalue="Python tests.Python tests for test_makemap.test_total_momentum" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python tests.Python tests for test_intkernel.test_norm_eq_1" />
-        <item itemvalue="Python tests.Python tests for test_makemap.test_average_ew_velocity_dispersion" />
-        <item itemvalue="Python tests.Python tests for test_makemap.test_total_momentum" />
-        <item itemvalue="Python tests.Python tests for test_makemap.test_average_velocity_dispersion" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_negative_vs_positive" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_val2" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_val1" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_half" />
       </list>
     </recent_temporary>
   </component>
@@ -327,7 +336,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681396192449</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Turned intkernel into cython">
+      <created>1681484352483</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1681484352483</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -362,7 +378,8 @@
     <MESSAGE value="Added test, corrected makemap.py to prevent nan's in velocity dispersion maps" />
     <MESSAGE value="Refactoring. Corrected makemap. Added test on intkernel." />
     <MESSAGE value="Switching to native python in local" />
-    <option name="LAST_COMMIT_MESSAGE" value="Switching to native python in local" />
+    <MESSAGE value="Turned intkernel into cython" />
+    <option name="LAST_COMMIT_MESSAGE" value="Turned intkernel into cython" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
