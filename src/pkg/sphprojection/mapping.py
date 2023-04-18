@@ -3,9 +3,7 @@ import math as mt
 import numpy as np
 import pygadgetreader as pygr
 from gadgetutils.readspecial import readtemperature
-from pyximport import install
-install()
-from intkernel_cython import intkernel
+from sphprojection.kernel import intkernel
 from sphprojection.linkedlist import linkedlist2d
 from tqdm import tqdm
 
