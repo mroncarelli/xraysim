@@ -8,12 +8,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Minor modifications">
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/intkernel_cython.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/intkernel.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/makeit.sh" beforeDir="false" afterPath="$PROJECT_DIR$/makeit.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xraysim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim.iml" afterDir="false" />
     </list>
@@ -39,8 +38,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file:///Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/xraysim-0.2-py3.11-macosx-10.9-universal2.egg/sphprojection/kernel.py" root0="SKIP_INSPECTION" />
-    <setting file="file:///Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/xraysim-0.4-py3.11-macosx-10.9-universal2.egg/sphprojection/kernel.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -63,11 +61,11 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.19656284&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.3632184&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.CommitDialog&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
     &quot;settings.editor.splitter.proportion&quot;: &quot;0.24770643&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -117,7 +115,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="/usr/local/bin/python3.11" />
-      <option name="SDK_NAME" value="Python 3.11" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -137,7 +134,6 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="/usr/local/bin/python3.11" />
-      <option name="SDK_NAME" value="Python 3.11" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -157,7 +153,6 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="/usr/local/bin/python3.11" />
-      <option name="SDK_NAME" value="Python 3.11" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -255,6 +250,8 @@
       <workItem from="1681732059785" duration="793000" />
       <workItem from="1681736108192" duration="3777000" />
       <workItem from="1681744208092" duration="7148000" />
+      <workItem from="1681836953747" duration="853000" />
+      <workItem from="1681888870502" duration="3966000" />
     </task>
     <task id="LOCAL-00001" summary="First commit">
       <created>1675876189817</created>

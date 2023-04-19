@@ -27,7 +27,7 @@ def intkernel(x: float) -> float:
 def intkernel_ge0(x: float) -> float:
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx, but works only for x>=0.
-    Useful to speed up computation.
+    Useful to speed up computation. It is supposed to be called by intkernel only, and should not be used standalone.e
     Here w(x) is centered in x=0 and defined positive between -1 and -1, with w(x)=0 for x<=-1 and x>=1.
     :param x: the argument of the integral
     :return: the result of the integral

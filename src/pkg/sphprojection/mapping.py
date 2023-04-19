@@ -1,5 +1,4 @@
 import math as mt
-
 import numpy as np
 import pygadgetreader as pygr
 from gadgetutils.readspecial import readtemperature
