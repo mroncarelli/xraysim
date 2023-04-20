@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from intkernel_cython import intkernel
+from sphprojection.kernel import intkernel
 
 
 # This is a series of tests on the intkernel function

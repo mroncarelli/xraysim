@@ -8,13 +8,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Minor modifications">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/makeit.sh" beforeDir="false" afterPath="$PROJECT_DIR$/makeit.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/linkedlist.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_intkernel.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_intkernel.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,7 +30,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="refactoring" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -84,7 +82,7 @@
       <recent name="$PROJECT_DIR$/src/proj2d" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.python setup.py install">
+  <component name="RunManager" selected="Python tests.Python tests in tests">
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -133,6 +131,9 @@
       <module name="xraysim" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="/usr/local/bin/python3.11" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
@@ -421,7 +422,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681741582923</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="Preliminary changees to extend cython (not working)">
+      <created>1681996540106</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1681996540106</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -461,14 +469,15 @@
     <MESSAGE value="Switching to native python in local" />
     <MESSAGE value="Turned intkernel into cython" />
     <MESSAGE value="Minor modifications" />
-    <option name="LAST_COMMIT_MESSAGE" value="Minor modifications" />
+    <MESSAGE value="Preliminary changees to extend cython (not working)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Preliminary changees to extend cython (not working)" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
     <select />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/xraysim$make_2d_maps.coverage" NAME="make_2d_maps Coverage Results" MODIFIED="1681744148070" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/xraysim$.coverage" NAME=" Coverage Results" MODIFIED="1681739211568" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/xraysim$make_2d_maps.coverage" NAME="make_2d_maps Coverage Results" MODIFIED="1681998808872" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/xraysim$.coverage" NAME=" Coverage Results" MODIFIED="1681998918432" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
 </project>

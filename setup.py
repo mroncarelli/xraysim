@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 
 setup(
     name='xraysim',
-    version='0.5',
+    version='0.6',
     package_dir={'': 'src/pkg'},
     packages=['readgadget', 'readgadget.modules', 'pygadgetreader', 'sphprojection', 'gadgetutils'],
     ext_modules=cythonize('src/pkg/sphprojection/kernel.pyx'),

@@ -2,7 +2,7 @@ import math as mt
 import numpy as np
 import pygadgetreader as pygr
 from gadgetutils.readspecial import readtemperature
-from sphprojection.kernel import intkernel
+from sphprojection.kernel import intkernel, kernel_weight_2d
 from sphprojection.linkedlist import linkedlist2d
 from tqdm import tqdm
 
@@ -204,14 +204,10 @@ def makemap(filename: str, quantity, npix=256, center=None, size=None, proj='z',
 
         # Defining weight vectors for x and y-axis
         xpix = (np.arange(i_beg, i_end + 2) - x[ipart]) / hsml[ipart]
-        int_wk_x = intkernel_vec(xpix)
-        wk_x = [int_wk_x[i + 1] - int_wk_x[i] for i in range(nx)]
         ypix = (np.arange(j_beg, j_end + 2) - y[ipart]) / hsml[ipart]
-        int_wk_y = intkernel_vec(ypix)
-        wk_y = [int_wk_y[j + 1] - int_wk_y[j] for j in range(ny)]
 
         # Using weight vectors to construct weight matrix
-        wk_matrix = np.full([ny, nx], wk_x).transpose() * np.full([nx, ny], wk_y)
+        wk_matrix = kernel_weight_2d(xpix, ypix)
 
         # Adding to maps
         qty_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * qty[ipart]
