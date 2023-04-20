@@ -49,6 +49,18 @@ def intkernel_ge0(x: float) -> float:
 
 
 def kernel_weight_2d(x, y):
+    """
+    Computes the SPH kernel weight of a 2d map, whose pixel borders are specified by the input.
+    :param x: the normalised coordinates of the pixels in the x-axis, must be in increasing order
+    :param y: the normalised coordinates of the pixels in the y-axis, must be in increasing order
+    :return: a 2d array of size len(x)-1, len(y)-1 with the weights
+    :examples: intKernel([-0.3, -0.04, 0., 0.2, 0.8, 1.3], [-2., -0.9, 0., 0.75]) returns:
+     array([[1.94053680e-05, 1.45496708e-01, 1.44758217e-01],
+       [3.54510721e-06, 2.65803476e-02, 2.64454350e-02],
+       [1.65716385e-05, 1.24250097e-01, 1.23619446e-01],
+       [1.66960967e-05, 1.25183254e-01, 1.24547867e-01],
+       [7.11294143e-08, 5.33310968e-04, 5.30604066e-04]])
+    """
     nx = len(x) - 1
     int_wk_x = intkernel_vec(x)
     wk_x = [int_wk_x[i + 1] - int_wk_x[i] for i in range(nx)]

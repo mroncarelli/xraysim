@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Minor modifications">
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Added comment">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_makemap.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_makemap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/src/pkg/sphprojection/kernel.pyx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -427,7 +427,14 @@
       <option name="project" value="LOCAL" />
       <updated>1681996540106</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Corrected error in test">
+      <created>1682003731450</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1682003731450</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -468,7 +475,8 @@
     <MESSAGE value="Turned intkernel into cython" />
     <MESSAGE value="Minor modifications" />
     <MESSAGE value="Preliminary changees to extend cython (not working)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Preliminary changees to extend cython (not working)" />
+    <MESSAGE value="Corrected error in test" />
+    <option name="LAST_COMMIT_MESSAGE" value="Corrected error in test" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
