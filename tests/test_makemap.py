@@ -109,7 +109,7 @@ def test_average_velocity_dispersion(infile=snapshot_file):
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sqrt(
         np.sum(mass * vel ** 2) / np.sum(mass) - (np.sum(mass * vel) / np.sum(mass)) ** 2)
-    map_str = makemap(infile, 'wmw', npix=128, struct=True, nosmooth=True)
+    map_str = makemap(infile, 'wmw', npix=128, struct=True)
     val1_map = np.sum((map_str['map'] ** 2 + map_str['map2'] ** 2) * map_str['norm']) / np.sum(map_str['norm'])
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)
@@ -128,7 +128,7 @@ def test_average_ew_velocity_dispersion(infile=snapshot_file):
     vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
     val_snap = np.sqrt(
         np.sum(mass * rho * vel ** 2) / np.sum(mass * rho) - (np.sum(mass * rho * vel) / np.sum(mass * rho)) ** 2)
-    map_str = makemap(infile, 'wew', npix=128, struct=True, nosmooth=True)
+    map_str = makemap(infile, 'wew', npix=128, struct=True)
     val1_map = np.sum((map_str['map'] ** 2 + map_str['map2'] ** 2) * map_str['norm']) / np.sum(map_str['norm'])
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)
