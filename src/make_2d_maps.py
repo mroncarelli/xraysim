@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.io import fits
-from sphprojection.mapping import makemap
+from sphprojection.mapping import make_map
 
 indir = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
 outdir = '/Users/mauro/XRISM/Maps'
@@ -19,7 +19,9 @@ for file in fileList:
 
         hduList = fits.HDUList()
 
-        mapStruct = makemap(infile, 'Tmw', struct=True, npix=npix, center=center, size=size, nsample=nsample, tcut=tcut, progress=True)
+        mapStruct = make_map(infile, 'Tmw', struct=True, npix=npix, center=center, size=size, proj=proj,
+                             nsample=nsample,
+                             tcut=tcut, progress=True)
         xCoord = np.linspace(mapStruct['xrange'][0], mapStruct['xrange'][1], npix,
                              endpoint=False) + 0.5 * mapStruct['pixel_size']
         yCoord = np.linspace(mapStruct['yrange'][0], mapStruct['yrange'][1], npix,
@@ -49,7 +51,8 @@ for file in fileList:
         hduList[-1].header.set('EXPR', 'Int(rho*T*dl)/Int(rho*dl)')
         hduList[-1].header.set('UNITS', '[' + mapStruct['units'] + ']')
 
-        mapStruct = makemap(infile, 'Tew', struct=True, npix=npix, center=center, size=size, nsample=nsample, tcut=tcut, progress=True)
+        mapStruct = make_map(infile, 'Tew', struct=True, npix=npix, center=center, size=size, proj=proj,
+                             nsample=nsample, tcut=tcut, progress=True)
 
         # Extension 2
         hduList.insert(2, fits.ImageHDU(mapStruct['norm'], name='Emission measure'))
@@ -61,7 +64,8 @@ for file in fileList:
         hduList[-1].header.set('EXPR', 'Int(rho^2*T*dl)/Int(rho^2*dl)')
         hduList[-1].header.set('UNITS', '[' + mapStruct['units'] + ']')
 
-        mapStruct = makemap(infile, 'Tsl', struct=True, npix=npix, center=center, size=size, nsample=nsample, tcut=tcut, progress=True)
+        mapStruct = make_map(infile, 'Tsl', struct=True, npix=npix, center=center, size=size, proj=proj,
+                             nsample=nsample, tcut=tcut, progress=True)
 
         # Extension 5
         hduList.append(fits.ImageHDU(mapStruct['map'], name='Spectroscopic-like temperature'))
@@ -73,7 +77,8 @@ for file in fileList:
         hduList[-1].header.set('EXPR', 'Int(rho^2*T^-0.75*dl)')
         hduList[-1].header.set('UNITS', '[' + mapStruct['norm_units'] + ']')
 
-        mapStruct = makemap(infile, 'wmw', struct=True, npix=npix, center=center, size=size, nsample=nsample, tcut=tcut, progress=True)
+        mapStruct = make_map(infile, 'wmw', struct=True, npix=npix, center=center, size=size, proj=proj,
+                             nsample=nsample, tcut=tcut, progress=True)
 
         # Extension 7
         hduList.append(fits.ImageHDU(mapStruct['map2'], name='Mass-weighted velocity'))
@@ -85,7 +90,8 @@ for file in fileList:
         hduList[-1].header.set('EXPR', 'SQRT( Int(rho*(v-v0)^2*dl)/Int(rho*dl) )')
         hduList[-1].header.set('UNITS', '[' + mapStruct['units'] + ']')
 
-        mapStruct = makemap(infile, 'wew', struct=True, npix=npix, center=center, size=size, nsample=nsample, tcut=tcut, progress=True)
+        mapStruct = make_map(infile, 'wew', struct=True, npix=npix, center=center, size=size, proj=proj,
+                             nsample=nsample, tcut=tcut, progress=True)
 
         # Extension 8
         hduList.insert(8, fits.ImageHDU(mapStruct['map2'], name='Emission-weighted velocity'))

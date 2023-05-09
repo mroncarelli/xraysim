@@ -5,7 +5,7 @@ setup(
     name='xraysim',
     version='0.6',
     package_dir={'': 'src/pkg'},
-    packages=['readgadget', 'readgadget.modules', 'pygadgetreader', 'sphprojection', 'gadgetutils'],
+    packages=['readgadget', 'readgadget.modules', 'pygadgetreader', 'sphprojection', 'gadgetutils', 'specutils'],
     ext_modules=cythonize('src/pkg/sphprojection/kernel.pyx'),
     zip_safe=False,
     url='https://github.com/mroncarelli/xraysim',

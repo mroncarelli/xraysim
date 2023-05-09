@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from sphprojection.kernel import intkernel
+from src.pkg.sphprojection.kernel import intkernel
 
 
 # This is a series of tests on the intkernel function

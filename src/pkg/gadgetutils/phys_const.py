@@ -32,3 +32,4 @@ Xp = 0.76  # hydrogen mass fraction [---]
 Yp = 1. - Xp  # helium mass fraction [---]
 x_e0 = 1. + Yp / (2. * Xp)  # n_e/n_H [---]  (full ion, no metals)
 mu0 = 1. / (2. * Xp + 3. / 4. * Yp)  # mean molecular weight [m_p] (full ion, no metals)
+
