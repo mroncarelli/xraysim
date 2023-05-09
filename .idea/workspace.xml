@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="">
+    <list default="true" id="ecf02a30-5bd3-4802-8a54-393dc3aeca28" name="Changes" comment="Forced merge with branch cube due to committed large file">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -26,7 +27,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="merge_attempt" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -231,6 +232,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_val2" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_val1" />
+        <item itemvalue="Python tests.Python tests for test_intkernel.test_norm_eq_1" />
         <item itemvalue="Python tests.Python tests in tests" />
         <item itemvalue="Python tests.Python tests for test_makemap.test_average_velocity_dispersion" />
       </list>
@@ -440,7 +444,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682004602661</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Forced merge with branch cube due to committed large file">
+      <created>1683634005515</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1683634005515</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -458,7 +469,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="First commit" />
     <MESSAGE value="Created linked list, continued coding the rest" />
     <MESSAGE value="Corrected errors, added arguments to makemap" />
     <MESSAGE value="Faster mapping method" />
@@ -483,7 +493,8 @@
     <MESSAGE value="Preliminary changees to extend cython (not working)" />
     <MESSAGE value="Corrected error in test" />
     <MESSAGE value="Added docstring in kernel_weight_2d" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added docstring in kernel_weight_2d" />
+    <MESSAGE value="Forced merge with branch cube due to committed large file" />
+    <option name="LAST_COMMIT_MESSAGE" value="Forced merge with branch cube due to committed large file" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -506,7 +517,9 @@
     <select />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/xraysim$mapping.coverage" NAME="mapping Coverage Results" MODIFIED="1682698246597" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/pkg/sphprojection" />
     <SUITE FILE_PATH="coverage/xraysim$make_2d_maps.coverage" NAME="make_2d_maps Coverage Results" MODIFIED="1682016924879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/xraysim$.coverage" NAME=" Coverage Results" MODIFIED="1682003263053" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/xraysim$make_spcubes.coverage" NAME="make_spcubes Coverage Results" MODIFIED="1683553710802" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/xraysim$.coverage" NAME=" Coverage Results" MODIFIED="1683624228191" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
 </project>
