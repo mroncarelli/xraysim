@@ -174,29 +174,38 @@ def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
     """
 
     data = spectable.get('data')  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
+    nene = data.shape[2]
     z_table = spectable.get('z')
     temperature_table = spectable.get('temperature')  # [keV]
     flag_ene_table = spectable.get('flag_ene')
 
+    # Redshift (index 0)
     if no_z_interp:
         iz = nearest_index_sorted(z_table, z)
         data = data[iz, :, :]
     else:
         iz0 = largest_index_smaller(z_table, z)
-        if iz0 is None or iz0 == len(z_table) - 1:
+        if iz0 is None:
+            iz0 = 0  # TODO: WARNING
+        elif iz0 == len(z_table) - 1:
             iz0 = len(z_table) - 2  # TODO: WARNING
         iz1 = iz0 + 1
         fz = (z - z_table[iz0]) / (z_table[iz1] - z_table[iz0])
         data = (1 - fz) * data[iz0, :, :] + fz * data[iz1, :, :]
 
+    # Temperature (index 1)
     it0 = largest_index_smaller(temperature_table, temperature)
-    if it0 is None or it0 == len(temperature_table) - 1:
+    if it0 is None:
+        it0 = 0  # TODO: WARNING
+    elif it0 == len(temperature_table) - 1:
         it0 = len(temperature_table) - 2  # TODO: WARNING
     it1 = it0 + 1
     ft = (np.log(temperature) - np.log(temperature_table[it0])) / (
             np.log(temperature_table[it1]) - np.log(temperature_table[it0]))
-    result = np.exp((1 - ft) * np.log(data[it0, :]) + ft * np.log(
-        data[it1, :]))  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
+    valid = np.where(data[it0, :] * data[it0, :] > 0.)
+    result = np.zeros(nene)
+    result[valid] = np.exp((1 - ft) * np.log(data[it0, valid]) + ft * np.log(
+        data[it1, valid]))  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
 
     # Converting counts to energy or vice-versa if required
     if flag_ene != flag_ene_table:

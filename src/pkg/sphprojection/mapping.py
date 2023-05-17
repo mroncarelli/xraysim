@@ -1,6 +1,7 @@
 import math as mt
 
 import astropy as apy
+from astropy.io import fits
 import numpy as np
 import pygadgetreader as pygr
 from src.pkg.gadgetutils.readspecial import readtemperature
@@ -8,7 +9,7 @@ from src.pkg.gadgetutils import convert, phys_const
 from sphprojection.kernel import intkernel, kernel_weight_2d
 from sphprojection.linkedlist import linkedlist2d
 from tqdm import tqdm
-from src.pkg.specutils import tables
+from src.pkg.specutils import tables, simput
 
 intkernel_vec = np.vectorize(intkernel)
 
@@ -242,7 +243,6 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
             for jpix in range(npix):
                 qty_map[ipix, jpix] = np.sqrt(max(qty_map[ipix, jpix] - qty2_map[ipix, jpix] ** 2, 0))
 
-
     # Conversion to float32 for output
     qty_map = np.float32(qty_map)
     nrm_map = np.float32(nrm_map)
@@ -293,8 +293,8 @@ from astropy import cosmology
 
 
 def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
-                  energy_cut=None, tcut=0., nsample=None, struct=False, isothermal=None, novel=None, nosmooth=False,
-                  progress=False):
+                  energy_cut=None, tcut=0., flag_ene=False, nsample=None, struct=False, isothermal=None, novel=None,
+                  nosmooth=False, progress=False):
     """
     :param simfile: (str) simulation file (Gadget)
     :param spfile: (str) spectrum file (FITS)
@@ -306,6 +306,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param zrange: (float 2) range in the l.o.s. axis
     :param energy_cut: (float 2) energy interval to cpmpute (default: assumes the one from the spfile)
     :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
+    :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
+        arcmin^-2], with False in count units, i.e. [counts keV^-1 s^-1 cm^-2 arcmin^-2], default: False
     :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
     :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False
                     - data: spectral cube
@@ -416,11 +418,12 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading density
     rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (
-                1 + redshift) ** 3  # physical [10^10 h^2 M_Sun kpc^-3]
+            1 + redshift) ** 3  # physical [10^10 h^2 M_Sun kpc^-3]
 
     ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
-    norm = convert.gadgget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)  # [10^14 cm^-5]
+    norm = convert.gadgget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble,
+                                     ne)  # [10^14 cm^-5]
     del mass, rho, ne
 
     # Reading emission table
@@ -432,6 +435,15 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     nene = len(energy)
     d_ene = (energy[-1] - energy[0]) / (
             nene - 1)  # [keV] Assuming uniform energy interval. TODO: include d_ene while generating the table
+
+    # Converting counts to energy o viceversa, if necessary
+    if flag_ene != spectable.get('flag_ene'):
+        if flag_ene:
+            for iene in range(0, nene):
+                spectable['data'][:, :, iene] *= energy[iene]  # [10^-14 keV s^-1 cm^3]
+        else:
+            for iene in range(0, nene):
+                spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 counts s^-1 cm^3]
 
     # Mapping
     spcube = np.full((npix, npix, nene), 0.)
@@ -464,7 +476,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         spcube[i_beg:i_end + 1, j_beg:j_end + 1, :] += norm[ipart] * spectrum_wk
 
     # Renormalizing result
-    spcube /= d_ene * pixsize ** 2  # [counts keV^-1 s^-1 cm^-2 arcmin^-2]
+    spcube /= d_ene * pixsize ** 2  # [counts s^-1 cm^-2 arcmin^-2 keV^-1]
 
     # Conversion to float32 for output
     spcube = np.float32(spcube)
@@ -481,9 +493,15 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             'pixel_size': pixsize,  # [arcmin]
             'energy': energy,
             'energy_interval': np.float32(np.full(nene, d_ene)),
-            'units': 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
+            'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
             'coord_units': 'h^-1 kpc',
-            'energy_units': 'keV'
+            'energy_units': 'keV',
+            'simulation_file': simfile,
+            'spectral_table': spfile,
+            'proj': proj,
+            'z_cos': redshift,
+            'd_c': cosmo.comoving_distance(redshift).to_value(),  # h^-1 Mpc
+            'flag_ene': flag_ene
         }
         if nosmooth:
             result['smoothing'] = 'OFF'
@@ -496,6 +514,137 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
         return spcube
 
+
 # [counts keV^-1 s^-1 cm^-2 arcmin^-2]
 # TODO: The first 7 code lines in the mapping loop can be wrapped into a method, with inputs (x, y, hsml, nx, ny) and
 # output (i_beg, i_end, j_beg, j_end, wk_matrix)
+
+
+def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
+                    appendto=None, nh=None):
+    """
+    :param spcube_struct: spectral cube structure, i.e. output of make_speccube
+    :param simput_file: (str) SIMPUT output file
+    :param tag:
+    :param pos:
+    :param npix:
+    :param fluxsc:
+    :param addto:
+    :param appendto:
+    :param nh:
+    :return:
+    """
+
+    spcube = spcube_struct.get('data')  # [counts s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
+    del spcube_struct['data']
+    npix0 = spcube.shape[0]
+    nene = spcube.shape[2]
+    energy = spcube_struct.get('energy')  # [keV]
+    d_ene = spcube_struct.get('energy')  # [keV]
+    size = spcube_struct.get('size')  # [deg]
+    d_area = spcube_struct.get('pixel_size') ** 2  # [arcmin^2]
+    spcube *= d_area  # [counts s^-1 cm^-2 keV^-1] or [keV s^-1 cm^-2 keV^-1]
+
+    # Defining RA-DEC position
+    try:
+        ra0, dec0 = float(pos[0]), float(pos[1])
+    except BaseException:
+        print("Invalid center: ", pos, "Must be a 2d number vector")
+        raise ValueError
+
+    # Correcting energy to counts, if necessary
+    if spcube_struct.get('flag_ene'):
+        for iene in range(0, nene):
+            spcube[:, :, iene] /= energy[iene]  # [counts keV^-1 s^-1 cm^-2]
+
+    # TODO: Implement nh here
+
+    # TODO: Implement addto here
+
+    if npix is None:
+        npix = npix0
+    else:
+        npix = npix0
+
+    # Rebinning if necessary TODO: implement something close to the CONGRID function in IDL and remove previous else
+
+    # Creating coordinate arrays
+    ra_pix = ra0 + np.linspace(-0.5 * size, 0.5 * size, npix, endpoint=False) + size / (2 * npix)  # [deg]
+    dec_pix = dec0 + np.linspace(-0.5 * size, 0.5 * size, npix, endpoint=False) + size / (2 * npix)  # [deg]
+
+    # Creating the SIMPUT file
+    hdulist = fits.HDUList()
+
+    # Primary (empty)
+    primary = [0]
+    hdulist.append(fits.PrimaryHDU(primary))
+
+    # Creating data for Extension 1 (sources) and 2 (spectrum)
+    name = []
+    ra = []
+    dec = []
+    flux = []
+    spectrum = []
+    fluxdensity = []
+    energy_out = []
+
+    for ipix in range(0, npix):
+        for jpix in range(0, npix):
+            source_flux = np.sum(spcube[ipix, jpix, :] * energy * d_ene) * phys_const.keV2erg  # [erg s^-1 cm^-2]
+            if source_flux > 0.:  # cleaning pixels that have zero flux
+                row_name = tag + '(' + str(ipix) + ',' + str(jpix) + ')'
+                name.append(row_name)
+                ra.append(ra_pix[ipix])  # [deg]
+                dec.append(dec_pix[jpix])  # [deg]
+                flux.append(source_flux)  # [erg s^-1 cm^-2]
+                spectrum.append("[SPECTRUM,1][NAME=='" + row_name + "']")
+                energy_out.append(energy)  # [keV]
+                fluxdensity.append(spcube[ipix, jpix, :])  # [counts keV^-1 s^-1 cm^-2]
+
+    nsource = len(name)
+    src_id = np.arange(1, nsource + 1)
+    imgrota = imgscal = np.full(nsource, 0.)
+    e_min = np.full(nsource, energy[0] - 0.5 * spcube_struct.get('energy_interval')[0])  # [keV]
+    e_max = np.full(nsource, energy[-1] + 0.5 * spcube_struct.get('energy_interval')[-1])  # [keV]
+    image = timing = np.full(nsource, 'NULL                            ')
+
+    # Extension 1 (sources)
+    src_cat_columns = [fits.Column(name='SRC_ID', format='J', array=src_id),
+                       fits.Column(name='SRC_NAME', format='32A', array=name),
+                       fits.Column(name='RA', format='E', array=ra, unit='deg'),
+                       fits.Column(name='DEC', format='E', array=dec, unit='deg'),
+                       fits.Column(name='IMGROTA', format='E', array=imgrota, unit='deg'),
+                       fits.Column(name='IMGSCAL', format='E', array=imgscal),
+                       fits.Column(name='E_MIN', format='E', array=e_min, unit='keV'),
+                       fits.Column(name='E_MAX', format='E', array=e_max, unit='keV'),
+                       fits.Column(name='FLUX', format='E', array=flux, unit='erg/s/cm**2'),
+                       fits.Column(name='SPECTRUM', format='64A', array=spectrum),
+                       fits.Column(name='IMAGE', format='32A', array=image),
+                       fits.Column(name='TIMING', format='32A', array=timing)]
+    src_cat = fits.BinTableHDU.from_columns(fits.ColDefs(src_cat_columns))
+    hdulist.append(src_cat)
+
+    # Extension 2 (spectrum)
+    spectrum_columns = [fits.Column(name='NAME', format='32A', array=name),
+                        fits.Column(name='ENERGY', format=str(nene) + 'E', array=energy_out, unit='keV'),
+                        fits.Column(name='FLUXDENSITY', format=str(nene) + 'E', array=energy_out,
+                                    unit='photons/s/cm**2/keV')]
+    spectrum_ext = fits.BinTableHDU.from_columns(fits.ColDefs(spectrum_columns))
+    hdulist.append(spectrum_ext)
+
+    # Setting headers
+    simput.set_simput_headers(hdulist)
+    hdulist[0].header.set('SIM_FILE', spcube_struct.get('simulation_file'))
+    hdulist[0].header.set('SP_FILE', spcube_struct.get('spectral_table'))
+    hdulist[0].header.set('PROJ', spcube_struct.get('proj'))
+    hdulist[0].header.set('Z_COS', spcube_struct.get('z_cos'))
+    hdulist[0].header.set('D_C', spcube_struct.get('d_c'), '[Mpc]')
+    hdulist[0].header.set('NPIX', npix)
+    hdulist[0].header.set('NENE', nene)
+    hdulist[0].header.set('ANG_PIX', spcube_struct.get('pixel_size'), '[arcmin]')
+    hdulist[0].header.set('ANG_MAP', spcube_struct.get('size'), '[deg]')
+    hdulist[0].header.set('RA_C', ra0, '[deg]')
+    hdulist[0].header.set('DEC_C', dec0, '[deg]')
+
+    hdulist.writeto(simput_file, overwrite=True)
+    return None
