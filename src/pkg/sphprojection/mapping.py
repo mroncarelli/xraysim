@@ -478,20 +478,16 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # Renormalizing result
     spcube /= d_ene * pixsize ** 2  # [counts s^-1 cm^-2 arcmin^-2 keV^-1]
 
-    # Conversion to float32 for output
-    spcube = np.float32(spcube)
-    energy = np.float32(energy)
-
     # Output
     if struct:
 
         result = {
-            'data': spcube,
+            'data': np.float32(spcube),
             'xrange': (xmap0, xmap0 + size_gadget),  # [h^-1 kpc]
             'yrange': (ymap0, ymap0 + size_gadget),  # [h^-1 kpc]
-            'size': size,  # [deg]
-            'pixel_size': pixsize,  # [arcmin]
-            'energy': energy,
+            'size': np.float32(size),  # [deg]
+            'pixel_size': np.float32(pixsize),  # [arcmin]
+            'energy': np.float32(energy),
             'energy_interval': np.float32(np.full(nene, d_ene)),
             'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
             'coord_units': 'h^-1 kpc',
@@ -503,10 +499,16 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             'd_c': cosmo.comoving_distance(redshift).to_value(),  # h^-1 Mpc
             'flag_ene': flag_ene
         }
-        if nosmooth:
-            result['smoothing'] = 'OFF'
+        if tcut:
+            result['tcut'] = tcut
+        if isothermal:
+            result['isothermal'] = isothermal
+        result['smoothing'] = 'OFF' if nosmooth else 'ON'
+        result['velocities'] = 'OFF' if novel else 'ON'
         if zrange:
             result['zrange'] = zrange  # [h^-1 kpc] comoving
+        if nsample and nsample != 1:
+            result['nsample'] = nsample
 
         return result
 
@@ -525,14 +527,14 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     """
     :param spcube_struct: spectral cube structure, i.e. output of make_speccube
     :param simput_file: (str) SIMPUT output file
-    :param tag:
-    :param pos:
-    :param npix:
-    :param fluxsc:
-    :param addto:
-    :param appendto:
-    :param nh:
-    :return:
+    :param tag: (str) prefix of the source name, default None
+    :param pos: (float 2) sky position in RA, DEC [deg]
+    :param npix: number of pixels per side of the output spectral map (TODO: if different from input it is rebinned)
+    :param fluxsc: (float) flux scaling to be applied to the cube
+    :param addto: TODO
+    :param appendto: TODO
+    :param nh: TODO
+    :return: None
     """
 
     spcube = spcube_struct.get('data')  # [counts s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
@@ -588,11 +590,12 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     fluxdensity = []
     energy_out = []
 
+    name_prefix = tag + '-' if tag else ''
     for ipix in range(0, npix):
         for jpix in range(0, npix):
             source_flux = np.sum(spcube[ipix, jpix, :] * energy * d_ene) * phys_const.keV2erg  # [erg s^-1 cm^-2]
             if source_flux > 0.:  # cleaning pixels that have zero flux
-                row_name = tag + '(' + str(ipix) + ',' + str(jpix) + ')'
+                row_name = name_prefix + '(' + str(ipix) + ',' + str(jpix) + ')'
                 name.append(row_name)
                 ra.append(ra_pix[ipix])  # [deg]
                 dec.append(dec_pix[jpix])  # [deg]
@@ -645,6 +648,18 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     hdulist[0].header.set('ANG_MAP', spcube_struct.get('size'), '[deg]')
     hdulist[0].header.set('RA_C', ra0, '[deg]')
     hdulist[0].header.set('DEC_C', dec0, '[deg]')
+    if fluxsc != 1.:
+        hdulist[0].header.set('FLUXSC', fluxsc)
+    if spcube_struct.get('tcut'):
+        hdulist[0].header.set('T_CUT', spcube_struct.get('tcut'))
+    if spcube_struct.get('isothermal'):
+        hdulist[0].header.set('ISOTHERM', spcube_struct.get('isothermal'))
+    hdulist[0].header.set('SMOOTH', spcube_struct.get('smoothing'))
+    hdulist[0].header.set('VPEC', spcube_struct.get('velocities'))
+    if spcube_struct.get('zrange'):
+        hdulist[0].header.set('Z_RANGE', spcube_struct.get('zrange'))
+    if spcube_struct.get('nsample'):
+        hdulist[0].header.set('NSAMPLE', spcube_struct.get('nsample'))
 
     hdulist.writeto(simput_file, overwrite=True)
     return None
