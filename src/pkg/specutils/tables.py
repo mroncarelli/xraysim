@@ -24,10 +24,10 @@ def largest_index_smaller(array, value):
     :return: index of the largest value smaller than the input value
     """
     idx = len(array) - 1
-    while idx > 0 and array[idx] > value:
+    while idx > 0 and array[idx] >= value:
         idx += -1
 
-    if array[idx] <= value:
+    if array[idx] < value:
         return idx
     else:
         return None
@@ -42,10 +42,10 @@ def smallest_index_larger(array, value):
     :return: index of the smallest value larger than the input value
     """
     idx = 0
-    while idx < len(array) - 1 and array[idx] < value:
+    while idx < len(array) - 1 and array[idx] <= value:
         idx += 1
 
-    if array[idx] >= value:
+    if array[idx] > value:
         return idx
     else:
         return None
@@ -126,6 +126,10 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
             i0 = 0  # TODO: WARNING
         if i1 is None:
             i1 = len(temperature) - 1  # TODO: WARNING
+        if i0 == i1:
+            i1 += 1
+            if i1 == len(temperature):
+                i0, i1 = len(temperature) - 2, len(temperature) - 1
         temperature = temperature[i0:i1 + 1]
         spec = spec[:, i0:i1 + 1, :]
 

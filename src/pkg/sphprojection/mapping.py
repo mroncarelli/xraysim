@@ -514,7 +514,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     else:
 
-        return spcube
+        return np.float32(spcube)
 
 
 # [counts keV^-1 s^-1 cm^-2 arcmin^-2]
