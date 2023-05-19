@@ -110,7 +110,6 @@ def test_isothermal_spectrum():
     spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
                                   isothermal=temp_iso, nsample=nsample)
 
-    nene = spec_cube_iso.shape[2]
     spec_iso = np.ndarray(nene)
     for iene in range(nene):
         spec_iso[iene] = spec_cube_iso[:, :, iene].sum()

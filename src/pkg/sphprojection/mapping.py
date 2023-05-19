@@ -523,7 +523,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
 
 def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
-                    appendto=None, nh=None):
+                    appendto=None, nh=None, save_memory=False):
     """
     :param spcube_struct: spectral cube structure, i.e. output of make_speccube
     :param simput_file: (str) SIMPUT output file
@@ -534,11 +534,13 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     :param addto: TODO
     :param appendto: TODO
     :param nh: TODO
+    :param save_memory: (bool) if set to true the 'data' key is deleted from the spcube_struct, default False
     :return: None
     """
 
     spcube = spcube_struct.get('data')  # [counts s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
-    del spcube_struct['data']
+    if save_memory:
+        del spcube_struct['data']
     npix0 = spcube.shape[0]
     nene = spcube.shape[2]
     energy = spcube_struct.get('energy')  # [keV]
