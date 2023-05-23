@@ -41,7 +41,7 @@ def vpec2zobs(v_pec, z_h, units=None):
     Converts a peculiar velocity into observed redshift, considering also a Hubble-flow redshift.
     :param v_pec: (float) peculiar velocity, in units of light-speed (unless argument units specifies otherwise)
     :param z_h: (float) Hubble flow redshift, i.e. the one corresponding to comoving distance
-    :param units: (str) can be either 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s'
+    :param units: (str) can be either 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s', default None, i.e. v/c_light
     :return: the corresponding observed redshift
     """
 
@@ -51,7 +51,7 @@ def vpec2zobs(v_pec, z_h, units=None):
         elif units in ['mks', 'm/s']:
             conv = c_light * 1e-2
         elif units == 'km/s':
-            conv = c_light * 1e-2
+            conv = c_light * 1e-5
         else:
             print("Invalid unit: ", units, "Must be one of 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s' or None")
             raise ValueError
