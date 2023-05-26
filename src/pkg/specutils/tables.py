@@ -159,6 +159,8 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
         'temperature_units': hdulist[2].header['UNITS'],
         'energy_units': hdulist[3].header['UNITS']
     }
+    if 'NH' in hdulist[0].header:
+        result['nh'] = hdulist[0].header['NH']
 
     hdulist.close()
     return result

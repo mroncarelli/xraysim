@@ -9,7 +9,8 @@ from src.pkg.gadgetutils import convert, phys_const
 from sphprojection.kernel import intkernel, kernel_weight_2d
 from sphprojection.linkedlist import linkedlist2d
 from tqdm import tqdm
-from src.pkg.specutils import tables, simput
+from src.pkg.specutils import tables, simput, absorption
+import copy as cp
 
 intkernel_vec = np.vectorize(intkernel)
 
@@ -294,7 +295,7 @@ from astropy import cosmology
 
 def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
                   energy_cut=None, tcut=0., flag_ene=False, nsample=None, struct=False, isothermal=None, novel=None,
-                  nosmooth=False, progress=False):
+                  nosmooth=False, nh=None, progress=False):
     """
     :param simfile: (str) simulation file (Gadget)
     :param spfile: (str) spectrum file (FITS)
@@ -323,6 +324,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         [K], default: the temperature is read from the Gadget file
     :param novel: (bool) if set to True peculiar velocities are turned off, default: False
     :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
+    :param nh: (float) hydrogen column density [cm^-2], overrides the value from the spectral table
     :param progress: (bool) if set the progress bar is shown in output, default: False
     :return: spectral cube or structure if struct keyword is set to True
     """
@@ -431,6 +433,10 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
                                       temperature_cut=(np.min(temp_keV), np.max(temp_keV)),
                                       energy_cut=energy_cut)  # [10^-14 counts s^-1 cm^3]
 
+    # In nh is provided the spectral table is converted
+    if nh is not None:
+        spectable = absorption.convert_nh(spectable, nh)
+
     energy = spectable.get('energy')  # [keV]
     nene = len(energy)
     d_ene = (energy[-1] - energy[0]) / (
@@ -509,6 +515,13 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             result['zrange'] = zrange  # [h^-1 kpc] comoving
         if nsample and nsample != 1:
             result['nsample'] = nsample
+        if nh is not None:
+            result['nh'] = nh  # [10^22 cm^-2]
+            result['nh_units'] = '[10^22 cm^-2]'
+        else:
+            if 'nh' in spectable:
+                result['nh'] = spectable.get('nh')  # [10^22 cm^-2]
+                result['nh_units'] = '[10^22 cm^-2]'
 
         return result
 
@@ -522,10 +535,10 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 # output (i_beg, i_end, j_beg, j_end, wk_matrix)
 
 
-def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
-                    appendto=None, nh=None, save_memory=False):
+def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
+                    appendto=None, nh=None, preserve_input=True):
     """
-    :param spcube_struct: spectral cube structure, i.e. output of make_speccube
+    :param spcube_input: spectral cube structure, i.e. output of make_speccube
     :param simput_file: (str) SIMPUT output file
     :param tag: (str) prefix of the source name, default None
     :param pos: (float 2) sky position in RA, DEC [deg]
@@ -534,13 +547,16 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     :param addto: TODO
     :param appendto: TODO
     :param nh: TODO
-    :param save_memory: (bool) if set to true the 'data' key is deleted from the spcube_struct, default False
+    :param preserve_input: (bool) if set to true the 'data' key is deleted from the spcube_struct, default False
     :return: None
     """
 
+    spcube_struct = cp.deepcopy(spcube_input) if preserve_input else spcube_input
+
+    if nh is not None:
+        spcube_struct = absorption.convert_nh(spcube_struct, nh, preserve_input=False)
+
     spcube = spcube_struct.get('data')  # [counts s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
-    if save_memory:
-        del spcube_struct['data']
     npix0 = spcube.shape[0]
     nene = spcube.shape[2]
     energy = spcube_struct.get('energy')  # [keV]
@@ -560,8 +576,6 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
     if spcube_struct.get('flag_ene'):
         for iene in range(0, nene):
             spcube[:, :, iene] /= energy[iene]  # [counts keV^-1 s^-1 cm^-2]
-
-    # TODO: Implement nh here
 
     # TODO: Implement addto here
 
@@ -662,6 +676,11 @@ def cube2simputfile(spcube_struct, simput_file: str, tag='', pos=(0., 0.), npix=
         hdulist[0].header.set('Z_RANGE', spcube_struct.get('zrange'))
     if spcube_struct.get('nsample'):
         hdulist[0].header.set('NSAMPLE', spcube_struct.get('nsample'))
+    if nh is not None:
+        hdulist[0].header.set('NH', nh, '[10^22 cm^-2]')
+    else:
+        if 'nh' in spcube_struct:
+            hdulist[0].header.set('NH', spcube_struct.get('nh'), '[10^22 cm^-2]')
 
     hdulist.writeto(simput_file, overwrite=True)
     return None
