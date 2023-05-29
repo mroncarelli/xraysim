@@ -1,7 +1,5 @@
-import numpy as np
-import pytest
-
-from src.pkg.sphprojection.mapping import make_speccube, cube2simputfile
+from src.pkg.specutils.sixte import cube2simputfile
+from src.pkg.sphprojection.mapping import make_speccube
 from astropy.io import fits
 import os
 
