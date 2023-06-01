@@ -4,13 +4,20 @@ from src.pkg.specutils import absorption
 import copy as cp
 from src.pkg.gadgetutils import phys_const
 import os
+import json
 
-instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments/'
-default_athena_xifu_xml = instruments_dir + 'athena-xifu/xifu_baseline.xml'
-default_athena_xifu_advxml = instruments_dir + 'athena-xifu/xifu_detector_lpa25_tdm_33_275um_20211103.xml'
-default_xrism_resolve_xml = instruments_dir + 'xrism-resolve/resolve_baseline.xml'
-default_xrism_resolve_advxml = instruments_dir + 'xrism-resolve/resolve_detector.xml'
+# Initialization of global variables
+instruments_config_file = os.path.join(os.path.dirname(__file__), 'sixte_instruments.json')
+with open(instruments_config_file) as file:
+    json_data = json.load(file)
 
+instruments = {}
+for instr in json_data:
+    instr['xml_path'] = os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['xml']
+    instr['adv_xml_path'] = os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['adv_xml']
+    instruments[instr['name'].lower()] = instr
+
+del file, json_data, instr
 
 def set_simput_src_cat_header(header: fits.header):
     """
@@ -223,17 +230,14 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     :return: None
     """
 
-    if instrument == 'athena-xifu':
-        sixte_command = 'xifupipeline'
-        xmlfile_ = xmlfile if xmlfile else default_athena_xifu_xml
-        advxml_ = advxml if advxml else default_athena_xifu_advxml
-    elif instrument == 'xrism-resolve':
-        sixte_command = 'xifupipeline'
-        xmlfile_ = xmlfile if xmlfile else default_xrism_resolve_xml
-        advxml_ = advxml if advxml else default_xrism_resolve_advxml
+    if instrument.lower() in instruments:
+        sixte_command = instruments[instrument]['command']
+        xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml_path']
+        advxml_ = advxml if advxml else instruments[instrument]['adv_xml_path']
     else:
         print("ERROR in create_eventlist. Invalid instrument", instrument,
-              ": must be one of 'athena-xifu', 'xrism-resolve'")
+              ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the "
+              "instruments configuration file: " + instruments_config_file)
         raise ValueError
 
     if pointing is None:
