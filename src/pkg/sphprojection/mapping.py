@@ -299,7 +299,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param spfile: (str) spectrum file (FITS)
     :param size: (float) angular size of the map [deg]
     :param npix: (int) number of pixels per map side (default=256)
-    :param redshift: (float) redshift there to place the simulation (default: the redshift of the Gadget snapshot file)
+    :param redshift: (float) redshift where to place the simulation (default: the redshift of the Gadget snapshot file)
     :param center: (float 2) comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
     :param proj: (str/int) direction of projection ('x', 'y', 'z' or 0, 1, 2)
     :param zrange: (float 2) range in the l.o.s. axis

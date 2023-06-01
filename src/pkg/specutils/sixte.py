@@ -3,12 +3,20 @@ from astropy.io import fits
 from src.pkg.specutils import absorption
 import copy as cp
 from src.pkg.gadgetutils import phys_const
+import os
+
+instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments/'
+default_athena_xifu_xml = instruments_dir + 'athena-xifu/xifu_baseline.xml'
+default_athena_xifu_advxml = instruments_dir + 'athena-xifu/xifu_detector_lpa25_tdm_33_275um_20211103.xml'
+default_xrism_resolve_xml = instruments_dir + 'xrism-resolve/resolve_baseline.xml'
+default_xrism_resolve_advxml = instruments_dir + 'xrism-resolve/resolve_detector.xml'
+
 
 def set_simput_src_cat_header(header: fits.header):
     """
     Adds the SIMPUT keywords to the header of Extension 1
-    :param header: (fits.header) the FITS header
-    :return: the header with added keywords
+    :param header: (fits.header) Input FITS header
+    :return: The original header with added/modified keywords
     """
     header.set('EXTNAME', 'SRC_CAT ', 'name of this binary table extension')
     header.set('HDUCLASS', 'HEASARC/SIMPUT')
@@ -22,8 +30,8 @@ def set_simput_src_cat_header(header: fits.header):
 def set_simput_spectrum_header(header: fits.header):
     """
     Adds the SIMPUT keywords to the header of Extension 2
-    :param header: (fits.header) the FITS header
-    :return: the header with added keywords
+    :param header: (fits.header) Input FITS header
+    :return: The original header with added/modified keywords
     """
     header.set('EXTNAME', 'SPECTRUM ', 'name of this binary table extension')
     header.set('HDUCLASS', 'HEASARC/SIMPUT')
@@ -193,4 +201,57 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
             hdulist[0].header.set('NH', spcube_struct.get('nh'), '[10^22 cm^-2]')
 
     hdulist.writeto(simput_file, overwrite=True)
+    return None
+
+
+def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
+                     advxml=None, background=True, overwrite=True, no_exec=False):
+    """
+    Creates a simulated X-ray event-list by running the SIXTE simulator (see the manuale from the SIXTE webpage
+    http://www.sternwarte.uni-erlangen.de/~sixte/data/simulator_manual.pdf).
+    :param simputfile: (str) Simput file
+    :param instrument: (str) Instrument
+    :param exposure: (float) Exposure [s]
+    :param evtfile: (str) Output FITS file containing the simulation results
+    :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg], default None (uses the RA, DEC
+        keywords of the simputfile header)
+    :param xmlfile: (str) XML file for the telescope configuration
+    :param advxml: (str) Advanced XML configuration file
+    :param background: (bool) If set to True includes the instrumental background, default True
+    :param overwrite: (bool) If set overwrites previous output file (evtfile) if exists, default True
+    :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
+    :return: None
+    """
+
+    if instrument == 'athena-xifu':
+        sixte_command = 'xifupipeline'
+        xmlfile_ = xmlfile if xmlfile else default_athena_xifu_xml
+        advxml_ = advxml if advxml else default_athena_xifu_advxml
+    elif instrument == 'xrism-resolve':
+        sixte_command = 'xifupipeline'
+        xmlfile_ = xmlfile if xmlfile else default_xrism_resolve_xml
+        advxml_ = advxml if advxml else default_xrism_resolve_advxml
+    else:
+        print("ERROR in create_eventlist. Invalid instrument", instrument,
+              ": must be one of 'athena-xifu', 'xrism-resolve'")
+        raise ValueError
+
+    if pointing is None:
+        ra = fits.open(simputfile)[0].header.get('RA_C')
+        dec = fits.open(simputfile)[0].header.get('DEC_C')
+    else:
+        try:
+            ra, dec = float(pointing[0]), float(pointing[1])
+        except BaseException:
+            print("ERROR in create_eventlist. Invalid pointing: ", pointing, "Must be a 2d number vector")
+            raise ValueError
+
+    background_ = 'yes' if background else 'no'
+    clobber_ = 'yes' if overwrite else 'no'
+
+    command = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
+              str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
+              evtfile + ' clobber=' + clobber_
+
+    print(command) if no_exec else os.system(command)
     return None
