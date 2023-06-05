@@ -13,9 +13,11 @@ with open(instruments_config_file) as file:
 
 instruments = {}
 for instr in json_data:
-    instr['xml_path'] = os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['xml']
-    instr['adv_xml_path'] = os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['adv_xml']
-    instruments[instr['name'].lower()] = instr
+    instruments[instr['name'].lower()] = {
+        'command': instr.get('command'),
+        'xml': os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['xml'],
+        'adv_xml': os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['adv_xml']
+    }
 
 del file, json_data, instr
 
@@ -235,8 +237,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
 
     if instrument.lower() in instruments:
         sixte_command = instruments[instrument]['command']
-        xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml_path']
-        advxml_ = advxml if advxml else instruments[instrument]['adv_xml_path']
+        xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
+        advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
     else:
         print("ERROR in create_eventlist. Invalid instrument", instrument,
               ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the "
