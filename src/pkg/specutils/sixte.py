@@ -212,7 +212,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
-                     advxml=None, background=True, overwrite=True, no_exec=False):
+                     advxml=None, background=True, overwrite=True, verbosity=None, logfile=None, no_exec=False):
     """
     Creates a simulated X-ray event-list by running the SIXTE simulator (see the manuale from the SIXTE webpage
     http://www.sternwarte.uni-erlangen.de/~sixte/data/simulator_manual.pdf).
@@ -226,6 +226,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     :param advxml: (str) Advanced XML configuration file
     :param background: (bool) If set to True includes the instrumental background, default True
     :param overwrite: (bool) If set overwrites previous output file (evtfile) if exists, default True
+    :param verbosity: (int) Verbosity level, with 0 being the lowest (see SIXTE manual 'chatter') and 7 highest,
+    default None, i.e. SIXTE default (4)
+    :param logfile: (str) if set the output is not written on screen but saved in the file
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
     :return: None
     """
@@ -256,6 +259,15 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     command = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
               str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
               evtfile + ' clobber=' + clobber_
+
+    if type(verbosity) is int:
+        if verbosity < 0:
+            command += ' chatter=0'
+        else:
+            command += ' chatter=' + str(verbosity)
+
+    if type(logfile) is str and logfile != '':
+        command += ' > ' + logfile
 
     print(command) if no_exec else os.system(command)
     return None
