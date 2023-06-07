@@ -5,6 +5,7 @@ import copy as cp
 from src.pkg.gadgetutils import phys_const
 import os
 import json
+import matplotlib.pyplot as plt
 
 # Initialization of global variables
 instruments_config_file = os.path.join(os.path.dirname(__file__), 'sixte_instruments.json')
@@ -20,6 +21,7 @@ for instr in json_data:
     }
 
 del file, json_data, instr
+
 
 def set_simput_src_cat_header(header: fits.header):
     """
@@ -183,6 +185,10 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     hdulist[0].header.set('SIM_FILE', spcube_struct.get('simulation_file'))
     hdulist[0].header.set('SP_FILE', spcube_struct.get('spectral_table'))
     hdulist[0].header.set('PROJ', spcube_struct.get('proj'))
+    hdulist[0].header.set('X_MIN', spcube_struct.get('xrange')[0])
+    hdulist[0].header.set('X_MAX', spcube_struct.get('xrange')[1])
+    hdulist[0].header.set('Y_MIN', spcube_struct.get('yrange')[0])
+    hdulist[0].header.set('Y_MAX', spcube_struct.get('yrange')[1])
     hdulist[0].header.set('Z_COS', spcube_struct.get('z_cos'))
     hdulist[0].header.set('D_C', spcube_struct.get('d_c'), '[Mpc]')
     hdulist[0].header.set('NPIX', npix)
@@ -241,7 +247,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
     else:
         print("ERROR in create_eventlist. Invalid instrument", instrument,
-              ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the "
+              ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
               "instruments configuration file: " + instruments_config_file)
         raise ValueError
 
@@ -269,7 +275,53 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
             command += ' chatter=' + str(verbosity)
 
     if type(logfile) is str and logfile != '':
-        command += ' > ' + logfile
+        command += ' > ' + logfile + ' 2>&1'
 
-    print(command) if no_exec else os.system(command)
+    return command if no_exec else os.system(command)
+
+
+def get_fluxmap(simputfile: str):
+    hdul = fits.open(simputfile)
+    npix = hdul[0].header.get('NPIX')
+    ra = np.linspace(hdul[1].data['RA'].min(), hdul[1].data['RA'].max(), npix)  # [deg]
+    dec = np.linspace(hdul[1].data['DEC'].min(), hdul[1].data['DEC'].max(), npix)  # [deg]
+    ang_pix = hdul[0].header.get('ANG_PIX') / 60.  # [deg]
+    x_min, x_max = hdul[0].header['X_MIN'], hdul[0].header['X_MAX']  # [h^-1 kpc]
+    l_pix = (x_max - x_min) / npix  # [h^-1 kpc]
+    x = np.linspace(x_min + 0.5 * l_pix, x_max - 0.5 * l_pix, npix)
+    y = np.linspace(hdul[0].header['Y_MIN'] + 0.5 * l_pix, hdul[0].header['Y_MAX'] - 0.5 * l_pix, npix)
+
+    flux_map = np.zeros([npix, npix], dtype=np.float32)
+    for row in hdul[1].data:
+        istr, jstr = row['SRC_NAME'].strip('(').strip(')').split(',')
+        flux_map[int(istr), int(jstr)] = row['FLUX']
+
+    return {'data': flux_map, 'ra': ra, 'dec': dec, 'ang_pix': ang_pix, 'l_pix': l_pix, 'x': x, 'y': y}
+
+
+def show_fluxmap(inp, gadget_units=False):
+    if type(inp) is str:
+        flux_map = get_fluxmap(inp)
+    elif type(inp) is dict:
+        flux_map = inp
+    else:
+        print("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
+        raise ValueError
+
+    if gadget_units:
+        extent = [
+            flux_map['x'][0] - 0.5 * flux_map['ang_pix'],
+            flux_map['x'][-1] + 0.5 * flux_map['ang_pix'],
+            flux_map['y'][0] - 0.5 * flux_map['ang_pix'],
+            flux_map['y'][-1] + 0.5 * flux_map['ang_pix']
+        ]
+    else:
+        extent = [
+            flux_map['ra'][0] - 0.5 * flux_map['ang_pix'],
+            flux_map['ra'][-1] + 0.5 * flux_map['ang_pix'],
+            flux_map['dec'][0] - 0.5 * flux_map['ang_pix'],
+            flux_map['dec'][-1] + 0.5 * flux_map['ang_pix']
+        ]
+    plt.imshow(flux_map.get('data').transpose(), origin='lower', extent=extent)
+    plt.show()
     return None
