@@ -175,7 +175,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     # Extension 2 (spectrum)
     spectrum_columns = [fits.Column(name='NAME', format='32A', array=name),
                         fits.Column(name='ENERGY', format=str(nene) + 'E', array=energy_out, unit='keV'),
-                        fits.Column(name='FLUXDENSITY', format=str(nene) + 'E', array=energy_out,
+                        fits.Column(name='FLUXDENSITY', format=str(nene) + 'E', array=fluxdensity,
                                     unit='photons/s/cm**2/keV')]
     spectrum_ext = fits.BinTableHDU.from_columns(fits.ColDefs(spectrum_columns))
     hdulist.append(spectrum_ext)
@@ -215,7 +215,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
         if 'nh' in spcube_struct:
             hdulist[0].header.set('NH', spcube_struct.get('nh'), '[10^22 cm^-2]')
 
-    hdulist.writeto(simput_file, overwrite=True)
+    hdulist.writeto(simput_file, overwrite=True)  # TODO: put this line as return argument
     return None
 
 
@@ -238,7 +238,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     default None, i.e. SIXTE default (4)
     :param logfile: (str) if set the output is not written on screen but saved in the file
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
-    :return: None
+    :return: System output of SIXTE command (or string containing the command if no_exec is set to True)
     """
 
     if instrument.lower() in instruments:
@@ -325,3 +325,78 @@ def show_fluxmap(inp, gadget_units=False):
     plt.imshow(flux_map.get('data').transpose(), origin='lower', extent=extent)
     plt.show()
     return None
+
+
+def get_rsppath(evtfile: str):
+    history = fits.open(evtfile)[0].header['HISTORY']
+    found = False
+    iline = -1
+    while not found and iline < len(history) - 1:
+        iline += 1
+        found = 'XMLFile = ' in history[iline]
+
+    if not found:
+        rsppath = None
+    else:
+        line_split = history[iline].split(' ')
+        if len(line_split) == 4:
+            p, filename = line_split[0], line_split[3]
+        else:
+            return None
+
+        addon = True
+        while addon and iline < len(history) - 1:
+            iline += 1
+            line_split = history[iline].split(' ')
+            addon = (line_split[0] == p)
+            if addon and len(line_split) >= 2:
+                filename += line_split[1]
+        rsppath = filename[0:filename.rindex('/')]
+
+    return rsppath
+
+
+def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, logfile=None, no_exec=False):
+    """ Creates a .pha file containing the spectrum extracted from an event file using the SIXTE makespec command
+    :param evtfile: (str) Event file
+    :param phafile: (str) Output file
+    :param rsppath: (str) Path to the .rmf and .arf files
+    :param pixid: TODO
+    :param grading: (int or int list) Grading of photons included in the spectrum (default, 1)
+    :param logfile: (str) if set the output is not written on screen but saved in the file
+    :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
+    :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
+    """
+
+    error_msg_grading = "ERROR in make_pha. Grading values must be integer, iterable of integers or None."
+    type_grading = type(grading)
+    if type_grading is type(None):
+        tag_grading = ""
+    elif type_grading is int:
+        tag_grading = "GRADING==" + str(grading)
+    elif type_grading in (tuple, list):
+        if all(type(gr) is int for gr in grading):
+            tag_grading = " (GRADING==" + str(grading[0])
+            for gr in grading[1:]:
+                tag_grading += " || GRADING==" + str(gr)
+            tag_grading += ")"
+        else:
+            print(error_msg_grading)
+            raise ValueError
+    else:
+        print(error_msg_grading)
+        raise ValueError
+
+    # If rsppath is not provided I try to recover it from the evtfile
+    rsppath_ = get_rsppath(evtfile) if rsppath is None else rsppath
+
+    tag_rsppath = "" if rsppath_ is None else " RSPPath=" + rsppath_
+
+    command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath
+    if type_grading != "":
+        command += " EventFilter=" + tag_grading
+
+    if type(logfile) is str and logfile != '':
+        command += ' > ' + logfile + ' 2>&1'
+
+    return command if no_exec else os.system(command)

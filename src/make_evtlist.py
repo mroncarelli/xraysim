@@ -5,7 +5,7 @@ indir = os.environ.get('HOME') + '/XRISM/Simput/'
 outdir = os.environ.get('HOME') + '/XRISM/Evlist/'
 fileList = ['spcube_snap_128_30_']
 instrument = 'xrism-resolve'
-t_exp = 1e5  # [s]
+t_exp = 1.e3  # [s]
 exposure_tag = str(int(t_exp * 1e-3)).zfill(4) + 'ks'
 
 for file in fileList:
