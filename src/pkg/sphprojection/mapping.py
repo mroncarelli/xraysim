@@ -408,17 +408,17 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             mass[ipart] *= intkernel_vec((zrange[1] - z[ipart]) / hsml_z[ipart]) - intkernel_vec((zrange[0] - z[ipart]))
         del z, hsml_z
 
-    # Calculating effective redshift (Hubble + peculiar veolcity) of the particles
+    # Calculating effective redshift (Hubble + peculiar velocity) of the particles
     if novel:
         # If peculiar velocities are switched off
         z_eff = np.full(ngas, redshift)
     else:
         vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / (1 + redshift)  # [km s^-1]
         z_eff = convert.vpec2zobs(vel, redshift, units='km/s')
+        del vel
 
-    # Reading density
-    rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (
-            1 + redshift) ** 3  # physical [10^10 h^2 M_Sun kpc^-3]
+    # Reading density (physical [10^10 h^2 M_Sun kpc^-3])
+    rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (1 + redshift) ** 3
 
     ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 

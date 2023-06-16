@@ -1,5 +1,5 @@
 import pytest
-from pkg.gadgetutils.phys_const import Xp, Msun2g, Mpc2cm, m_p, kpc2cm, x_e0, pi, c_light
+from pkg.gadgetutils.phys_const import Xp, Msun2g, m_p, kpc2cm, x_e0, pi
 from pkg.gadgetutils import convert
 import numpy as np
 
