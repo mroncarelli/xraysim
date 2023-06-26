@@ -89,7 +89,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     npix0 = spcube.shape[0]
     nene = spcube.shape[2]
     energy = spcube_struct.get('energy')  # [keV]
-    d_ene = spcube_struct.get('energy')  # [keV]
+    d_ene = spcube_struct.get('energy_interval')  # [keV]
     size = spcube_struct.get('size')  # [deg]
     d_area = spcube_struct.get('pixel_size') ** 2  # [arcmin^2]
     spcube *= d_area  # [counts s^-1 cm^-2 keV^-1] or [keV s^-1 cm^-2 keV^-1]
@@ -286,14 +286,20 @@ def get_fluxmap(simputfile: str):
     ra = np.linspace(hdul[1].data['RA'].min(), hdul[1].data['RA'].max(), npix)  # [deg]
     dec = np.linspace(hdul[1].data['DEC'].min(), hdul[1].data['DEC'].max(), npix)  # [deg]
     ang_pix = hdul[0].header.get('ANG_PIX') / 60.  # [deg]
-    x_min, x_max = hdul[0].header['X_MIN'], hdul[0].header['X_MAX']  # [h^-1 kpc]
-    l_pix = (x_max - x_min) / npix  # [h^-1 kpc]
-    x = np.linspace(x_min + 0.5 * l_pix, x_max - 0.5 * l_pix, npix)
-    y = np.linspace(hdul[0].header['Y_MIN'] + 0.5 * l_pix, hdul[0].header['Y_MAX'] - 0.5 * l_pix, npix)
+    if ('X_MIN' in hdul[0].header and 'X_MAX' in hdul[0].header):
+        x_min, x_max = hdul[0].header['X_MIN'], hdul[0].header['X_MAX']  # [h^-1 kpc]
+        l_pix = (x_max - x_min) / npix  # [h^-1 kpc]
+        x = np.linspace(x_min + 0.5 * l_pix, x_max - 0.5 * l_pix, npix)
+        y = np.linspace(hdul[0].header['Y_MIN'] + 0.5 * l_pix, hdul[0].header['Y_MAX'] - 0.5 * l_pix, npix)
+    else:
+        x = np.arange(npix)
+        y = np.arange(npix)
+        l_pix = None
 
     flux_map = np.zeros([npix, npix], dtype=np.float32)
     for row in hdul[1].data:
-        istr, jstr = row['SRC_NAME'].strip('(').strip(')').split(',')
+        src_name = row['SRC_NAME']
+        istr, jstr = src_name[src_name.find('(') + 1: src_name.find(')')].split(',')
         flux_map[int(istr), int(jstr)] = row['FLUX']
 
     return {'data': flux_map, 'ra': ra, 'dec': dec, 'ang_pix': ang_pix, 'l_pix': l_pix, 'x': x, 'y': y}
@@ -308,12 +314,12 @@ def show_fluxmap(inp, gadget_units=False):
         print("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
         raise ValueError
 
-    if gadget_units:
+    if gadget_units and flux_map['l_pix'] is not None:
         extent = [
-            flux_map['x'][0] - 0.5 * flux_map['ang_pix'],
-            flux_map['x'][-1] + 0.5 * flux_map['ang_pix'],
-            flux_map['y'][0] - 0.5 * flux_map['ang_pix'],
-            flux_map['y'][-1] + 0.5 * flux_map['ang_pix']
+            flux_map['x'][0] - 0.5 * flux_map['l_pix'],
+            flux_map['x'][-1] + 0.5 * flux_map['l_pix'],
+            flux_map['y'][0] - 0.5 * flux_map['l_pix'],
+            flux_map['y'][-1] + 0.5 * flux_map['l_pix']
         ]
     else:
         extent = [

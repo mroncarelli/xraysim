@@ -9,6 +9,7 @@ from sphprojection.kernel import intkernel, kernel_weight_2d
 from sphprojection.linkedlist import linkedlist2d
 from tqdm import tqdm
 from src.pkg.specutils import tables, absorption
+from astropy.io import fits
 
 intkernel_vec = np.vectorize(intkernel)
 
@@ -490,7 +491,9 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             'xrange': (xmap0, xmap0 + size_gadget),  # [h^-1 kpc]
             'yrange': (ymap0, ymap0 + size_gadget),  # [h^-1 kpc]
             'size': np.float32(size),  # [deg]
+            'size_units': 'deg',
             'pixel_size': np.float32(pixsize),  # [arcmin]
+            'pixel_size_units': 'arcmin',
             'energy': np.float32(energy),
             'energy_interval': np.float32(np.full(nene, d_ene)),
             'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
@@ -515,11 +518,11 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             result['nsample'] = nsample
         if nh is not None:
             result['nh'] = nh  # [10^22 cm^-2]
-            result['nh_units'] = '[10^22 cm^-2]'
+            result['nh_units'] = '10^22 cm^-2'
         else:
             if 'nh' in spectable:
                 result['nh'] = spectable.get('nh')  # [10^22 cm^-2]
-                result['nh_units'] = '[10^22 cm^-2]'
+                result['nh_units'] = '10^22 cm^-2'
 
         return result
 
@@ -532,4 +535,104 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 # TODO: The first 7 code lines in the mapping loop can be wrapped into a method, with inputs (x, y, hsml, nx, ny) and
 # output (i_beg, i_end, j_beg, j_end, wk_matrix)
 
+def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
+    """
+    Writes a spectral-cube into a FITS file.
+    :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube
+    :param outfile: (str) FITS file
+    :param overwrite: (bool) If set to true the file is overwrittend, default True
+    :return: Output of the write FITS procedure
+    """
+    hduList = fits.HDUList()
+    data = spec_cube.get('data')
+    xrange = spec_cube.get('xrange')
+    yrange = spec_cube.get('yrange')
+    zrange = spec_cube.get('zrange')
+    nh = spec_cube.get('nh')
+    nsample = spec_cube.get('nsample')
 
+    # Primary
+    hduList.append(fits.PrimaryHDU(data.transpose()))
+    hduList[-1].header.set('SIM_FILE', spec_cube.get('simulation_file'))
+    hduList[-1].header.set('SP_FILE', spec_cube.get('spectral_table'))
+    hduList[-1].header.set('PROJ', spec_cube.get('proj'))
+    hduList[-1].header.set('Z_COS', spec_cube.get('z_cos'))
+    hduList[-1].header.set('D_C', spec_cube.get('d_c'))
+    if nsample:
+        hduList[-1].header.set('NSAMPLE', nsample)
+    hduList[-1].header.set('NPIX', data.shape[0])
+    hduList[-1].header.set('NENE', data.shape[2])
+    hduList[-1].header.set('ANG_PIX', spec_cube.get('pixel_size'), '[' + spec_cube.get('pixel_size_units') + ']')
+    hduList[-1].header.set('ANG_MAP', spec_cube.get('size'), '[' + spec_cube.get('size_units') + ']')
+    hduList[-1].header.set('E_MIN', spec_cube.get('energy')[0] - 0.5 * spec_cube.get('energy_interval')[0])
+    hduList[-1].header.set('E_MAX', spec_cube.get('energy')[-1] + 0.5 * spec_cube.get('energy_interval')[-1])
+    hduList[-1].header.set('FLAG_ENE', 1 if spec_cube.get('flag_ene') else 0)
+    hduList[-1].header.set('UNITS', '[' + spec_cube.get('units') + ']')
+    hduList[-1].header.set('X_MIN', xrange[0])
+    hduList[-1].header.set('X_MAX', xrange[1])
+    hduList[-1].header.set('Y_MIN', yrange[0])
+    hduList[-1].header.set('Y_MAX', yrange[1])
+    if zrange:
+        hduList[-1].header.set('Z_MIN', zrange[0])
+        hduList[-1].header.set('Z_MAX', zrange[1])
+    hduList[-1].header.set('C_UNITS', '[' + spec_cube.get('coord_units') + ']', 'X-Y(-Z) coordinate units')
+    if spec_cube.get('tcut'):
+        hduList[-1].header.set('T_CUT', spec_cube.get('tcut'), '[K]')
+    if spec_cube.get('isothermal'):
+        hduList[-1].header.set('ISO_T', spec_cube.get('isothermal'), '[K]')
+    hduList[-1].header.set('SMOOTH', spec_cube.get('smoothing'))
+    hduList[-1].header.set('VEL', spec_cube.get('velocities'))
+    if nh:
+        hduList[-1].header.set('N_H', spec_cube.get('nh'), '[' + spec_cube.get('nh_units') + ']')
+
+    # Extension 1
+    hduList.append(fits.ImageHDU(spec_cube.get('energy')))
+    hduList[-1].header.set('NENE', data.shape[2])
+    hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
+
+    # Extension 2
+    hduList.append(fits.ImageHDU(spec_cube.get('energy_interval')))
+    hduList[-1].header.set('NENE', data.shape[2])
+    hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
+
+    # Writing FITS file
+    return hduList.writeto(outfile, overwrite=overwrite)
+
+
+def read_speccube(infile: str):
+    hdulist = fits.open(infile)
+    header0 = hdulist[0].header
+    header1 = hdulist[1].header
+    result = {
+        'data': hdulist[0].data,
+        'xrange': (np.float32(header0.get('X_MIN')), np.float32(header0.get('X_MAX'))),  # [h^-1 kpc]
+        'yrange': (np.float32(header0.get('Y_MIN')), np.float32(header0.get('Y_MAX'))),  # [h^-1 kpc]
+        'size': np.float32(header0.get('ANG_MAP')),  # [deg]
+        'size_units': header0.comment.get('ANG_MAP').replace('[', '').replace(']', ''),
+        'pixel_size': np.float32(header0.get('ANG_PIX')),  # [arcmin]
+        'pixel_size_units': header0.comment.get('ANG_PIX').replace('[', '').replace(']', ''),
+        'energy': hdulist[1].data,
+        'energy_interval': hdulist[2].data,
+        'units': header0.get('ANG_MAP').replace('[', '').replace(']', ''),
+        'coord_units': header0.get('C_UNITS').replace('[', '').replace(']', ''),
+        'energy_units': header1.get('UNITS').replace('[', '').replace(']', ''),
+        'simulation_file': header0.get('SIM_FILE'),
+        'spectral_table': header0.get('SP_FILE'),
+        'proj': header0.get('PROJ'),
+        'z_cos': header0.get('Z_COS'),
+        'd_c': header0.get('D_C'),  # h^-1 Mpc
+        'flag_ene': header0.get('FLAG_ENE') == 1
+    }
+    if 'T_CUT' in header0:
+        result['tcut'] = header0.get('T_CUT')  # [K]
+    if 'ISO_T' in header0:
+        result['isothermal'] = header0.get('ISO_T')  # [K]
+    result['smoothing'] = header0.get('SMOOTH')
+    result['velocities'] = header0.get('VEL')
+    if 'Z_MIN' in header0:
+        result['zrange'] = (header0.get('Z_MIN'), header0.get('Z_MAX'))
+    if 'N_H' in header0:
+        result['nh'] = header0.get('N_H')
+        result['nh_units'] = header0.comment.get('N_H').replace('[', '').replace(']', '')
+
+    return result

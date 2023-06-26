@@ -1,10 +1,11 @@
 from astropy.io import fits
 from astropy import cosmology
-from src.pkg.sphprojection.mapping import make_speccube
+from src.pkg.sphprojection.mapping import make_speccube, write_speccube
 from src.pkg.specutils.sixte import cube2simputfile
 import os
 
 indir = os.environ.get('HOME') + '/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/'
+cubedir = os.environ.get('HOME') + '/XRISM/Spec_Cubes/'
 outdir = os.environ.get('HOME') + '/XRISM/Simput/'
 fileList = ['snap_128']
 #spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
@@ -23,7 +24,9 @@ for file in fileList:
 
     infile = indir + file
     for proj in ['x', 'y', 'z']:
-        outfile = outdir + 'spcube_' + file + '_' + str(npix) + '_' + proj + '.simput'
+        filename = 'spcube_' + file + '_' + str(npix) + '_' + proj
+        cubefile = cubedir + filename + '.fits'
+        outfile = outdir + filename + '.simput'
         hduList = fits.HDUList()
 
         if proj == 'x':
@@ -36,4 +39,5 @@ for file in fileList:
         spcubeStruct = make_speccube(infile, spfile, size, npix, redshift=redshift, center=center, proj=proj, tcut=tcut,
                                      nsample=nsample, struct=True, progress=True, nh=0.02)
         print(spcubeStruct.get('data').min(), spcubeStruct.get('data').max())
+        write_speccube(spcubeStruct, cubefile)
         cube2simputfile(spcubeStruct, outfile)
