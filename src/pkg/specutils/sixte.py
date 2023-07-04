@@ -215,8 +215,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
         if 'nh' in spcube_struct:
             hdulist[0].header.set('NH', spcube_struct.get('nh'), '[10^22 cm^-2]')
 
-    hdulist.writeto(simput_file, overwrite=True)  # TODO: put this line as return argument
-    return None
+    return hdulist.writeto(simput_file, overwrite=True)  # Returns None
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
@@ -369,7 +368,7 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     :param rsppath: (str) Path to the .rmf and .arf files
     :param pixid: TODO
     :param grading: (int or int list) Grading of photons included in the spectrum (default, 1)
-    :param logfile: (str) if set the output is not written on screen but saved in the file
+    :param logfile: (str) If set the output is not written on screen but saved in the file
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
     :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
     """
@@ -382,10 +381,10 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
         tag_grading = "GRADING==" + str(grading)
     elif type_grading in (tuple, list):
         if all(type(gr) is int for gr in grading):
-            tag_grading = " (GRADING==" + str(grading[0])
+            tag_grading = " '(GRADING==" + str(grading[0])
             for gr in grading[1:]:
                 tag_grading += " || GRADING==" + str(gr)
-            tag_grading += ")"
+            tag_grading += ")'"
         else:
             print(error_msg_grading)
             raise ValueError

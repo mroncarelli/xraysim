@@ -10,14 +10,14 @@ outdir = os.environ.get('HOME') + '/XRISM/Simput/'
 fileList = ['snap_128']
 #spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
 spfile = os.environ.get('HOME') + '/XRISM/Emission_Tables/xrism_resolve_emission_table_z0.03-0.14.fits'
-npix = 5
+npix = 30
 center_3d = [500158., 500156, 500250]
 #size = 0.9780893857  # [deg] (5 h^-1 Mpc per side at z=0.1, with Omega_m=0.3)
 size = 0.1  # [deg] (6 arcmin, 2x XRISM Resolve FOV)
 redshift = 0.1
 nsample = 1
 tcut = 1.e6  # [K]
-t_iso_keV = 5.  # [keV]
+t_iso_keV = 5.7322307  # [keV]
 cosmo = cosmology.FlatLambdaCDM(H0=100., Om0=0.3)
 d_c = cosmo.comoving_distance(redshift).to_value()  # [h^-1 Mpc]
 
@@ -25,7 +25,7 @@ for file in fileList:
 
     infile = indir + file
     for proj in ['x', 'y', 'z']:
-        outfile = outdir + 'spcube_' + file + '_' + str(npix) + '_' + proj + '_iso' + str(t_iso_keV) + '_novel.simput'
+        outfile = outdir + 'spcube_' + file + '_' + str(npix) + '_' + proj + '_iso' + str(t_iso_keV) + '.simput'
         hduList = fits.HDUList()
 
         if proj == 'x':
@@ -37,6 +37,6 @@ for file in fileList:
 
         spcubeStruct = make_speccube(infile, spfile, size, npix, redshift=redshift, center=center, proj=proj, tcut=tcut,
                                      nsample=nsample, struct=True, progress=True, nh=0.0, isothermal=t_iso_keV * keV2K,
-                                     novel=True)
+                                     novel=False)
         print(spcubeStruct.get('data').min(), spcubeStruct.get('data').max())
         cube2simputfile(spcubeStruct, outfile)

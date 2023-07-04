@@ -4,7 +4,7 @@ import glob
 
 indir = os.environ.get('HOME') + '/XRISM/Evlist/'
 outdir = os.environ.get('HOME') + '/XRISM/Pha/'
-fileList = glob.glob(indir + '*.evt')
+fileList = glob.glob(indir + '*_x_*.evt')
 
 for evtFile in fileList:
     fileName = os.path.basename(evtFile)
