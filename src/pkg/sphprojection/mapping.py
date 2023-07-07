@@ -182,7 +182,8 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
             del rho
         del mass, temp
     elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
-        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / (1 + redshift)  # [km s^-1]
+        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / \
+              np.sqrt(1 + redshift)  # [km s^-1]
         if quantity == 'vmw':
             qty = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
             nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
@@ -293,7 +294,7 @@ from astropy import cosmology
 
 
 def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
-                  energy_cut=None, tcut=0., flag_ene=False, nsample=None, struct=False, isothermal=None, novel=None,
+                  energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None,
                   nosmooth=False, nh=None, progress=False):
     """
     :param simfile: (str) simulation file (Gadget)
@@ -309,8 +310,16 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
         arcmin^-2], with False in count units, i.e. [counts keV^-1 s^-1 cm^-2 arcmin^-2], default: False
     :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
-    :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False
-                    - data: spectral cube
+    :param struct: (bool) if set outputs
+    :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
+        [K], default: the temperature is read from the Gadget file
+    :param novel: (bool) if set to True peculiar velocities are turned off, default: False
+    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
+    :param nh: (float) hydrogen column density [cm^-2], overrides the value from the spectral table
+    :param progress: (bool) if set the progress bar is shown in output, default: False
+    :return: a structure (dictionary) containing several info, including:
+                    - data: spectral cube [photons keV^-1 s^-1 cm^-2 arcmin^-2] (or [keV keV^-1 s^-1 cm^-2 arcmin^-2]
+                        if flag_ene is True)
                     - x(y)range: map range in the x(y) direction in Gadget units [h^-1 kpc]
                     - size: map size [deg]
                     - pixel_size: pixel size [arcmin]
@@ -319,13 +328,6 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
                     - units: units of the spectral cube contained in 'data'
                     - coord_units: units of the coordinates of the map, i.e. x(y)range
                     - energy_units: units of energy and energy_interval
-    :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
-        [K], default: the temperature is read from the Gadget file
-    :param novel: (bool) if set to True peculiar velocities are turned off, default: False
-    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
-    :param nh: (float) hydrogen column density [cm^-2], overrides the value from the spectral table
-    :param progress: (bool) if set the progress bar is shown in output, default: False
-    :return: spectral cube or structure if struct keyword is set to True
     """
 
     # Initialization
@@ -414,7 +416,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         # If peculiar velocities are switched off
         z_eff = np.full(ngas, redshift)
     else:
-        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / (1 + redshift)  # [km s^-1]
+        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / \
+              np.sqrt(1 + redshift)  # [km s^-1]
         z_eff = convert.vpec2zobs(vel, redshift, units='km/s')
         del vel
 
@@ -484,51 +487,47 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     spcube /= d_ene * pixsize ** 2  # [counts s^-1 cm^-2 arcmin^-2 keV^-1]
 
     # Output
-    if struct:
-
-        result = {
-            'data': np.float32(spcube),
-            'xrange': (xmap0, xmap0 + size_gadget),  # [h^-1 kpc]
-            'yrange': (ymap0, ymap0 + size_gadget),  # [h^-1 kpc]
-            'size': np.float32(size),  # [deg]
-            'size_units': 'deg',
-            'pixel_size': np.float32(pixsize),  # [arcmin]
-            'pixel_size_units': 'arcmin',
-            'energy': np.float32(energy),
-            'energy_interval': np.float32(np.full(nene, d_ene)),
-            'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
-            'coord_units': 'h^-1 kpc',
-            'energy_units': 'keV',
-            'simulation_file': simfile,
-            'spectral_table': spfile,
-            'proj': proj,
-            'z_cos': redshift,
-            'd_c': cosmo.comoving_distance(redshift).to_value(),  # h^-1 Mpc
-            'flag_ene': flag_ene
-        }
-        if tcut:
-            result['tcut'] = tcut
-        if isothermal:
-            result['isothermal'] = isothermal
-        result['smoothing'] = 'OFF' if nosmooth else 'ON'
-        result['velocities'] = 'OFF' if novel else 'ON'
-        if zrange:
-            result['zrange'] = zrange  # [h^-1 kpc] comoving
-        if nsample and nsample != 1:
-            result['nsample'] = nsample
-        if nh is not None:
-            result['nh'] = nh  # [10^22 cm^-2]
-            result['nh_units'] = '10^22 cm^-2'
-        else:
-            if 'nh' in spectable:
-                result['nh'] = spectable.get('nh')  # [10^22 cm^-2]
-                result['nh_units'] = '10^22 cm^-2'
-
-        return result
-
+    result = {
+        'data': np.float32(spcube),
+        'xrange': (xmap0, xmap0 + size_gadget),  # [h^-1 kpc]
+        'yrange': (ymap0, ymap0 + size_gadget),  # [h^-1 kpc]
+        'size': np.float32(size),  # [deg]
+        'size_units': 'deg',
+        'pixel_size': np.float32(pixsize),  # [arcmin]
+        'pixel_size_units': 'arcmin',
+        'energy': np.float32(energy),
+        'energy_interval': np.float32(np.full(nene, d_ene)),
+        'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
+        'coord_units': 'h^-1 kpc',
+        'energy_units': 'keV',
+        'simulation_file': simfile,
+        'spectral_table': spfile,
+        'proj': proj,
+        'z_cos': redshift,
+        'd_c': cosmo.comoving_distance(redshift).to_value(),  # h^-1 Mpc
+        'flag_ene': flag_ene
+    }
+    if tcut:
+        result['tcut'] = tcut
+    if isothermal:
+        result['isothermal'] = isothermal
+    result['smoothing'] = 'OFF' if nosmooth else 'ON'
+    result['velocities'] = 'OFF' if novel else 'ON'
+    if zrange:
+        result['zrange'] = zrange  # [h^-1 kpc] comoving
+    if nsample and nsample != 1:
+        result['nsample'] = nsample
+    if nh is not None:
+        result['nh'] = nh  # [10^22 cm^-2]
+        result['nh_units'] = '10^22 cm^-2'
     else:
+        if 'nh' in spectable:
+            result['nh'] = spectable.get('nh')  # [10^22 cm^-2]
+            result['nh_units'] = '10^22 cm^-2'
 
-        return np.float32(spcube)
+    return result
+
+
 
 
 # [counts keV^-1 s^-1 cm^-2 arcmin^-2]
