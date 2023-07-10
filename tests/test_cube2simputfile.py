@@ -9,8 +9,7 @@ npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [500e3, 500
 nene = fits.open(spfile)[0].header.get('NENE')
 simput_file = os.environ.get('XRAYSIM') + '/tests/data/file_created_for_test.simput'
 
-spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj, nsample=nsample,
-                          struct=True)
+spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj, nsample=nsample)
 
 
 def test_file_created(inp=spec_cube, out=simput_file):

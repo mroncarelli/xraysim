@@ -1,12 +1,8 @@
 import numpy as np
+import pytest
 import pygadgetreader as pygr
-from gadgetutils.readspecial import readtemperature
-from sphprojection.mapping import make_map
-
-
-def almost_equal(v0: float, v1: float, tol=1e-6):
-    return abs(v1 / v0 - 1) <= tol
-
+from src.pkg.gadgetutils.readspecial import readtemperature
+from src.pkg.sphprojection.mapping import make_map
 
 # Snapshot file on which the tests are performed
 snapshot_file = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
@@ -22,7 +18,7 @@ def test_total_mass(infile=snapshot_file):
     map_str = make_map(infile, 'rho', npix=128, struct=True)
     val_map = np.sum(map_str['map']) * map_str['pixel_size'] ** 2
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_total_emission_measure(infile=snapshot_file):
@@ -36,7 +32,7 @@ def test_total_emission_measure(infile=snapshot_file):
     map_str = make_map(infile, 'rho2', npix=128, struct=True)
     val_map = np.sum(map_str['map']) * map_str['pixel_size'] ** 2
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_average_tmw(infile=snapshot_file):
@@ -50,7 +46,7 @@ def test_average_tmw(infile=snapshot_file):
     map_str = make_map(infile, 'Tmw', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) / np.sum(map_str['norm'])
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_average_tew(infile=snapshot_file):
@@ -65,7 +61,7 @@ def test_average_tew(infile=snapshot_file):
     map_str = make_map(infile, 'Tew', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) / np.sum(map_str['norm'])
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_total_momentum(infile=snapshot_file):
@@ -80,7 +76,7 @@ def test_total_momentum(infile=snapshot_file):
     map_str = make_map(infile, 'vmw', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_total_ew_momentum(infile=snapshot_file):
@@ -96,7 +92,7 @@ def test_total_ew_momentum(infile=snapshot_file):
     map_str = make_map(infile, 'vew', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_average_velocity_dispersion(infile=snapshot_file):
@@ -114,7 +110,7 @@ def test_average_velocity_dispersion(infile=snapshot_file):
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)
 
 
 def test_average_ew_velocity_dispersion(infile=snapshot_file):
@@ -133,4 +129,4 @@ def test_average_ew_velocity_dispersion(infile=snapshot_file):
     val2_map = (np.sum(map_str['map2'] * map_str['norm']) / np.sum(map_str['norm'])) ** 2
     val_map = np.sqrt(val1_map - val2_map)
 
-    assert almost_equal(val_snap, val_map)
+    assert val_map == pytest.approx(val_snap, rel=1e-6)

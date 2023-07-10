@@ -12,8 +12,7 @@ spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
 npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [500e3, 500e3], 'z', False, 10000
 nene = fits.open(spfile)[0].header.get('NENE')
 
-spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj, nsample=nsample,
-                          struct=True)
+spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj, nsample=nsample)
 
 
 def test_structure(inp=spec_cube):
@@ -69,7 +68,6 @@ def test_isothermal_spectrum_with_temperature_from_table():
     """
     The spectrum of a spec_cube computed assuming isothermal gas with temperature taken directly from the table must
     have the same shape (i.e. non considering normalization) than the corresponding spectrum of the table.
-    :return: None
     """
     sptable = read_spectable(spfile)
     z_table = sptable.get('z')
@@ -79,11 +77,11 @@ def test_isothermal_spectrum_with_temperature_from_table():
     spec_reference = sptable.get('data')[iz, it, :]
     spec_reference /= spec_reference.mean()  # normalize to mean = 1
     spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
-                                  isothermal=temp_iso, nsample=nsample)
+                                  isothermal=temp_iso, nsample=nsample).get('data')
 
-    nene = spec_cube_iso.shape[2]
-    spec_iso = np.ndarray(nene)
-    for iene in range(nene):
+    nene_speccube = spec_cube_iso.shape[2]
+    spec_iso = np.ndarray(nene_speccube)
+    for iene in range(nene_speccube):
         spec_iso[iene] = spec_cube_iso[:, :, iene].sum()
     spec_iso /= spec_iso.mean()  # normalize to mean = 1
 
@@ -95,7 +93,6 @@ def test_isothermal_spectrum():
     """
     The spectrum of a spec_cube computed assuming isothermal gas must have the same shape (i.e. non considering
     normalization) than the corresponding spectrum of the table.
-    :return: None
     """
     sptable = read_spectable(spfile)
     z_table = sptable.get('z')
@@ -108,7 +105,7 @@ def test_isothermal_spectrum():
     spec_reference /= spec_reference.mean()  # normalize to mean = 1
     temp_iso = temp_iso_kev * keV2K
     spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
-                                  isothermal=temp_iso, nsample=nsample)
+                                  isothermal=temp_iso, nsample=nsample).get('data')
 
     spec_iso = np.ndarray(nene)
     for iene in range(nene):
