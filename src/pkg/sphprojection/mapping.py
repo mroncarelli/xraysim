@@ -5,9 +5,9 @@ import numpy as np
 import pygadgetreader as pygr
 from src.pkg.gadgetutils.readspecial import readtemperature
 from src.pkg.gadgetutils import convert, phys_const
-from sphprojection.kernel import intkernel, kernel_weight_2d
-from sphprojection.linkedlist import linkedlist2d
-from sphprojection.matrix_operations import multiply_2d_1d
+from src.pkg.sphprojection.kernel import intkernel, kernel_weight_2d
+from src.pkg.sphprojection.linkedlist import linkedlist2d
+from src.pkg.sphprojection.matrix_operations import multiply_2d_1d
 from tqdm import tqdm
 from src.pkg.specutils import tables, absorption
 from astropy.io import fits
@@ -43,6 +43,38 @@ def get_map_coord(simfile, proj_index, z=False):
         return x, y, pos[:, index_list[1]]
     else:
         return x, y
+
+
+def kernel_2d(x: float, y: float, h: float, nx: int, ny: int):
+    """
+    Calculates a 2d-kernel map based on the (x, y) coordinates and the smoothing length. Both coordinates and the 
+    smoothing length must be normalized to map units, i.e. in pixel units with value 0 corresponding to the map 
+    starting borders (i.e. left and bottom borders). 
+    :param x: (float) The normalized x-coordinate
+    :param y: (float) The normalized y-coordinate
+    :param h: (float) The normalized smoothing length
+    :param nx: (int) Number of map pixels in the x direction
+    :param ny: (int) Number of map pixels in the y direction
+    :return: A 3-elements tuple with these elements:
+        1: The 2d-kernel map
+        2: A 2-elements tuple with the true map pixel limits in the x-direction
+        3: A 2-elements tuple with the true map pixel limits in the y-direction
+    """
+    
+    # Indexes of first and last pixel to map in both axes
+    i0 = max(mt.floor(x - h), 0)
+    i1 = min(mt.floor(x + h), nx - 1)
+    j0 = max(mt.floor(y - h), 0)
+    j1 = min(mt.floor(y + h), ny - 1)
+
+    # Defining weight vectors for x and y-axis
+    xpix = (np.arange(i0, i1 + 2) - x) / h
+    ypix = (np.arange(j0, j1 + 2) - y) / h
+
+    # Using weight vectors to construct weight matrix
+    wk_matrix = kernel_weight_2d(xpix, ypix)
+    
+    return wk_matrix, (i0, i1), (j0, j1)
 
 
 def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., nsample=None,
@@ -216,24 +248,14 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
 
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
     for ipart in iter_:
-        # Indexes of first and last pixel to map in both axes
-        i_beg = max(mt.floor(x[ipart] - hsml[ipart]), 0)
-        i_end = min(mt.floor(x[ipart] + hsml[ipart]), npix - 1)
-        j_beg = max(mt.floor(y[ipart] - hsml[ipart]), 0)
-        j_end = min(mt.floor(y[ipart] + hsml[ipart]), npix - 1)
-
-        # Defining weight vectors for x and y-axis
-        xpix = (np.arange(i_beg, i_end + 2) - x[ipart]) / hsml[ipart]
-        ypix = (np.arange(j_beg, j_end + 2) - y[ipart]) / hsml[ipart]
-
-        # Using weight vectors to construct weight matrix
-        wk_matrix = kernel_weight_2d(xpix, ypix)
+        # Getting the 2d kernel map and pixel ranges
+        wk_matrix, i_range, j_range = kernel_2d(x[ipart], y[ipart], hsml[ipart], npix, npix)
 
         # Adding to maps
-        qty_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * qty[ipart]
-        nrm_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * nrm[ipart]
+        qty_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * qty[ipart]
+        nrm_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * nrm[ipart]
         if quantity in ['wmw', 'wew']:
-            qty2_map[i_beg:i_end + 1, j_beg:j_end + 1] += wk_matrix * qty2[ipart]
+            qty2_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * qty2[ipart]
 
     qty_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
     if quantity in ['wmw', 'wew']:
@@ -459,29 +481,17 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
     for ipart in iter_:
-        # Indexes of first and last pixel to map in both axes
-        i_beg = max(mt.floor(x[ipart] - hsml[ipart]), 0)
-        i_end = min(mt.floor(x[ipart] + hsml[ipart]), npix - 1)
-        j_beg = max(mt.floor(y[ipart] - hsml[ipart]), 0)
-        j_end = min(mt.floor(y[ipart] + hsml[ipart]), npix - 1)
+        # Getting the 2d kernel map and pixel ranges
+        wk_matrix, i_range, j_range = kernel_2d(x[ipart], y[ipart], hsml[ipart], npix, npix)
 
-        # Defining weight vectors for x and y-axis
-        xpix = (np.arange(i_beg, i_end + 2) - x[ipart]) / hsml[ipart]
-        ypix = (np.arange(j_beg, j_end + 2) - y[ipart]) / hsml[ipart]
+        # Calculating spectrum of the particle [photons s^-1 cm^-2]
+        spectrum = norm[ipart] * tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True,
+                                                  flag_ene=False)
 
-        nx = i_end - i_beg + 1
-        ny = j_end - j_beg + 1
-
-        # Using weight vectors to construct weight matrix
-        wk_matrix = kernel_weight_2d(xpix, ypix)
-
-        # Calculating spectrum of the particle [10^-14 photons s^-1 cm^3]
-        spectrum = tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True, flag_ene=False)
-
-        spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [10^-14 photons s^-1 cm^3]
+        spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [photons s^-1 cm^-2]
 
         # Adding to the spec cube: units [photons s^-1 cm^-2]
-        spcube[i_beg:i_end + 1, j_beg:j_end + 1, :] += norm[ipart] * spectrum_wk
+        spcube[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1, :] += spectrum_wk
 
     # Renormalizing result
     spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
@@ -527,12 +537,6 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     return result
 
-
-
-
-# [photons keV^-1 s^-1 cm^-2 arcmin^-2]
-# TODO: The first 7 code lines in the mapping loop can be wrapped into a method, with inputs (x, y, hsml, nx, ny) and
-# output (i_beg, i_end, j_beg, j_end, wk_matrix)
 
 def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     """
