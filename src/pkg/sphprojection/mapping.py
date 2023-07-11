@@ -7,6 +7,7 @@ from src.pkg.gadgetutils.readspecial import readtemperature
 from src.pkg.gadgetutils import convert, phys_const
 from sphprojection.kernel import intkernel, kernel_weight_2d
 from sphprojection.linkedlist import linkedlist2d
+from sphprojection.matrix_operations import multiply_2d_1d
 from tqdm import tqdm
 from src.pkg.specutils import tables, absorption
 from astropy.io import fits
@@ -478,7 +479,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         spectrum = tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True, flag_ene=False)
 
         # TODO: fix this attempt of vectorialization to speed up code
-        spectrum_wk = np.repeat(wk_matrix[:, :, np.newaxis], nene, axis=2) * np.tile(spectrum, (nx, ny, 1))
+        spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)
+        # spectrum_wk = np.repeat(wk_matrix[:, :, np.newaxis], nene, axis=2) * np.tile(spectrum, (nx, ny, 1))
 
         # Adding to the spec cube: units [counts s^-1 cm^-2]
         spcube[i_beg:i_end + 1, j_beg:j_end + 1, :] += norm[ipart] * spectrum_wk

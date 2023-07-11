@@ -37,7 +37,7 @@ for file in fileList:
             center = [center_3d[0], center_3d[1]]
 
         spcubeStruct = make_speccube(infile, spfile, size, npix, redshift=redshift, center=center, proj=proj, tcut=tcut,
-                                     nsample=nsample, struct=True, progress=True, nh=0.02)
+                                     nsample=nsample, progress=True, nh=0.02)
         print(spcubeStruct.get('data').min(), spcubeStruct.get('data').max())
         write_speccube(spcubeStruct, cubefile)
         cube2simputfile(spcubeStruct, outfile)
