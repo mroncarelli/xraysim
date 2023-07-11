@@ -85,14 +85,14 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     if nh is not None:
         spcube_struct = absorption.convert_nh(spcube_struct, nh, preserve_input=False)
 
-    spcube = spcube_struct.get('data')  # [counts s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
+    spcube = spcube_struct.get('data')  # [photons s^-1 cm^-2 arcmin^-2 keV^-1] or [keV s^-1 cm^-2 arcmin^-2 keV^-1]
     npix0 = spcube.shape[0]
     nene = spcube.shape[2]
     energy = spcube_struct.get('energy')  # [keV]
     d_ene = spcube_struct.get('energy_interval')  # [keV]
     size = spcube_struct.get('size')  # [deg]
     d_area = spcube_struct.get('pixel_size') ** 2  # [arcmin^2]
-    spcube *= d_area  # [counts s^-1 cm^-2 keV^-1] or [keV s^-1 cm^-2 keV^-1]
+    spcube *= d_area  # [photons s^-1 cm^-2 keV^-1] or [keV s^-1 cm^-2 keV^-1]
 
     # Defining RA-DEC position
     try:
@@ -101,10 +101,10 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
         print("Invalid center: ", pos, "Must be a 2d number vector")
         raise ValueError
 
-    # Correcting energy to counts, if necessary
+    # Correcting energy to photons, if necessary
     if spcube_struct.get('flag_ene'):
         for iene in range(0, nene):
-            spcube[:, :, iene] /= energy[iene]  # [counts keV^-1 s^-1 cm^-2]
+            spcube[:, :, iene] /= energy[iene]  # [photons keV^-1 s^-1 cm^-2]
 
     # TODO: Implement addto here
 
@@ -147,7 +147,7 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
                 flux.append(source_flux)  # [erg s^-1 cm^-2]
                 spectrum.append("[SPECTRUM,1][NAME=='" + row_name + "']")
                 energy_out.append(energy)  # [keV]
-                fluxdensity.append(spcube[ipix, jpix, :])  # [counts keV^-1 s^-1 cm^-2]
+                fluxdensity.append(spcube[ipix, jpix, :])  # [photons keV^-1 s^-1 cm^-2]
 
     nsource = len(name)
     src_id = np.arange(1, nsource + 1)

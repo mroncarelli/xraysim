@@ -309,7 +309,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param energy_cut: (float 2) energy interval to cpmpute (default: assumes the one from the spfile)
     :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
     :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
-        arcmin^-2], with False in count units, i.e. [counts keV^-1 s^-1 cm^-2 arcmin^-2], default: False
+        arcmin^-2], with False in count units, i.e. [photons keV^-1 s^-1 cm^-2 arcmin^-2], default: False
     :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
     :param struct: (bool) if set outputs
     :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
@@ -434,7 +434,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # Reading emission table
     spectable = tables.read_spectable(spfile, z_cut=(np.min(z_eff), np.max(z_eff)),
                                       temperature_cut=(np.min(temp_keV), np.max(temp_keV)),
-                                      energy_cut=energy_cut)  # [10^-14 counts s^-1 cm^3]
+                                      energy_cut=energy_cut)  # [10^-14 photons s^-1 cm^3]
 
     # In nh is provided the spectral table is converted
     if nh is not None:
@@ -445,14 +445,14 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     d_ene = (energy[-1] - energy[0]) / (
             nene - 1)  # [keV] Assuming uniform energy interval. TODO: include d_ene while generating the table
 
-    # Converting counts to energy o viceversa, if necessary
+    # Converting photons to energy o viceversa, if necessary
     if flag_ene != spectable.get('flag_ene'):
         if flag_ene:
             for iene in range(0, nene):
                 spectable['data'][:, :, iene] *= energy[iene]  # [10^-14 keV s^-1 cm^3]
         else:
             for iene in range(0, nene):
-                spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 counts s^-1 cm^3]
+                spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 photons s^-1 cm^3]
 
     # Mapping
     spcube = np.full((npix, npix, nene), 0.)
@@ -475,18 +475,16 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         # Using weight vectors to construct weight matrix
         wk_matrix = kernel_weight_2d(xpix, ypix)
 
-        # Calculating spectrum of the particle [10^-14 counts s^-1 cm^3]
+        # Calculating spectrum of the particle [10^-14 photons s^-1 cm^3]
         spectrum = tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True, flag_ene=False)
 
-        # TODO: fix this attempt of vectorialization to speed up code
-        spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)
-        # spectrum_wk = np.repeat(wk_matrix[:, :, np.newaxis], nene, axis=2) * np.tile(spectrum, (nx, ny, 1))
+        spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [10^-14 photons s^-1 cm^3]
 
-        # Adding to the spec cube: units [counts s^-1 cm^-2]
+        # Adding to the spec cube: units [photons s^-1 cm^-2]
         spcube[i_beg:i_end + 1, j_beg:j_end + 1, :] += norm[ipart] * spectrum_wk
 
     # Renormalizing result
-    spcube /= d_ene * pixsize ** 2  # [counts s^-1 cm^-2 arcmin^-2 keV^-1]
+    spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
 
     # Output
     result = {
@@ -499,7 +497,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         'pixel_size_units': 'arcmin',
         'energy': np.float32(energy),
         'energy_interval': np.float32(np.full(nene, d_ene)),
-        'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'counts keV^-1 s^-1 cm^-2 arcmin^-2',
+        'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'photons keV^-1 s^-1 cm^-2 arcmin^-2',
         'coord_units': 'h^-1 kpc',
         'energy_units': 'keV',
         'simulation_file': simfile,
@@ -532,7 +530,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
 
 
-# [counts keV^-1 s^-1 cm^-2 arcmin^-2]
+# [photons keV^-1 s^-1 cm^-2 arcmin^-2]
 # TODO: The first 7 code lines in the mapping loop can be wrapped into a method, with inputs (x, y, hsml, nx, ny) and
 # output (i_beg, i_end, j_beg, j_end, wk_matrix)
 

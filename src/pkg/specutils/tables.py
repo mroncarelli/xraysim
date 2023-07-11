@@ -87,7 +87,7 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
     :param temperature_cut: (float 2) optional temperature interval where to cut the table [keV]
     :param energy_cut: (float 2) optional energy interval where to cut the table [keV]
     :return: a structure containing the spectrum table, in the 'data' key, with other information in the other keys.
-    With standard Xspec parameters the units are [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3] if the
+    With standard Xspec parameters the units are [10^-14 photons s^-1 cm^3] or [10^-14 keV s^-1 cm^3] if the
     header of the file has the keyword FLAG_ENE = 1.
     """
     hdulist = fits.open(filename)
@@ -174,12 +174,12 @@ def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
     :param temperature: temperature where to compute the spectrum [keV]
     :param no_z_interp: (boolean) if set to True redshift interpolation is turned off (useful to avoid line-emission
      smearing in high resolution spectra)
-    :param flag_ene: (boolean) if True the spectrum is calculated in energy, if False in counts (default False)
-    :return: array containing the spectrum. With standard Xspec parameters the units are [10^-14 counts s^-1 cm^3] or
+    :param flag_ene: (boolean) if True the spectrum is calculated in energy, if False in photons (default False)
+    :return: array containing the spectrum. With standard Xspec parameters the units are [10^-14 photons s^-1 cm^3] or
     [10^-14 keV s^-1 cm^3] if flag_ene is set to True.
     """
 
-    data = spectable.get('data')  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
+    data = spectable.get('data')  # [10^-14 photons s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
     nene = data.shape[2]
     z_table = spectable.get('z')
     temperature_table = spectable.get('temperature')  # [keV]
@@ -211,9 +211,9 @@ def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
     valid = np.where(data[it0, :] * data[it0, :] > 0.)
     result = np.zeros(nene)
     result[valid] = np.exp((1 - ft) * np.log(data[it0, valid]) + ft * np.log(
-        data[it1, valid]))  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
+        data[it1, valid]))  # [10^-14 photons s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
 
-    # Converting counts to energy or vice-versa if required
+    # Converting photons to energy or vice-versa if required
     if flag_ene != flag_ene_table:
         energy = spectable.get('energy')  # [keV]
         if flag_ene:
@@ -221,6 +221,6 @@ def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
                 result[:, :, ind] *= ene  # [10^-14 keV s^-1 cm^3]
         else:
             for ind, ene in enumerate(energy):
-                result[:, :, ind] /= ene  # [10^-14 counts s^-1 cm^3]
+                result[:, :, ind] /= ene  # [10^-14 photons s^-1 cm^3]
 
-    return result  # [10^-14 counts s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
+    return result  # [10^-14 photons s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
