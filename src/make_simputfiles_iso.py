@@ -21,7 +21,7 @@ cosmo = cosmology.FlatLambdaCDM(H0=100., Om0=0.3)
 d_c = cosmo.comoving_distance(redshift).to_value()  # [h^-1 Mpc]
 
 # X-IFU parameters
-npix = 40
+npix = 240
 
 # XRISM-Resolve
 #npix = 30
