@@ -30,7 +30,7 @@ def readtemperature(filename: str, units='K', f_cooling=None, suppress=None):
     else:
         warnings.warn("WARNING (readtemperature): Invalid value of keyword 'units': " + str(units) + ". Assuming 'K'.")
 
-    return temp  # [K]
+    return temp
 
 
 def readvelocity(filename: str, units='km/s', redshift=None, suppress=None):
