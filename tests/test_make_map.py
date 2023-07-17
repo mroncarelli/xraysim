@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import pygadgetreader as pygr
-from src.pkg.gadgetutils.readspecial import readtemperature
+from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.sphprojection.mapping import make_map
 
 # Snapshot file on which the tests are performed
@@ -71,7 +71,7 @@ def test_total_momentum(infile=snapshot_file):
     """
     redshift = pygr.readhead(infile, 'redshift')
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
-    vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
+    vel = readvelocity(infile, units='km/s', suppress=1)[:, 2]  # [km s^-1]
     val_snap = np.sum(mass * vel)
     map_str = make_map(infile, 'vmw', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
@@ -87,7 +87,7 @@ def test_total_ew_momentum(infile=snapshot_file):
     redshift = pygr.readhead(infile, 'redshift')
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     rho = pygr.readsnap(infile, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
-    vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
+    vel = readvelocity(infile, units='km/s', suppress=1)[:, 2]  # [km s^-1]
     val_snap = np.sum(mass * rho * vel)
     map_str = make_map(infile, 'vew', npix=128, struct=True)
     val_map = np.sum(map_str['map'] * map_str['norm']) * map_str['pixel_size'] ** 2
@@ -102,7 +102,7 @@ def test_average_velocity_dispersion(infile=snapshot_file):
     """
     redshift = pygr.readhead(infile, 'redshift')
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
-    vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
+    vel = readvelocity(infile, units='km/s', suppress=1)[:, 2]  # [km s^-1]
     val_snap = np.sqrt(
         np.sum(mass * vel ** 2) / np.sum(mass) - (np.sum(mass * vel) / np.sum(mass)) ** 2)
     map_str = make_map(infile, 'wmw', npix=128, struct=True)
@@ -121,7 +121,7 @@ def test_average_ew_velocity_dispersion(infile=snapshot_file):
     redshift = pygr.readhead(infile, 'redshift')
     mass = pygr.readsnap(infile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     rho = pygr.readsnap(infile, 'rho', 'gas', units=0, suppress=1)  # [10^10 h^2 M_Sun kpc^-3]
-    vel = pygr.readsnap(infile, 'vel', 'gas', units=0, suppress=1)[:, 2] / (1 + redshift)  # [km/s]
+    vel = readvelocity(infile, units='km/s', suppress=1)[:, 2]  # [km s^-1]
     val_snap = np.sqrt(
         np.sum(mass * rho * vel ** 2) / np.sum(mass * rho) - (np.sum(mass * rho * vel) / np.sum(mass * rho)) ** 2)
     map_str = make_map(infile, 'wew', npix=128, struct=True)

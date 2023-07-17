@@ -3,7 +3,7 @@ import math as mt
 import astropy as apy
 import numpy as np
 import pygadgetreader as pygr
-from src.pkg.gadgetutils.readspecial import readtemperature
+from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.gadgetutils import convert, phys_const
 from src.pkg.sphprojection.kernel import intkernel, kernel_weight_2d
 from src.pkg.sphprojection.linkedlist import linkedlist2d
@@ -215,8 +215,7 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
             del rho
         del mass, temp
     elif quantity in ['vmw', 'vew', 'wmw', 'wew']:
-        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / \
-              np.sqrt(1 + redshift)  # [km s^-1]
+        vel = readvelocity(simfile, units='km/s', suppress=1)[:, proj_index]  # [km s^-1]
         if quantity == 'vmw':
             qty = mass * vel / pixsize ** 2  # [10^10 h M_Sun kpc^-2 km s^-1]
             nrm = mass / pixsize ** 2  # [10^10 h M_Sun kpc^-2]
@@ -333,7 +332,6 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
         arcmin^-2], with False in count units, i.e. [photons keV^-1 s^-1 cm^-2 arcmin^-2], default: False
     :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
-    :param struct: (bool) if set outputs
     :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
         [K], default: the temperature is read from the Gadget file
     :param novel: (bool) if set to True peculiar velocities are turned off, default: False
@@ -439,8 +437,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         # If peculiar velocities are switched off
         z_eff = np.full(ngas, redshift)
     else:
-        vel = pygr.readsnap(simfile, 'vel', 'gas', units=0, suppress=1)[:, proj_index] / \
-              np.sqrt(1 + redshift)  # [km s^-1]
+        vel = readvelocity(simfile, units='km/s', suppress=1)[:, proj_index]  # [km s^-1]
         z_eff = convert.vpec2zobs(vel, redshift, units='km/s')
         del vel
 

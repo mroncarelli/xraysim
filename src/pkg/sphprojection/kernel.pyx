@@ -1,5 +1,6 @@
 # cython: language_level=3
 import numpy as np
+cimport numpy as cnp
 
 def intkernel(x: float) -> float:
     """
@@ -24,8 +25,6 @@ def intkernel(x: float) -> float:
     else:
         return 1.
 
-intkernel_vec = np.vectorize(intkernel)
-
 def intkernel_ge0(x: float) -> float:
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx, but works only for x>=0.
@@ -46,6 +45,9 @@ def intkernel_ge0(x: float) -> float:
         return 0.5 - 1. / 6. + 8. / 3. * xc - 4. * xc ** 2 + 8. / 3. * xc ** 3 - 2. / 3. * xc ** 4
     else:
         return 1.
+
+
+intkernel_vec = np.vectorize(intkernel)
 
 
 def kernel_weight_2d(x, y):
