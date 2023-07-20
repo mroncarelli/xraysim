@@ -402,25 +402,29 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     hsml_z = hsml if zrange else None  # saving hsml in comoving coordinates [h^-1 kpc]
     hsml = hsml / size_gadget * npix  # [pixel units]
 
-    # Cutting out particles outside the f.o.v. and for other conditions
+    # Reading temperature or assigning it to a single value if isothermal is set
     if isothermal:
         temp = np.full(ngas, isothermal)
     else:
         temp = readtemperature(simfile, f_cooling=f_cooling, suppress=1)  # [K]
+
+    # Cutting out particles outside the f.o.v.
     valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
 
+    # If tcut is set, cutting out particles with temperature lower than the limit
     if tcut > 0.:
         valid_mask = valid_mask & (temp > tcut)
     temp_keV = temp / phys_const.keV2K  # [keV]
     del temp
 
+    # If zrange is set, cutting out particles outside the l.o.s. range
     if zrange:
         valid_mask = valid_mask & (z + hsml_z > zrange[0]) & (z - hsml_z < zrange[1])
 
     valid = np.where(valid_mask)[0]
     del valid_mask
 
-    # Creating linked list
+    # Creating linked list with valid particles only
     particle_list = valid[linkedlist2d(x[valid], y[valid], npix, npix)]
     del valid
 
@@ -444,16 +448,17 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # Reading density (physical [10^10 h^2 M_Sun kpc^-3])
     rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (1 + redshift) ** 3
 
+    # Reading ionization fraction if f_cooling is on
     ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
-    norm = convert.gadgget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble,
-                                     ne)  # [10^14 cm^-5]
+    # Calculating Xspec normalization [10^14 cm^-5]
+    norm = convert.gadgget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
     del mass, rho, ne
 
-    # Reading emission table
+    # Reading emission table [10^-14 photons s^-1 cm^3]
     spectable = tables.read_spectable(spfile, z_cut=(np.min(z_eff), np.max(z_eff)),
                                       temperature_cut=(np.min(temp_keV), np.max(temp_keV)),
-                                      energy_cut=energy_cut)  # [10^-14 photons s^-1 cm^3]
+                                      energy_cut=energy_cut)
 
     # In nh is provided the spectral table is converted
     if nh is not None:
@@ -461,8 +466,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     energy = spectable.get('energy')  # [keV]
     nene = len(energy)
-    d_ene = (energy[-1] - energy[0]) / (
-            nene - 1)  # [keV] Assuming uniform energy interval. TODO: include d_ene while generating the table
+    # TODO: include d_ene while generating the table
+    d_ene = (energy[-1] - energy[0]) / (nene - 1)  # [keV] Assuming uniform energy interval.
 
     # Converting photons to energy o viceversa, if necessary
     if flag_ene != spectable.get('flag_ene'):
@@ -473,9 +478,10 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             for iene in range(0, nene):
                 spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 photons s^-1 cm^3]
 
-    # Mapping
+    # Initializing 3d spec-cube
     spcube = np.full((npix, npix, nene), 0.)
 
+    # Defining iterable to iterate through particles
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
     for ipart in iter_:
         # Getting the 2d kernel map and pixel ranges
@@ -485,9 +491,10 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         spectrum = norm[ipart] * tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True,
                                                   flag_ene=False)
 
+        # Calculating 3d spec-cube of the single SPH particle
         spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [photons s^-1 cm^-2]
 
-        # Adding to the spec cube: units [photons s^-1 cm^-2]
+        # Adding to the spec-cube: units [photons s^-1 cm^-2]
         spcube[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1, :] += spectrum_wk
 
     # Renormalizing result
