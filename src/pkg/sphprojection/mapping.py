@@ -316,25 +316,29 @@ from astropy import cosmology
 
 
 def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
-                  energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None,
-                  nosmooth=False, nh=None, progress=False):
+                  energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None, gaussvel=None,
+                  seed=0, nosmooth=False, nh=None, progress=False):
     """
-    :param simfile: (str) simulation file (Gadget)
-    :param spfile: (str) spectrum file (FITS)
-    :param size: (float) angular size of the map [deg]
-    :param npix: (int) number of pixels per map side (default=256)
-    :param redshift: (float) redshift where to place the simulation (default: the redshift of the Gadget snapshot file)
-    :param center: (float 2) comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
-    :param proj: (str/int) direction of projection ('x', 'y', 'z' or 0, 1, 2)
-    :param zrange: (float 2) range in the l.o.s. axis
-    :param energy_cut: (float 2) energy interval to cpmpute (default: assumes the one from the spfile)
-    :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
+    :param simfile: (str) Simulation file (Gadget)
+    :param spfile: (str) Spectrum file (FITS)
+    :param size: (float) Angular size of the map [deg]
+    :param npix: (int) Number of pixels per map side (default=256)
+    :param redshift: (float) Redshift where to place the simulation (default: the redshift of the Gadget snapshot file)
+    :param center: (float 2) Comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
+    :param proj: (str/int) Direction of projection ('x', 'y', 'z' or 0, 1, 2)
+    :param zrange: (float 2) Range in the l.o.s. axis
+    :param energy_cut: (float 2) Energy interval to compute (default: assumes the one from the spfile)
+    :param tcut: (float) If set defines a temperature cut below which particles are removed [K]. Default: 0.
     :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
         arcmin^-2], with False in count units, i.e. [photons keV^-1 s^-1 cm^-2 arcmin^-2], default: False
     :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
     :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
         [K], default: the temperature is read from the Gadget file
-    :param novel: (bool) if set to True peculiar velocities are turned off, default: False
+    :param novel: (bool) If set to True peculiar velocities are turned off. Default: False
+    :param gaussvel: (float 2) If set velocites are set randomly with a gaussian pdf, with mean and standard deviation
+        given by the first and second argument in [km/s]. If the second argument is not present it is considered to be
+        0. Applies only if novel=False. Default: None.
+    :param seed: (int) Seed for the random generator (used for gaussvel). Default: 0.
     :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
     :param nh: (float) hydrogen column density [cm^-2], overrides the value from the spectral table
     :param progress: (bool) if set the progress bar is shown in output, default: False
@@ -438,12 +442,25 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Calculating effective redshift (Hubble + peculiar velocity) of the particles
     if novel:
-        # If peculiar velocities are switched off
+        # If peculiar velocities are switched off all particles effective redshift are set to the cosmological one
         z_eff = np.full(ngas, redshift)
+    elif gaussvel:
+        # Random gaussian velocity distribution
+        try:
+            v_mean = float(gaussvel[0])  # [km/s]
+            v_std = float(gaussvel[1]) if len(gaussvel) > 1 else 0.  # [km/s]
+            rng = np.random.default_rng(np.abs(seed))
+            z_eff = convert.vpec2zobs(rng.normal(loc=v_mean, scale=v_std, size=ngas),  # [km/s]
+                                      redshift,
+                                      units='km/s')
+        except BaseException:
+            print("Invalid value for gaussvel: ", gaussvel, "Must be a 2d number vector")
+            raise ValueError
+
     else:
-        vel = readvelocity(simfile, units='km/s', suppress=1)[:, proj_index]  # [km s^-1]
-        z_eff = convert.vpec2zobs(vel, redshift, units='km/s')
-        del vel
+        z_eff = convert.vpec2zobs(readvelocity(simfile, units='km/s', suppress=1)[:, proj_index],  # [km/s]
+                                  redshift,
+                                  units='km/s')
 
     # Reading density (physical [10^10 h^2 M_Sun kpc^-3])
     rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (1 + redshift) ** 3
