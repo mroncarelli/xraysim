@@ -408,7 +408,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading temperature or assigning it to a single value if isothermal is set
     if isothermal:
-        temp = np.full(ngas, isothermal)
+        temp = np.full(ngas, isothermal)  # [K]
     else:
         temp = readtemperature(simfile, f_cooling=f_cooling, suppress=1)  # [K]
 
@@ -535,13 +535,13 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         'spectral_table': spfile,
         'proj': proj,
         'z_cos': redshift,
-        'd_c': cosmo.comoving_distance(redshift).to_value(),  # h^-1 Mpc
+        'd_c': cosmo.comoving_distance(redshift).to_value(),  # [h^-1 Mpc]
         'flag_ene': flag_ene
     }
     if tcut:
-        result['tcut'] = tcut
+        result['tcut'] = tcut  # [K]
     if isothermal:
-        result['isothermal'] = isothermal
+        result['isothermal'] = isothermal  # [K]
     result['smoothing'] = 'OFF' if nosmooth else 'ON'
     result['velocities'] = 'OFF' if novel else 'ON'
     if zrange:

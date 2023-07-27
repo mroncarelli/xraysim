@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
+import os
+from astropy.io import fits
 
 from src.pkg.sphprojection.mapping import make_speccube
-from astropy.io import fits
 from src.pkg.gadgetutils.phys_const import keV2K
 from specutils.tables import read_spectable, calc_spec
-import os
 
 infile = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
 spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
@@ -103,7 +103,7 @@ def test_isothermal_spectrum():
                 temperature_table[-1] - temperature_table[0])  # arbitrary value inside the table [keV]
     spec_reference = calc_spec(sptable, z, temp_iso_kev, no_z_interp=True)
     spec_reference /= spec_reference.mean()  # normalize to mean = 1
-    temp_iso = temp_iso_kev * keV2K
+    temp_iso = temp_iso_kev * keV2K  # [K]
     spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
                                   isothermal=temp_iso, nsample=nsample).get('data')
 
