@@ -83,13 +83,13 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
     :param simfile: (str) simulation file (Gadget)
     :param quantity: (str) physical quantity to map (one of rho, rho2, Tmw, Tew, Tsl, vmw, vew, wmw, wew)
     :param npix: (int) number of map pixels per side
-    :param center: (float 2) comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
-    :param size: (float) map comoving size [h^-1 kpc], default: encloses all gas particles
+    :param center: (float 2) comoving coord. of the map center [h^-1 kpc]. Default: median point of gas particles
+    :param size: (float) map comoving size [h^-1 kpc]. Default: encloses all gas particles
     :param proj: (str/int) direction of projection ('x', 'y', 'z' or 0, 1, 2)
     :param zrange: (float 2) range in the l.o.s. axis
-    :param tcut: (float) if set defines a temperature cut below which particles are removed [K], default: 0.
-    :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
-    :param struct: (bool) if set outputs a structure (dictionary) containing several info, default: False
+    :param tcut: (float) if set defines a temperature cut below which particles are removed [K]. Default: 0.
+    :param nsample: (int), if set defines a sampling for the particles (useful to speed up). Default: 1 (no sampling)
+    :param struct: (bool) if set outputs a structure (dictionary) containing several info. Default: False
                     - norm: normalization map
                     - x(y)range: map range in the x(y) direction
                     - pixel_size: pixel size
@@ -97,8 +97,8 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
                     - norm_units: units of the normalization map
                     - coord_units: units of x(y) range, i.e. h^-1 kpc comoving
                     - other info present for some specific options
-    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
-    :param progress: (bool) if set the progress bar is shown in output, default: False
+    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points. Default: False
+    :param progress: (bool) if set the progress bar is shown in output. Default: False
     :return: map or structure if struct keyword is set to True
     """
 
@@ -322,27 +322,29 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param simfile: (str) Simulation file (Gadget)
     :param spfile: (str) Spectrum file (FITS)
     :param size: (float) Angular size of the map [deg]
-    :param npix: (int) Number of pixels per map side (default=256)
-    :param redshift: (float) Redshift where to place the simulation (default: the redshift of the Gadget snapshot file)
-    :param center: (float 2) Comoving coord. of the map center [h^-1 kpc], default: median point of gas particles
+    :param npix: (int) Number of pixels per map side. Default: 256.
+    :param redshift: (float) Redshift where to place the simulation. Default: the redshift of the Gadget snapshot file
+    :param center: (float 2) Comoving coord. of the map center [h^-1 kpc]. Default: median point of gas particles
     :param proj: (str/int) Direction of projection ('x', 'y', 'z' or 0, 1, 2)
-    :param zrange: (float 2) Range in the l.o.s. axis
-    :param energy_cut: (float 2) Energy interval to compute (default: assumes the one from the spfile)
-    :param tcut: (float) If set defines a temperature cut below which particles are removed [K]. Default: 0.
-    :param flag_ene: (bool) if set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
-        arcmin^-2], with False in count units, i.e. [photons keV^-1 s^-1 cm^-2 arcmin^-2], default: False
-    :param nsample: (int), if set defines a sampling for the particles (useful to speed up), default: 1 (no sampling)
-    :param isothermal: (float) if set to a value it assumes an isothermal gas with temperature fixed to the input value
-        [K], default: the temperature is read from the Gadget file
+    :param zrange: (float 2) Range (comoving) in the l.o.s. axis [h^-1 kpc]
+    :param energy_cut: (float 2) Energy interval to compute [keV]. Default: assumes the one from the spfile.
+    :param tcut: (float) If set defines a temperature cut below which particles are removed [K]. The temperature is the
+        one from the simulation snapshot even if the isothermal keyword is active. Default: 0.
+    :param flag_ene: (bool) If set to True forces the computation to be in energy units, i.e. [keV keV^-1 s^-1 cm^-2
+        arcmin^-2], with False in photon units, i.e. [photons keV^-1 s^-1 cm^-2 arcmin^-2]. Default: False
+    :param nsample: (int) If set defines a sampling for the particles (useful to speed up). Default: 1 (no sampling)
+    :param isothermal: (float) If set gas is assumed isothermal gas with temperature fixed to the input value [K]. Does
+        not apply to the temperature cut (see tcut). Default: the temperature is read from the Gadget file.
     :param novel: (bool) If set to True peculiar velocities are turned off. Default: False
-    :param gaussvel: (float 2) If set velocites are set randomly with a gaussian pdf, with mean and standard deviation
+    :param gaussvel: (float 2) If set velocities are set randomly with a gaussian pdf, with mean and standard deviation
         given by the first and second argument in [km/s]. If the second argument is not present it is considered to be
         0. Applies only if novel=False. Default: None.
     :param seed: (int) Seed for the random generator (used for gaussvel). Default: 0.
-    :param nosmooth: (bool) if set the SPH smoothing is turned off, and particles ar treated as points, default: False
-    :param nh: (float) hydrogen column density [cm^-2], overrides the value from the spectral table
-    :param progress: (bool) if set the progress bar is shown in output, default: False
-    :return: a structure (dictionary) containing several info, including:
+    :param nosmooth: (bool) If set the SPH smoothing is turned off, and particles ar treated as points. Default: False
+    :param nh: (float) Hydrogen column density [cm^-2], overrides the value from the spectral table. Default: assumes
+        the value in sofile.
+    :param progress: (bool) If set the progress bar is shown in output. Default: False.
+    :return: A structure (dictionary) containing several info, including:
                     - data: spectral cube [photons keV^-1 s^-1 cm^-2 arcmin^-2] (or [keV keV^-1 s^-1 cm^-2 arcmin^-2]
                         if flag_ene is True)
                     - x(y)range: map range in the x(y) direction in Gadget units [h^-1 kpc]
@@ -408,18 +410,18 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading temperature or assigning it to a single value if isothermal is set
     if isothermal:
-        temp = np.full(ngas, isothermal)  # [K]
+        temp_keV = np.full(ngas, isothermal / phys_const.keV2K)  # [keV]
     else:
-        temp = readtemperature(simfile, f_cooling=f_cooling, suppress=1)  # [K]
+        temp_keV = readtemperature(simfile, f_cooling=f_cooling, units='keV', suppress=1)  # [keV]
 
     # Cutting out particles outside the f.o.v.
     valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
 
-    # If tcut is set, cutting out particles with temperature lower than the limit
-    if tcut > 0.:
-        valid_mask = valid_mask & (temp > tcut)
-    temp_keV = temp / phys_const.keV2K  # [keV]
-    del temp
+    # If tcut is set, cutting out particles with temperature lower than the limit. IMPORTANT: the cut on the simulation
+    # temperature even in the isothermal case, to eliminate particles with extremely high densities that would dominate
+    # the emission.
+    if tcut > 0.:  # [K]
+        valid_mask = valid_mask & (readtemperature(simfile, f_cooling=f_cooling, suppress=1) > tcut)
 
     # If zrange is set, cutting out particles outside the l.o.s. range
     if zrange:
@@ -450,9 +452,11 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             v_mean = float(gaussvel[0])  # [km/s]
             v_std = float(gaussvel[1]) if len(gaussvel) > 1 else 0.  # [km/s]
             rng = np.random.default_rng(np.abs(seed))
-            z_eff = convert.vpec2zobs(rng.normal(loc=v_mean, scale=v_std, size=ngas),  # [km/s]
+            vel = rng.normal(loc=v_mean, scale=v_std, size=ngas)
+            z_eff = convert.vpec2zobs(vel,  # [km/s]
                                       redshift,
                                       units='km/s')
+            del vel
         except BaseException:
             print("Invalid value for gaussvel: ", gaussvel, "Must be a 2d number vector")
             raise ValueError
@@ -564,7 +568,7 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     Writes a spectral-cube into a FITS file.
     :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube
     :param outfile: (str) FITS file
-    :param overwrite: (bool) If set to true the file is overwrittend, default True
+    :param overwrite: (bool) If set to true the file is overwrittend. Default True
     :return: Output of the write FITS procedure
     """
     hduList = fits.HDUList()
