@@ -64,7 +64,7 @@ def set_simput_headers(hdulist: fits.HDUList):
 
 
 def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
-                    appendto=None, nh=None, preserve_input=True):
+                    appendto=None, nh=None, preserve_input=True, overwrite=True):
     """
     :param spcube_input: spectral cube structure, i.e. output of make_speccube
     :param simput_file: (str) SIMPUT output file
@@ -76,7 +76,9 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     :param appendto: TODO
     :param nh: (float) hydrogen column density [10^22 cm^-2], if included it changes the value of the input object
         converting it to the desired one, default: None (i.e. maintains the original value of nh)
-    :param preserve_input: (bool) if set to true the 'data' key is deleted from the spcube_struct, default False
+    :param preserve_input: (bool) If set to true the 'data' key in spcube_struct is left untouched and duplicated in
+        memory. If there is no need to preserve it, setting to False will save memory. Default: True.
+    :param overwrite: (bool) If set to true the file is overwritten. Default: True.
     :return: None
     """
 
@@ -215,7 +217,8 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
         if 'nh' in spcube_struct:
             hdulist[0].header.set('NH', spcube_struct.get('nh'), '[10^22 cm^-2]')
 
-    return hdulist.writeto(simput_file, overwrite=True)  # Returns None
+    # Writing FITS file (returns None)
+    return hdulist.writeto(simput_file, overwrite=overwrite)
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
@@ -227,16 +230,17 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     :param instrument: (str) Instrument
     :param exposure: (float) Exposure [s]
     :param evtfile: (str) Output FITS file containing the simulation results
-    :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg], default None (uses the RA, DEC
-        keywords of the simputfile header)
+    :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg]. Default: None. i.e. uses the RA, DEC
+        keywords of the simputfile header
     :param xmlfile: (str) XML file for the telescope configuration
     :param advxml: (str) Advanced XML configuration file
     :param background: (bool) If set to True includes the instrumental background, default True
     :param overwrite: (bool) If set overwrites previous output file (evtfile) if exists, default True
-    :param verbosity: (int) Verbosity level, with 0 being the lowest (see SIXTE manual 'chatter') and 7 highest,
-    default None, i.e. SIXTE default (4)
+    :param verbosity: (int) Verbosity level, with 0 being the lowest (see SIXTE manual 'chatter') and 7 highest.
+    Default: None, i.e. SIXTE default (4).
     :param logfile: (str) if set the output is not written on screen but saved in the file
-    :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
+    :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead. Default:
+        False.
     :return: System output of SIXTE command (or string containing the command if no_exec is set to True)
     """
 

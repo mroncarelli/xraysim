@@ -341,7 +341,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         0. Applies only if novel=False. Default: None.
     :param seed: (int) Seed for the random generator (used for gaussvel). Default: 0.
     :param nosmooth: (bool) If set the SPH smoothing is turned off, and particles ar treated as points. Default: False
-    :param nh: (float) Hydrogen column density [cm^-2], overrides the value from the spectral table. Default: assumes
+    :param nh: (float) Hydrogen column density [10^22 cm^-2], overrides the value from the spectral table. Default: assumes
         the value in sofile.
     :param progress: (bool) If set the progress bar is shown in output. Default: False.
     :return: A structure (dictionary) containing several info, including:
@@ -568,8 +568,8 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     Writes a spectral-cube into a FITS file.
     :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube
     :param outfile: (str) FITS file
-    :param overwrite: (bool) If set to true the file is overwrittend. Default True
-    :return: Output of the write FITS procedure
+    :param overwrite: (bool) If set to true the file is overwritten. Default: True.
+    :return: None
     """
     hduList = fits.HDUList()
     data = spec_cube.get('data')
@@ -623,7 +623,7 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     hduList[-1].header.set('NENE', data.shape[2])
     hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
 
-    # Writing FITS file
+    # Writing FITS file (returns None)
     return hduList.writeto(outfile, overwrite=overwrite)
 
 
