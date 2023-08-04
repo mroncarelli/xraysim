@@ -581,6 +581,7 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
 
     # Primary
     hduList.append(fits.PrimaryHDU(data.transpose()))
+    hduList[-1].header.set('INFO', 'Created with Python xraysim and astropy')
     hduList[-1].header.set('SIM_FILE', spec_cube.get('simulation_file'))
     hduList[-1].header.set('SP_FILE', spec_cube.get('spectral_table'))
     hduList[-1].header.set('PROJ', spec_cube.get('proj'))
@@ -614,12 +615,12 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
         hduList[-1].header.set('N_H', spec_cube.get('nh'), '[' + spec_cube.get('nh_units') + ']')
 
     # Extension 1
-    hduList.append(fits.ImageHDU(spec_cube.get('energy')))
+    hduList.append(fits.ImageHDU(spec_cube.get('energy'), name='Energy'))
     hduList[-1].header.set('NENE', data.shape[2])
     hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
 
     # Extension 2
-    hduList.append(fits.ImageHDU(spec_cube.get('energy_interval')))
+    hduList.append(fits.ImageHDU(spec_cube.get('energy_interval'), name='En. interval'))
     hduList[-1].header.set('NENE', data.shape[2])
     hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
 
