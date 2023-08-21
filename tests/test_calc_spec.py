@@ -1,6 +1,6 @@
 import os
 import pytest
-from specutils.tables import read_spectable, calc_spec
+from src.pkg.specutils.tables import read_spectable, calc_spec
 
 spectable_file = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
 

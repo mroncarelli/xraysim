@@ -2,7 +2,7 @@ from astropy.io import fits
 import numpy as np
 
 
-def nearest_index_sorted(array, value):
+def nearest_index_sorted(array, value) -> int:
     """
     Returns the index whose value is closest to the input value. Assumes the array is sorted in ascending order.
     :param array: array (sorted ascending) to search into
@@ -15,7 +15,7 @@ def nearest_index_sorted(array, value):
     return idx
 
 
-def largest_index_smaller(array, value):
+def largest_index_smaller(array, value) -> int:
     """
     Returns the largest index whose value is smaller than the input value. Assumes the array is sorted in ascending
     order.
@@ -33,7 +33,7 @@ def largest_index_smaller(array, value):
         return None
 
 
-def smallest_index_larger(array, value):
+def smallest_index_larger(array, value) -> int:
     """
     Returns the smallest index whose value is larger than the input value. Assumes the array is sorted in ascending
     order.
@@ -79,7 +79,7 @@ def reversed_fits_axis_order(inp) -> bool:
     return result
 
 
-def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=None):
+def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=None) -> dict:
     """
     Reads a spectrum table from a file.
     :param filename: (str) input file (FITS)
@@ -166,7 +166,7 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
     return result
 
 
-def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
+def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False) -> np.ndarray:
     """
     Calculates a spectrum from a table for a given redshift and temperature
     :param spectable: structure containing the spectrum table
@@ -209,7 +209,7 @@ def calc_spec(spectable, z, temperature, no_z_interp=False, flag_ene=False):
     ft = (np.log(temperature) - np.log(temperature_table[it0])) / (
             np.log(temperature_table[it1]) - np.log(temperature_table[it0]))
     valid = np.where(data[it0, :] * data[it0, :] > 0.)
-    result = np.zeros(nene)
+    result = np.zeros(nene, dtype='float32')
     result[valid] = np.exp((1 - ft) * np.log(data[it0, valid]) + ft * np.log(
         data[it1, valid]))  # [10^-14 photons s^-1 cm^3] or [10^-14 keV s^-1 cm^3]
 
