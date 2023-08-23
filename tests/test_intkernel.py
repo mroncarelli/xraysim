@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 from src.pkg.sphprojection.kernel import intkernel
 
+intkernel_vec = np.vectorize(intkernel)
+
 
 # This is a series of tests on the intkernel function
 
@@ -42,14 +44,12 @@ def test_val2():
 
 def test_negative_vs_positive():
     # For any argument x, f(x) = 1-f(-x)
-    intkernel_vec = np.vectorize(intkernel)
     x = np.arange(0., 1., 0.01)
     assert all(ypos == pytest.approx(1 - yneg) for ypos, yneg in zip(intkernel_vec(x), intkernel_vec(-x)))
 
 
 def test_norm_eq_1():
     # A 2D-map of weighted pixels with ranges enclosing [-1, 1] on both sides must sum to 1
-    intkernel_vec = np.vectorize(intkernel)
     wx = intkernel_vec(np.arange(-2., 2., 0.01))
     nx = len(wx) - 1
     wy = intkernel_vec(np.arange(-1.9, 2.1, 0.02))

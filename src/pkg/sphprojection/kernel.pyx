@@ -1,6 +1,8 @@
 # cython: language_level=3
 import numpy as np
 
+DATA_TYPE = np.float32
+
 def intkernel(x: float) -> float:
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
@@ -68,4 +70,4 @@ def kernel_weight_2d(x, y):
     ny = len(y) - 1
     int_wk_y = intkernel_vec(y)
     wk_y = [int_wk_y[j + 1] - int_wk_y[j] for j in range(ny)]
-    return np.full([ny, nx], wk_x).transpose() * np.full([nx, ny], wk_y)
+    return np.full([ny, nx], wk_x).astype(DATA_TYPE).transpose() * np.full([nx, ny], wk_y).astype(DATA_TYPE)
