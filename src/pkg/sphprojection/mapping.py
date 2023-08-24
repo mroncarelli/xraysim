@@ -517,7 +517,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
         # Adding to the spec-cube: units [photons s^-1 cm^-2]
         #add_2dweight_vector(spcube[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1, :], wk_matrix, spectrum)
-        add_2dweight_vector(spcube, i_range[0], j_range[0], wk_matrix, spectrum)
+        add_2dweight_vector(spcube, i_range[0], j_range[0], wk_matrix.astype('float64'), spectrum.astype('float64'))
 
     # Renormalizing result
     spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]

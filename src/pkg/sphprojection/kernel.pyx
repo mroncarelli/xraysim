@@ -78,10 +78,10 @@ def kernel_weight_2d(x, y):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, float[:, ::1] w, float[:] v):
+def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, double[:, ::1] w, double[:] v):
     cdef double[:, :, :] view_array3 = array3
-    cdef float[:, :] view_w = w
-    cdef float[:] view_v = v
+    cdef double[:, :] view_w = w
+    cdef double[:] view_v = v
     cdef Py_ssize_t nx = w.shape[0]
     cdef Py_ssize_t ny = w.shape[1]
     cdef Py_ssize_t nz = v.shape[0]
