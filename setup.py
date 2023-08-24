@@ -1,5 +1,6 @@
 from setuptools import setup
 from Cython.Build import cythonize
+import numpy
 
 setup(
     name='xraysim',
@@ -7,6 +8,7 @@ setup(
     package_dir={'': 'src/pkg'},
     packages=['readgadget', 'readgadget.modules', 'pygadgetreader', 'sphprojection', 'gadgetutils', 'specutils'],
     ext_modules=cythonize('src/pkg/sphprojection/*.pyx'),
+    include_dirs=[numpy.get_include()],
     zip_safe=False,
     url='https://github.com/mroncarelli/xraysim',
     license='',

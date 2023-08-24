@@ -1,5 +1,7 @@
 # cython: language_level=3
 import numpy as np
+cimport numpy as np
+cimport cython
 
 DATA_TYPE = np.float32
 
@@ -71,3 +73,20 @@ def kernel_weight_2d(x, y):
     int_wk_y = intkernel_vec(y)
     wk_y = [int_wk_y[j + 1] - int_wk_y[j] for j in range(ny)]
     return np.full([ny, nx], wk_x).astype(DATA_TYPE).transpose() * np.full([nx, ny], wk_y).astype(DATA_TYPE)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, float[:, ::1] w, float[:] v):
+    cdef double[:, :, :] view_array3 = array3
+    cdef float[:, :] view_w = w
+    cdef float[:] view_v = v
+    cdef Py_ssize_t nx = w.shape[0]
+    cdef Py_ssize_t ny = w.shape[1]
+    cdef Py_ssize_t nz = v.shape[0]
+    for i0 in range(nx):
+        for i1 in range(ny):
+            for i2 in range(nz):
+                 view_array3[is0 + i0, is1 + i1, i2] += view_w[i0, i1] * view_v[i2]
+    return None
