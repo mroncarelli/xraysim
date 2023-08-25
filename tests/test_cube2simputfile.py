@@ -1,13 +1,13 @@
 import pytest
-from astropy.io import fits
 import os
+from astropy.io import fits
 
 from src.pkg.specutils.sixte import cube2simputfile
 from src.pkg.sphprojection.mapping import make_speccube
 from src.pkg.specutils.tables import read_spectable, calc_spec
 from src.pkg.gadgetutils.phys_const import keV2K
 
-infile = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
+snapshot_file = os.environ.get('XRAYSIM') + '/tests/data/snap_Gadget_sample'
 spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
 npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [500e3, 500e3], 'z', False, 10000
 t_iso_keV = 6.3  # [keV]
@@ -16,7 +16,7 @@ nene = fits.open(spfile)[0].header.get('NENE')
 simput_file = os.environ.get('XRAYSIM') + '/tests/data/file_created_for_test.simput'
 
 # Isothermal + no velocities
-spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=redshift, center=center, proj=proj,
+spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center, proj=proj,
                           nsample=nsample, isothermal=t_iso, novel=True)
 
 
