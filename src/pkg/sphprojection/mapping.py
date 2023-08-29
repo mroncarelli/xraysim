@@ -5,14 +5,14 @@ import numpy as np
 import pygadgetreader as pygr
 from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.gadgetutils import convert, phys_const
-from src.pkg.sphprojection.kernel import intkernel, kernel_weight_2d, add_2dweight_vector
+from src.pkg.sphprojection.kernel import intkernel_p, kernel_weight_2d, add_2dweight_vector, make_speccube_loop
 from src.pkg.sphprojection.linkedlist import linkedlist2d
-from src.pkg.sphprojection.matrix_operations import multiply_2d_1d
+#from src.pkg.sphprojection.matrix_operations import multiply_2d_1d
 from tqdm import tqdm
 from src.pkg.specutils import tables, absorption
 from astropy.io import fits
 
-intkernel_vec = np.vectorize(intkernel)
+intkernel_vec = np.vectorize(intkernel_p)
 
 
 def get_proj_index(proj):
@@ -499,25 +499,30 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             for iene in range(0, nene):
                 spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 photons s^-1 cm^3]
 
-    # Initializing 3d spec-cube
-    spcube = np.full((npix, npix, nene), 0.)
-
     # Defining iterable to iterate through particles
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
-    for ipart in iter_:
-        # Getting the 2d kernel map and pixel ranges
-        wk_matrix, i_range, j_range = kernel_2d(x[ipart], y[ipart], hsml[ipart], npix, npix)
 
-        # Calculating spectrum of the particle [photons s^-1 cm^-2]
-        spectrum = norm[ipart] * tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True,
-                                                  flag_ene=False)
+    # Initializing spcube with double precision
+    spcube = np.full((npix, npix, nene), 0., dtype=np.float64)
 
-        # Calculating 3d spec-cube of the single SPH particle
-        #spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [photons s^-1 cm^-2]
+    # Cython loop for mapping
+    make_speccube_loop(spcube, spectable, iter_, x, y, hsml, norm, z_eff, temp_keV)
 
-        # Adding to the spec-cube: units [photons s^-1 cm^-2]
-        #add_2dweight_vector(spcube[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1, :], wk_matrix, spectrum)
-        add_2dweight_vector(spcube, i_range[0], j_range[0], wk_matrix.astype('float64'), spectrum.astype('float64'))
+
+    # for ipart in iter_:
+    #     # Getting the 2d kernel map and pixel ranges
+    #     wk_matrix, i_range, j_range = kernel_2d(x[ipart], y[ipart], hsml[ipart], npix, npix)
+    #
+    #     # Calculating spectrum of the particle [photons s^-1 cm^-2]
+    #     spectrum = norm[ipart] * tables.calc_spec(spectable, z_eff[ipart], temp_keV[ipart], no_z_interp=True,
+    #                                               flag_ene=False)
+    #
+    #     # Calculating 3d spec-cube of the single SPH particle
+    #     #spectrum_wk = multiply_2d_1d(wk_matrix, spectrum)  # [photons s^-1 cm^-2]
+    #
+    #     # Adding to the spec-cube: units [photons s^-1 cm^-2]
+    #     #add_2dweight_vector(spcube[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1, :], wk_matrix, spectrum)
+    #     add_2dweight_vector(spcube, i_range[0], j_range[0], wk_matrix.astype('float64'), spectrum.astype('float64'))
 
     # Renormalizing result
     spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]

@@ -3,9 +3,17 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
+from src.pkg.specutils.tables import calc_spec
+
 DATA_TYPE = np.float32
 
-def intkernel(x: float) -> float:
+def intkernel_p(x):
+    return intkernel(x)
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef float intkernel(x: float):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
     Here w(x) is centered in x=0 and defined positive between -1 and -1, with w(x)=0 for x<=-1 and x>=1.
@@ -17,18 +25,20 @@ def intkernel(x: float) -> float:
                intKernel(0.5) returns 0.958333
                intKernel(1.) returns 1 (same for any argument >1)
     """
-    cdef float xc
-    xc = x
-    if xc < 0:
-        return 1. - intkernel_ge0(-xc)
-    elif xc < 0.5:
-        return 0.5 + 4. / 3. * xc - 8. / 3. * xc ** 3 + 2. * xc ** 4
-    elif xc < 1:
-        return 0.5 - 1. / 6. + 8. / 3. * xc - 4. * xc ** 2 + 8. / 3. * xc ** 3 - 2. / 3. * xc ** 4
+    if x < 0:
+        return 1. - intkernel_ge0(-x)
+    elif x < 0.5:
+        return 0.5 + 4. / 3. * x - 8. / 3. * x ** 3 + 2. * x ** 4
+    elif x < 1:
+        return 0.5 - 1. / 6. + 8. / 3. * x - 4. * x ** 2 + 8. / 3. * x ** 3 - 2. / 3. * x ** 4
     else:
         return 1.
 
-def intkernel_ge0(x: float) -> float:
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef float intkernel_ge0(x: float):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx, but works only for x>=0.
     Useful to speed up computation. It is supposed to be called by intkernel only, and should not be used standalone.e
@@ -40,14 +50,27 @@ def intkernel_ge0(x: float) -> float:
                intKernel(0.5) returns 0.958333
                intKernel(1.) returns 1 (same for any argument >1)
     """
-    cdef float xc
-    xc = x
-    if  xc < 0.5:
-        return 0.5 + 4. / 3. * xc - 8. / 3. * xc ** 3 + 2. * xc ** 4
-    elif xc < 1:
-        return 0.5 - 1. / 6. + 8. / 3. * xc - 4. * xc ** 2 + 8. / 3. * xc ** 3 - 2. / 3. * xc ** 4
+    if  x < 0.5:
+        return 0.5 + 4. / 3. * x - 8. / 3. * x ** 3 + 2. * x ** 4
+    elif x < 1:
+        return 0.5 - 1. / 6. + 8. / 3. * x - 4. * x ** 2 + 8. / 3. * x ** 3 - 2. / 3. * x ** 4
     else:
         return 1.
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef float[:] kernel_weight(float[:] x):
+    cdef Py_ssize_t i, n = x.shape[0] - 1
+    cdef float[:] result = np.empty(n, dtype=DATA_TYPE)
+    cdef float w0, w1
+    w0  = intkernel(x[0])
+    for i in range(n):
+        w1 = intkernel(x[i+1])
+        result[i] = w1 - w0
+        w0 = w1
+    return result
 
 
 intkernel_vec = np.vectorize(intkernel)
@@ -75,9 +98,6 @@ def kernel_weight_2d(x, y):
     return np.full([ny, nx], wk_x).astype(DATA_TYPE).transpose() * np.full([nx, ny], wk_y).astype(DATA_TYPE)
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-@cython.nonecheck(False)
 def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, double[:, ::1] w, double[:] v):
     cdef double[:, :, :] view_array3 = array3
     cdef double[:, :] view_w = w
@@ -89,4 +109,80 @@ def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, double[:, ::
         for i1 in range(ny):
             for i2 in range(nz):
                  view_array3[is0 + i0, is1 + i1, i2] += view_w[i0, i1] * view_v[i2]
+    return None
+
+
+# TODO: Move the stuff after this comment in another file called mapping_loops.pyx. I tried to do it but got stuck
+# with import issues
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef kernel_mapping(float x, float h, int n):
+    """
+    Calculates a 1d-kernel weight based on the 1d coordinates and the smoothing length. Thee coordinates and the 
+    smoothing length must be normalized to map units, i.e. in pixel units with value 0 corresponding to the map 
+    starting borders (i.e. left and bottom borders). 
+    :param x: (float) The normalized coordinate, must be in increasing order
+    :param h: (float) The normalized smoothing length
+    :param n: (int) Number of map pixels in the coordinate direction
+    :return: A 2-elements tuple with these elements:
+        1: The 1d-kernel weight
+        2: A 2-elements tuple with the true map pixel limits in the coordinate direction
+    """
+
+    # Indexes of first and last pixel to map in both axes
+    cdef int i0 = max(int(np.floor(x - h)), 0)
+    cdef int i1 = min(int(np.floor(x + h)), n - 1)
+
+    # Defining weight vectors for x and y-axis
+    cdef float[:] xpix = (np.arange(i0, i1 + 2, dtype=DATA_TYPE) - x) / h
+
+    return kernel_weight(xpix), (i0, i1)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+cdef add_to_spcube(double[:, :, ::1] spcube, float[:] spectrum, float[:] wx, float[:] wy,
+                   int i0, int i1, int j0, int j1, int nz):
+
+    cdef Py_ssize_t i, j, k
+    for i in range(i1 - i0 + 1):
+        w = wx[i]
+        for j in range(j1 - j0 + 1):
+            ww = w * wy[j]
+            for k in range(nz):
+                spcube[i0 + i, j0 + j, k] += ww * spectrum[k]
+
+    return None
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+def make_speccube_loop(double[:, :, ::1] spcube, spectable, iter_, float[:] x, float[:] y, float[:] hsml, norm, z_eff, temp_kev):
+
+    cdef float[:] spectrum, wx, wy
+    cdef int nx = spcube.shape[0]
+    cdef int ny = spcube.shape[1]
+    cdef int nz = spcube.shape[2]
+    cdef int i0, i1, j0, j1
+
+    for ipart in iter_:
+
+        # Calculating spectrum of the particle [photons s^-1 cm^-2]
+        spectrum = norm[ipart] * calc_spec(spectable, z_eff[ipart], temp_kev[ipart], no_z_interp=True, flag_ene=False)
+
+        # Getting the kernel weights in the two directions
+        wx, (i0, i1) = kernel_mapping(x[ipart], hsml[ipart], nx)
+        wy, (j0, j1) = kernel_mapping(y[ipart], hsml[ipart], ny)
+
+        # Checks
+        assert len(wx) == i1 - i0 + 1
+        assert len(wy) == j1 - j0 + 1
+        assert len(spectrum) == nz
+
+        # Adding spectrum to the speccube using weights
+        add_to_spcube(spcube, spectrum, wx, wy, i0, i1, j0, j1, nz)
+
     return None
