@@ -1,18 +1,19 @@
-import numpy as np
 import pytest
+import numpy as np
 import os
 from astropy.io import fits
 
 from src.pkg.sphprojection.mapping import make_speccube
 from src.pkg.gadgetutils.phys_const import keV2K
-from specutils.tables import read_spectable, calc_spec
+from src.pkg.specutils.tables import read_spectable, calc_spec
 
-infile = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
+snapshot_file = os.environ.get('XRAYSIM') + '/tests/data/snap_Gadget_sample'
 spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
-npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [500e3, 500e3], 'z', False, 10000
+npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [2500., 2500.], 'z', False, 1
 nene = fits.open(spfile)[0].header.get('NENE')
 
-spec_cube = make_speccube(infile, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj, nsample=nsample)
+spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=0.1, center=center, proj=proj,
+                          nsample=nsample)
 
 
 def test_structure(inp=spec_cube):
@@ -40,7 +41,7 @@ def test_key_values(inp=spec_cube):
     Some data in the output dictionary must correspond exactly to the input ones
     :param inp: the speccube dictionary to test
     """
-    reference_dict = {'size': size, 'pixel_size': size / npix * 60., 'simulation_file': infile,
+    reference_dict = {'size': size, 'pixel_size': size / npix * 60., 'simulation_file': snapshot_file,
                       'spectral_table': spfile, 'proj': proj, 'z_cos': redshift, 'flag_ene': flag_ene,
                       'smoothing': 'ON', 'velocities': 'ON'}
 
@@ -76,11 +77,11 @@ def test_isothermal_spectrum_with_temperature_from_table():
     z, temp_iso = z_table[iz], temperature_table[it] * keV2K  # [K]
     spec_reference = sptable.get('data')[iz, it, :]
     spec_reference /= spec_reference.mean()  # normalize to mean = 1
-    spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
-                                  isothermal=temp_iso, nsample=nsample).get('data')
+    spec_cube_iso = make_speccube(snapshot_file, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
+                                  isothermal=temp_iso, novel=True, nsample=nsample).get('data')
 
     nene_speccube = spec_cube_iso.shape[2]
-    spec_iso = np.ndarray(nene_speccube)
+    spec_iso = np.ndarray(nene_speccube, dtype='float32')
     for iene in range(nene_speccube):
         spec_iso[iene] = spec_cube_iso[:, :, iene].sum()
     spec_iso /= spec_iso.mean()  # normalize to mean = 1
@@ -104,10 +105,10 @@ def test_isothermal_spectrum():
     spec_reference = calc_spec(sptable, z, temp_iso_kev, no_z_interp=True)
     spec_reference /= spec_reference.mean()  # normalize to mean = 1
     temp_iso = temp_iso_kev * keV2K  # [K]
-    spec_cube_iso = make_speccube(infile, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
-                                  isothermal=temp_iso, nsample=nsample).get('data')
+    spec_cube_iso = make_speccube(snapshot_file, spfile, size=size, npix=5, redshift=z, center=center, proj=proj,
+                                  isothermal=temp_iso, novel=True, nsample=nsample).get('data')
 
-    spec_iso = np.ndarray(nene)
+    spec_iso = np.ndarray(nene, dtype='float32')
     for iene in range(nene):
         spec_iso[iene] = spec_cube_iso[:, :, iene].sum()
     spec_iso /= spec_iso.mean()  # normalize to mean = 1

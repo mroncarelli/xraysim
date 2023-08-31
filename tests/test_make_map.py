@@ -1,11 +1,13 @@
-import numpy as np
 import pytest
+import numpy as np
 import pygadgetreader as pygr
+import os
+
 from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.sphprojection.mapping import make_map
 
 # Snapshot file on which the tests are performed
-snapshot_file = '/Users/mauro/XRISM/TheThreeHundred/Gadget3PESPH/NewMDCLUSTER_0322/snap_128'
+snapshot_file = os.environ.get('XRAYSIM') + '/tests/data/snap_Gadget_sample'
 
 
 def test_total_mass(infile=snapshot_file):
