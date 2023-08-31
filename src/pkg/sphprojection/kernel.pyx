@@ -132,8 +132,8 @@ cdef kernel_mapping(float x, float h, int n):
     """
 
     # Indexes of first and last pixel to map in both axes
-    cdef int i0 = max(int(np.floor(x - h)), 0)
-    cdef int i1 = min(int(np.floor(x + h)), n - 1)
+    cdef Py_ssize_t i0 = max(int(np.floor(x - h)), 0)
+    cdef Py_ssize_t i1 = min(int(np.floor(x + h)), n - 1)
 
     # Defining weight vectors for x and y-axis
     cdef float[:] xpix = (np.arange(i0, i1 + 2, dtype=DATA_TYPE) - x) / h
@@ -145,12 +145,15 @@ cdef kernel_mapping(float x, float h, int n):
 @cython.wraparound(False)
 @cython.nonecheck(False)
 cdef add_to_spcube(double[:, :, ::1] spcube, float[:] spectrum, float[:] wx, float[:] wy,
-                   int i0, int i1, int j0, int j1, int nz):
+                   Py_ssize_t i0, Py_ssize_t j0, Py_ssize_t nz):
 
+    cdef Py_ssize_t len_wx = wx.shape[0]
+    cdef Py_ssize_t len_wy = wy.shape[0]
     cdef Py_ssize_t i, j, k
-    for i in range(i1 - i0 + 1):
+    cdef float w, ww
+    for i in range(len_wx):
         w = wx[i]
-        for j in range(j1 - j0 + 1):
+        for j in range(len_wy):
             ww = w * wy[j]
             for k in range(nz):
                 spcube[i0 + i, j0 + j, k] += ww * spectrum[k]
@@ -165,8 +168,8 @@ def make_speccube_loop(double[:, :, ::1] spcube, spectable, iter_, float[:] x, f
     cdef float[:] spectrum, wx, wy
     cdef int nx = spcube.shape[0]
     cdef int ny = spcube.shape[1]
-    cdef int nz = spcube.shape[2]
-    cdef int i0, i1, j0, j1
+    cdef Py_ssize_t nz = spcube.shape[2]
+    cdef Py_ssize_t i0, i1, j0, j1
 
     for ipart in iter_:
 
@@ -183,6 +186,6 @@ def make_speccube_loop(double[:, :, ::1] spcube, spectable, iter_, float[:] x, f
         assert len(spectrum) == nz
 
         # Adding spectrum to the speccube using weights
-        add_to_spcube(spcube, spectrum, wx, wy, i0, i1, j0, j1, nz)
+        add_to_spcube(spcube, spectrum, wx, wy, i0, j0, nz)
 
     return None
