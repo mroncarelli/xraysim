@@ -7,13 +7,14 @@ from src.pkg.specutils.tables import calc_spec
 
 DATA_TYPE = np.float32
 
-def intkernel_p(x):
-    return intkernel(x)
+def intkernel(x):
+    cdef xc = x
+    return intkernel_c(xc)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
-cdef float intkernel(x: float):
+cdef float intkernel_c(x: float):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
     Here w(x) is centered in x=0 and defined positive between -1 and -1, with w(x)=0 for x<=-1 and x>=1.
@@ -65,15 +66,15 @@ cdef float[:] kernel_weight(float[:] x):
     cdef Py_ssize_t i, n = x.shape[0] - 1
     cdef float[:] result = np.empty(n, dtype=DATA_TYPE)
     cdef float w0, w1
-    w0  = intkernel(x[0])
+    w0  = intkernel_c(x[0])
     for i in range(n):
-        w1 = intkernel(x[i+1])
+        w1 = intkernel_c(x[i + 1])
         result[i] = w1 - w0
         w0 = w1
     return result
 
 
-intkernel_vec = np.vectorize(intkernel)
+intkernel_vec = np.vectorize(intkernel_c)
 
 
 def kernel_weight_2d(x, y):
@@ -96,20 +97,6 @@ def kernel_weight_2d(x, y):
     int_wk_y = intkernel_vec(y)
     wk_y = [int_wk_y[j + 1] - int_wk_y[j] for j in range(ny)]
     return np.full([ny, nx], wk_x).astype(DATA_TYPE).transpose() * np.full([nx, ny], wk_y).astype(DATA_TYPE)
-
-
-def add_2dweight_vector(double[:, :, ::1] array3, int is0, int is1, double[:, ::1] w, double[:] v):
-    cdef double[:, :, :] view_array3 = array3
-    cdef double[:, :] view_w = w
-    cdef double[:] view_v = v
-    cdef Py_ssize_t nx = w.shape[0]
-    cdef Py_ssize_t ny = w.shape[1]
-    cdef Py_ssize_t nz = v.shape[0]
-    for i0 in range(nx):
-        for i1 in range(ny):
-            for i2 in range(nz):
-                 view_array3[is0 + i0, is1 + i1, i2] += view_w[i0, i1] * view_v[i2]
-    return None
 
 
 # TODO: Move the stuff after this comment in another file called mapping_loops.pyx. I tried to do it but got stuck
