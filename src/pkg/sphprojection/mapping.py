@@ -1,4 +1,3 @@
-import math as mt
 import numpy as np
 from astropy.io import fits
 from astropy import cosmology
@@ -7,7 +6,7 @@ from tqdm import tqdm
 
 from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.gadgetutils import convert, phys_const
-from src.pkg.sphprojection.kernel import intkernel, kernel_weight_2d, make_speccube_loop
+from src.pkg.sphprojection.kernel import intkernel, make_map_loop, make_map_loop2, make_speccube_loop
 from src.pkg.sphprojection.linkedlist import linkedlist2d
 from src.pkg.specutils import tables, absorption
 
@@ -27,7 +26,7 @@ def get_proj_index(proj: str) -> int:
     elif proj == 'z' or proj == 2:
         return 2
     else:
-        print("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1), 'z' (2)")
+        print("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1) and 'z' (2)")
         raise ValueError
 
 
@@ -55,39 +54,6 @@ def get_map_coord(simfile: str, proj_index: int, z=False):
         return x, y, pos[:, index_list[1]]
     else:
         return x, y
-
-
-# TODO: cythonize this part
-def kernel_2d(x: float, y: float, h: float, nx: int, ny: int):
-    """
-    Calculates a 2d-kernel map based on the (x, y) coordinates and the smoothing length. Both coordinates and the 
-    smoothing length must be normalized to map units, i.e. in pixel units with value 0 corresponding to the map 
-    starting borders (i.e. left and bottom borders). 
-    :param x: (float) The normalized x-coordinate
-    :param y: (float) The normalized y-coordinate
-    :param h: (float) The normalized smoothing length
-    :param nx: (int) Number of map pixels in the x direction
-    :param ny: (int) Number of map pixels in the y direction
-    :return: A 3-elements tuple with these elements:
-        1: The 2d-kernel map
-        2: A 2-elements tuple with the true map pixel limits in the x-direction
-        3: A 2-elements tuple with the true map pixel limits in the y-direction
-    """
-    
-    # Indexes of first and last pixel to map in both axes
-    i0 = max(mt.floor(x - h), 0)
-    i1 = min(mt.floor(x + h), nx - 1)
-    j0 = max(mt.floor(y - h), 0)
-    j1 = min(mt.floor(y + h), ny - 1)
-
-    # Defining weight vectors for x and y-axis
-    xpix = (np.arange(i0, i1 + 2) - x) / h
-    ypix = (np.arange(j0, j1 + 2) - y) / h
-
-    # Using weight vectors to construct weight matrix
-    wk_matrix = kernel_weight_2d(xpix, ypix)
-    
-    return wk_matrix, (i0, i1), (j0, j1)
 
 
 def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z', zrange=None, tcut=0., nsample=None,
@@ -204,11 +170,11 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
 
     if quantity == 'rho':  # Int(rho*dl)
         qty = mass / pixsize ** 2  # comoving [10^10 h M_Sun kpc^-2]
-        nrm = np.full(ngas, 0.)  # [---]
+        nrm = np.full(ngas, 0., dtype=np.float32)  # [---]
     elif quantity == 'rho2':  # Int(rho2*dl)
         qty = mass * pygr.readsnap(simfile, 'rho', 'gas',
                                    units=0, suppress=1) / pixsize ** 2  # comoving [10^20 h^3 M_Sun^2 kpc^-1]
-        nrm = np.full(ngas, 0.)  # [---]
+        nrm = np.full(ngas, 0., dtype=np.float32)  # [---]
     elif quantity in ['Tmw', 'Tew', 'Tsl']:
         if 'temp' not in locals():
             temp = readtemperature(simfile, f_cooling=f_cooling, suppress=1)  # [K]
@@ -254,30 +220,25 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
         raise ValueError
 
     # Mapping
-    qty_map = np.full((npix, npix), 0.)
-    nrm_map = np.full((npix, npix), 0.)
-    qty2_map = np.full((npix, npix), 0.) if quantity in ['wmw', 'wew'] else None
+    qty_map = np.full((npix, npix), 0., dtype=np.float64)
+    nrm_map = np.full((npix, npix), 0., dtype=np.float64)
 
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
-    for ipart in iter_:
-        # Getting the 2d kernel map and pixel ranges
-        wk_matrix, i_range, j_range = kernel_2d(x[ipart], y[ipart], hsml[ipart], npix, npix)
 
-        # Adding to maps
-        qty_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * qty[ipart]
-        nrm_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * nrm[ipart]
-        if quantity in ['wmw', 'wew']:
-            qty2_map[i_range[0]:i_range[1] + 1, j_range[0]:j_range[1] + 1] += wk_matrix * qty2[ipart]
+    if quantity in ['wmw', 'wew']:
+        qty2_map = np.full((npix, npix), 0., dtype=np.float64)
+        make_map_loop2(qty_map, qty2_map, nrm_map, iter_, x, y, hsml, qty, qty2, nrm)
+    else:
+        make_map_loop(qty_map, nrm_map, iter_, x, y, hsml, qty, nrm)
 
     qty_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
     if quantity in ['wmw', 'wew']:
         qty2_map[np.where(nrm_map != 0.)] /= nrm_map[np.where(nrm_map != 0.)]
-        # The numerical noise may cause some pixels of qty_map to have smaller values than the corresponding ones,
-        # squared, in qty2_map: this would cause the presence of nan in the result. The loop below puts 0 in those
-        # pixels.
+        # Numerical noise may cause some pixels of qty_map to have smaller values than the corresponding ones, squared,
+        # in qty2_map: this would cause the presence of nan in the result. The loop below puts 0 in those pixels.
         for ipix in range(npix):
             for jpix in range(npix):
-                qty_map[ipix, jpix] = np.sqrt(max(qty_map[ipix, jpix] - qty2_map[ipix, jpix] ** 2, 0))
+                qty_map[ipix, jpix] = np.sqrt(max(qty_map[ipix, jpix] - qty2_map[ipix, jpix] ** 2, 0.))
 
     # Conversion to float32 for output
     qty_map = np.float32(qty_map)
@@ -351,8 +312,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         0. Applies only if novel=False. Default: None.
     :param seed: (int) Seed for the random generator (used for gaussvel). Default: 0.
     :param nosmooth: (bool) If set the SPH smoothing is turned off, and particles ar treated as points. Default: False
-    :param nh: (float) Hydrogen column density [10^22 cm^-2], overrides the value from the spectral table. Default: assumes
-        the value in sofile.
+    :param nh: (float) Hydrogen column density [10^22 cm^-2], overrides the value from the spectral table. Default:
+        assumes the value in sofile.
     :param progress: (bool) If set the progress bar is shown in output. Default: False.
     :return: A structure (dictionary) containing several info, including:
                     - data: spectral cube [photons keV^-1 s^-1 cm^-2 arcmin^-2] (or [keV keV^-1 s^-1 cm^-2 arcmin^-2]
@@ -420,9 +381,9 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading temperature or assigning it to a single value if isothermal is set
     if isothermal:
-        temp_keV = np.full(ngas, isothermal / phys_const.keV2K)  # [keV]
+        temp_kev = np.full(ngas, isothermal / phys_const.keV2K)  # [keV]
     else:
-        temp_keV = readtemperature(simfile, f_cooling=f_cooling, units='keV', suppress=1)  # [keV]
+        temp_kev = readtemperature(simfile, f_cooling=f_cooling, units='keV', suppress=1)  # [keV]
 
     # Cutting out particles outside the f.o.v.
     valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
@@ -488,7 +449,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading emission table [10^-14 photons s^-1 cm^3]
     spectable = tables.read_spectable(spfile, z_cut=(np.min(z_eff), np.max(z_eff)),
-                                      temperature_cut=(np.min(temp_keV), np.max(temp_keV)),
+                                      temperature_cut=(np.min(temp_kev), np.max(temp_kev)),
                                       energy_cut=energy_cut)
 
     # In nh is provided the spectral table is converted
@@ -516,7 +477,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     spcube = np.full((npix, npix, nene), 0., dtype=np.float64)
 
     # Cython loop for mapping
-    make_speccube_loop(spcube, spectable, iter_, x, y, hsml, norm, z_eff, temp_keV)
+    make_speccube_loop(spcube, iter_, x, y, hsml, spectable, norm, z_eff, temp_kev)
 
     spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
 
@@ -565,66 +526,66 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     """
     Writes a spectral-cube into a FITS file.
-    :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube
-    :param outfile: (str) FITS file
-    :param overwrite: (bool) If set to true the file is overwritten. Default: True.
+    :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube.
+    :param outfile: (str) FITS file.
+    :param overwrite: (bool) If set to True the file is overwritten. Default: True.
     :return: None
     """
-    hduList = fits.HDUList()
+    hdulist = fits.HDUList()
     data = spec_cube.get('data')
     xrange = spec_cube.get('xrange')
     yrange = spec_cube.get('yrange')
     zrange = spec_cube.get('zrange')
-    nh = spec_cube.get('nh')
+    nh = spec_cube.get('nh')  # [10^22 cm^-2]
     nsample = spec_cube.get('nsample')
 
     # Primary
-    hduList.append(fits.PrimaryHDU(data.transpose()))
-    hduList[-1].header.set('INFO', 'Created with Python xraysim and astropy')
-    hduList[-1].header.set('SIM_FILE', spec_cube.get('simulation_file'))
-    hduList[-1].header.set('SP_FILE', spec_cube.get('spectral_table'))
-    hduList[-1].header.set('PROJ', spec_cube.get('proj'))
-    hduList[-1].header.set('Z_COS', spec_cube.get('z_cos'))
-    hduList[-1].header.set('D_C', spec_cube.get('d_c'))
+    hdulist.append(fits.PrimaryHDU(data.transpose()))
+    hdulist[-1].header.set('INFO', 'Created with Python xraysim and astropy')
+    hdulist[-1].header.set('SIM_FILE', spec_cube.get('simulation_file'))
+    hdulist[-1].header.set('SP_FILE', spec_cube.get('spectral_table'))
+    hdulist[-1].header.set('PROJ', spec_cube.get('proj'))
+    hdulist[-1].header.set('Z_COS', spec_cube.get('z_cos'))
+    hdulist[-1].header.set('D_C', spec_cube.get('d_c'))
     if nsample:
-        hduList[-1].header.set('NSAMPLE', nsample)
-    hduList[-1].header.set('NPIX', data.shape[0])
-    hduList[-1].header.set('NENE', data.shape[2])
-    hduList[-1].header.set('ANG_PIX', spec_cube.get('pixel_size'), '[' + spec_cube.get('pixel_size_units') + ']')
-    hduList[-1].header.set('ANG_MAP', spec_cube.get('size'), '[' + spec_cube.get('size_units') + ']')
-    hduList[-1].header.set('E_MIN', spec_cube.get('energy')[0] - 0.5 * spec_cube.get('energy_interval')[0])
-    hduList[-1].header.set('E_MAX', spec_cube.get('energy')[-1] + 0.5 * spec_cube.get('energy_interval')[-1])
-    hduList[-1].header.set('FLAG_ENE', 1 if spec_cube.get('flag_ene') else 0)
-    hduList[-1].header.set('UNITS', '[' + spec_cube.get('units') + ']')
-    hduList[-1].header.set('X_MIN', xrange[0])
-    hduList[-1].header.set('X_MAX', xrange[1])
-    hduList[-1].header.set('Y_MIN', yrange[0])
-    hduList[-1].header.set('Y_MAX', yrange[1])
+        hdulist[-1].header.set('NSAMPLE', nsample)
+    hdulist[-1].header.set('NPIX', data.shape[0])
+    hdulist[-1].header.set('NENE', data.shape[2])
+    hdulist[-1].header.set('ANG_PIX', spec_cube.get('pixel_size'), '[' + spec_cube.get('pixel_size_units') + ']')
+    hdulist[-1].header.set('ANG_MAP', spec_cube.get('size'), '[' + spec_cube.get('size_units') + ']')
+    hdulist[-1].header.set('E_MIN', spec_cube.get('energy')[0] - 0.5 * spec_cube.get('energy_interval')[0])
+    hdulist[-1].header.set('E_MAX', spec_cube.get('energy')[-1] + 0.5 * spec_cube.get('energy_interval')[-1])
+    hdulist[-1].header.set('FLAG_ENE', 1 if spec_cube.get('flag_ene') else 0)
+    hdulist[-1].header.set('UNITS', '[' + spec_cube.get('units') + ']')
+    hdulist[-1].header.set('X_MIN', xrange[0])
+    hdulist[-1].header.set('X_MAX', xrange[1])
+    hdulist[-1].header.set('Y_MIN', yrange[0])
+    hdulist[-1].header.set('Y_MAX', yrange[1])
     if zrange:
-        hduList[-1].header.set('Z_MIN', zrange[0])
-        hduList[-1].header.set('Z_MAX', zrange[1])
-    hduList[-1].header.set('C_UNITS', '[' + spec_cube.get('coord_units') + ']', 'X-Y(-Z) coordinate units')
+        hdulist[-1].header.set('Z_MIN', zrange[0])
+        hdulist[-1].header.set('Z_MAX', zrange[1])
+    hdulist[-1].header.set('C_UNITS', '[' + spec_cube.get('coord_units') + ']', 'X-Y(-Z) coordinate units')
     if spec_cube.get('tcut'):
-        hduList[-1].header.set('T_CUT', spec_cube.get('tcut'), '[K]')
+        hdulist[-1].header.set('T_CUT', spec_cube.get('tcut'), '[K]')
     if spec_cube.get('isothermal'):
-        hduList[-1].header.set('ISO_T', spec_cube.get('isothermal'), '[K]')
-    hduList[-1].header.set('SMOOTH', spec_cube.get('smoothing'))
-    hduList[-1].header.set('VEL', spec_cube.get('velocities'))
+        hdulist[-1].header.set('ISO_T', spec_cube.get('isothermal'), '[K]')
+    hdulist[-1].header.set('SMOOTH', spec_cube.get('smoothing'))
+    hdulist[-1].header.set('VEL', spec_cube.get('velocities'))
     if nh:
-        hduList[-1].header.set('N_H', spec_cube.get('nh'), '[' + spec_cube.get('nh_units') + ']')
+        hdulist[-1].header.set('N_H', spec_cube.get('nh'), '[' + spec_cube.get('nh_units') + ']')
 
     # Extension 1
-    hduList.append(fits.ImageHDU(spec_cube.get('energy'), name='Energy'))
-    hduList[-1].header.set('NENE', data.shape[2])
-    hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
+    hdulist.append(fits.ImageHDU(spec_cube.get('energy'), name='Energy'))
+    hdulist[-1].header.set('NENE', data.shape[2])
+    hdulist[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
 
     # Extension 2
-    hduList.append(fits.ImageHDU(spec_cube.get('energy_interval'), name='En. interval'))
-    hduList[-1].header.set('NENE', data.shape[2])
-    hduList[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
+    hdulist.append(fits.ImageHDU(spec_cube.get('energy_interval'), name='En. interval'))
+    hdulist[-1].header.set('NENE', data.shape[2])
+    hdulist[-1].header.set('UNITS', '[' + spec_cube.get('energy_units') + ']')
 
     # Writing FITS file (returns None)
-    return hduList.writeto(outfile, overwrite=overwrite)
+    return hdulist.writeto(outfile, overwrite=overwrite)
 
 
 def read_speccube(infile: str):
