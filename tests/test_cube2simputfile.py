@@ -7,20 +7,39 @@ from src.pkg.sphprojection.mapping import make_speccube
 from src.pkg.specutils.tables import read_spectable, calc_spec
 from src.pkg.gadgetutils.phys_const import keV2K
 
-snapshot_file = os.environ.get('XRAYSIM') + '/tests/data/snap_Gadget_sample'
-spfile = os.environ.get('XRAYSIM') + '/tests/data/test_emission_table.fits'
-npix, size, redshift, center, proj, flag_ene, nsample = 10, 1., 0.1, [500e3, 500e3], 'z', False, 10000
+data_dir = os.environ.get('XRAYSIM') + '/tests/data/'
+snapshot_file = data_dir + 'snap_Gadget_sample'
+spfile = data_dir + 'test_emission_table.fits'
+reference_file = data_dir + 'reference.simput'
+npix, size, redshift, center, proj, flag_ene, tcut, nsample, nh = 25, 1.05, 0.1, [2500., 2500.], 'z', False, 1.e6, 1, 0.01
 t_iso_keV = 6.3  # [keV]
 t_iso = t_iso_keV * keV2K  # 73108018.313372612  # [K] (= 6.3 keV)
 nene = fits.open(spfile)[0].header.get('NENE')
-simput_file = os.environ.get('XRAYSIM') + '/tests/data/file_created_for_test.simput'
+test_file = data_dir + 'file_created_for_test.simput'
 
 # Isothermal + no velocities
-spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center, proj=proj,
-                          nsample=nsample, isothermal=t_iso, novel=True)
+spec_cube_iso_novel = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center,
+                                    proj=proj, nsample=nsample, isothermal=t_iso, novel=True)
+
+spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center,
+                          proj=proj, tcut=tcut, nh=nh, nsample=nsample)
 
 
-def test_file_created(inp=spec_cube, out=simput_file):
+def header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> bool:
+    """
+    Checks that a header contains all the keys, with same values, than the reference one. Other keywords/values may
+    be present and do not affect the result.
+    :param header: (fits.header) Header to check.
+    :param header_reference: (fits.header) Reference header.
+    :return: (bool) True if all key/values match, False otherwise.
+    """
+    result = True
+    for key in header_reference.keys():
+        result = result and header.get(key) == pytest.approx(header_reference.get(key))
+    return result
+
+
+def test_file_created(inp=spec_cube_iso_novel, out=test_file):
     """
     The output SIMPUT file must be correctly created
     :param inp: (dict) spectral cube structure
@@ -33,7 +52,7 @@ def test_file_created(inp=spec_cube, out=simput_file):
     os.remove(out)
 
 
-def test_primary_header_keywords(inp=spec_cube, out=simput_file):
+def test_primary_header_keywords(inp=spec_cube_iso_novel, out=test_file):
     """
     The header of the Primary of the output SIMPUT file must contain a series of keywords whose value depend on the
     input data
@@ -49,19 +68,19 @@ def test_primary_header_keywords(inp=spec_cube, out=simput_file):
     assert header.get('SIM_FILE') == inp.get('simulation_file')
     assert header.get('SP_FILE') == inp.get('spectral_table')
     assert header.get('PROJ') == inp.get('proj')
-    assert header.get('Z_COS') == inp.get('z_cos')
-    assert (header.get('D_C'), header.comments['D_C']) == (inp.get('d_c'), '[Mpc]')
+    assert header.get('Z_COS') == pytest.approx(inp.get('z_cos'))
+    assert (header.get('D_C'), header.comments['D_C']) == pytest.approx((inp.get('d_c'), '[Mpc]'))
     assert header.get('NPIX') == inp.get('data').shape[0]
     assert header.get('NENE') == inp.get('data').shape[2]
-    assert (header.get('ANG_PIX'), header.comments['ANG_PIX']) == (inp.get('pixel_size'), '[arcmin]')
-    assert (header.get('ANG_MAP'), header.comments['ANG_MAP']) == (inp.get('size'), '[deg]')
-    assert (header.get('RA_C'), header.comments['RA_C']) == (center_map[0], '[deg]')
-    assert (header.get('DEC_C'), header.comments['DEC_C']) == (center_map[1], '[deg]')
+    assert (header.get('ANG_PIX'), header.comments['ANG_PIX']) == pytest.approx((inp.get('pixel_size'), '[arcmin]'))
+    assert (header.get('ANG_MAP'), header.comments['ANG_MAP']) == pytest.approx((inp.get('size'), '[deg]'))
+    assert (header.get('RA_C'), header.comments['RA_C']) == pytest.approx((center_map[0], '[deg]'))
+    assert (header.get('DEC_C'), header.comments['DEC_C']) == pytest.approx((center_map[1], '[deg]'))
     assert header.get('SMOOTH') == inp.get('smoothing')
     assert header.get('VPEC') == inp.get('velocities')
 
 
-def test_isothermal_spectrum(inp=spec_cube, out=simput_file):
+def test_isothermal_spectrum(inp=spec_cube_iso_novel, out=test_file):
     """
     All the spectra contained in the Extension 2 of the SIMPUT file must be isothermal with T equal to the value
     indicated by the spec_cube, with arbitrary normalization.
@@ -73,7 +92,7 @@ def test_isothermal_spectrum(inp=spec_cube, out=simput_file):
     if os.path.isfile(out):
         os.remove(out)
     cube2simputfile(inp, out)
-    hdulist = fits.open(simput_file)
+    hdulist = fits.open(test_file)
     os.remove(out)
     header0 = hdulist[0].header
 
@@ -82,18 +101,49 @@ def test_isothermal_spectrum(inp=spec_cube, out=simput_file):
     temp = header0.get('ISOTHERM') / keV2K  # [keV]
 
     # Getting energy and (normalized spectrum) from table and from
-    z = spec_cube.get('z_cos')
-    energy_reference = spec_cube.get('energy')  # [keV]
+    z = spec_cube_iso_novel.get('z_cos')
+    energy_reference = spec_cube_iso_novel.get('energy')  # [keV]
     spectrum_reference = calc_spec(sptable, z, temp, no_z_interp=True)
     spectrum_reference /= spectrum_reference.mean()  # normalize to mean = 1
 
     # Checking energy from the SIMPUT file
     for energy in hdulist[2].data['ENERGY']:
         for val, val_reference in zip(energy, energy_reference):
-            assert val  == pytest.approx(val_reference, rel=1.e-6)
+            assert val == pytest.approx(val_reference, rel=1.e-6)
 
     # Checking spectra from the SIMPUT file
     for spectrum in hdulist[2].data['FLUXDENSITY']:
         spectrum_norm = spectrum / spectrum.mean()  # normalize to mean = 1
         for val, val_reference in zip(spectrum_norm, spectrum_reference):
             assert val == pytest.approx(val_reference, rel=1.e-6)
+
+
+def test_created_file_matches_reference(inp=spec_cube, out=test_file, reference=reference_file):
+    """
+    Writing the spec_cube to a SIMPUT file should produce a file with data identical to the reference one.
+    """
+    if os.path.isfile(test_file):
+        os.remove(test_file)
+    cube2simputfile(inp, out)
+    hdulist = fits.open(test_file)
+    os.remove(out)
+    hdulist_reference = fits.open(reference)
+
+    # Checking header keywords: created file must contain all keywords of reference file, with same value
+    for index, hdu_reference in enumerate(hdulist_reference):
+        assert header_has_all_keywords_and_values_of_reference(hdulist[index].header, hdu_reference.header)
+
+    # Data values must match
+    assert len(hdulist[0].data) == len(hdulist_reference[0].data)
+    for val, val_reference in zip(hdulist[0].data, hdulist_reference[0].data):
+        assert val == pytest.approx(val_reference)
+
+    assert len(hdulist[1].data) == len(hdulist_reference[1].data)
+    for val, val_reference in zip(hdulist[1].data, hdulist_reference[1].data):
+        assert val == pytest.approx(val_reference)
+
+    assert len(hdulist[2].data) == len(hdulist_reference[2].data)
+    for row, row_reference in zip(hdulist[2].data, hdulist_reference[2].data):
+        assert len(row) == len(row_reference)
+        for val, val_reference in zip(row, row_reference):
+            assert val == pytest.approx(val_reference)

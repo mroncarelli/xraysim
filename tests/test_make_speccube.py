@@ -13,6 +13,7 @@ spfile = data_dir + 'test_emission_table.fits'
 reference_file = data_dir + 'reference.speccube'
 npix, size, redshift, center, proj, flag_ene, nsample, nh = 25, 1.05, 0.1, [2500., 2500.], 'z', False, 1, 0.01
 nene = fits.open(spfile)[0].header.get('NENE')
+test_file = data_dir + 'file_created_for_test.speccube'
 
 spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=0.1, nh=nh, center=center, proj=proj)
 
@@ -118,18 +119,18 @@ def test_isothermal_spectrum():
         assert val / val_reference == pytest.approx(1., rel=1.e-5)
 
 
-def test_file_reference(reference=reference_file):
+def test_created_file_matches_reference(speccube_inp=spec_cube, reference=reference_file):
     """
     Writing the spec_cube to a fits file should produce a file with data identical to the reference one.
     """
-    test_file = data_dir + 'file_created_for_test.speccube'
     if os.path.isfile(test_file):
         os.remove(test_file)
-    write_speccube(spec_cube, test_file)
-    hdulist_reference = fits.open(reference)
+    write_speccube(speccube_inp, test_file)
     hdulist = fits.open(test_file)
+    os.remove(test_file)
+    hdulist_reference = fits.open(reference)
 
-    # File must have Primary and 2 extensions
+# File must have Primary and 2 extensions
     assert len(hdulist) == len(hdulist_reference) == 3
 
     # Primary
@@ -157,5 +158,3 @@ def test_file_reference(reference=reference_file):
     assert data.shape == data_reference.shape
     for i in range(data.shape[0]):
         assert data[i] == pytest.approx(data_reference[i])
-
-    os.remove(test_file)
