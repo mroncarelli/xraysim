@@ -222,7 +222,8 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
-                     advxml=None, background=True, overwrite=True, verbosity=None, logfile=None, no_exec=False):
+                     advxml=None, background=True, seed=None, overwrite=True, verbosity=None, logfile=None,
+                     no_exec=False):
     """
     Creates a simulated X-ray event-list by running the SIXTE simulator (see the manuale from the SIXTE webpage
     http://www.sternwarte.uni-erlangen.de/~sixte/data/simulator_manual.pdf).
@@ -235,6 +236,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     :param xmlfile: (str) XML file for the telescope configuration
     :param advxml: (str) Advanced XML configuration file
     :param background: (bool) If set to True includes the instrumental background, default True
+    :param seed: (int) Random seed, default None
     :param overwrite: (bool) If set overwrites previous output file (evtfile) if exists, default True
     :param verbosity: (int) Verbosity level, with 0 being the lowest (see SIXTE manual 'chatter') and 7 highest.
     Default: None, i.e. SIXTE default (4).
@@ -270,6 +272,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     command = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
               str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
               evtfile + ' clobber=' + clobber_
+
+    if type(seed) is int:
+        command += ' seed=' + str(seed)
 
     if type(verbosity) is int:
         if verbosity < 0:

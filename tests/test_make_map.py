@@ -7,7 +7,7 @@ from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
 from src.pkg.sphprojection.mapping import make_map
 
 # Snapshot file on which the tests are performed
-snapshot_file = os.environ.get('XRAYSIM') + '/tests/data/snap_Gadget_sample'
+snapshot_file = os.environ.get('XRAYSIM') + '/tests/inp/snap_Gadget_sample'
 
 
 def test_total_mass(infile=snapshot_file):

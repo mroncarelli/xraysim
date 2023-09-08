@@ -7,22 +7,23 @@ from src.pkg.sphprojection.mapping import make_speccube
 from src.pkg.specutils.tables import read_spectable, calc_spec
 from src.pkg.gadgetutils.phys_const import keV2K
 
-data_dir = os.environ.get('XRAYSIM') + '/tests/data/'
-snapshot_file = data_dir + 'snap_Gadget_sample'
-spfile = data_dir + 'test_emission_table.fits'
-reference_file = data_dir + 'reference.simput'
+inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
+referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'
+snapshotFile = inputDir + 'snap_Gadget_sample'
+spFile = inputDir + 'test_emission_table.fits'
+referenceSimputFile = referenceDir + 'reference.simput'
 npix, size, redshift, center, proj, flag_ene, tcut, nsample, nh = 25, 1.05, 0.1, [2500., 2500.], 'z', False, 1.e6, 1, 0.01
 t_iso_keV = 6.3  # [keV]
 t_iso = t_iso_keV * keV2K  # 73108018.313372612  # [K] (= 6.3 keV)
-nene = fits.open(spfile)[0].header.get('NENE')
-test_file = data_dir + 'file_created_for_test.simput'
+nene = fits.open(spFile)[0].header.get('NENE')
+testSimputFile = inputDir + 'file_created_for_test.simput'
 
 # Isothermal + no velocities
-spec_cube_iso_novel = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center,
-                                    proj=proj, nsample=nsample, isothermal=t_iso, novel=True)
+speccubeIsothermalNovel = make_speccube(snapshotFile, spFile, size=size, npix=npix, redshift=redshift, center=center,
+                                        proj=proj, nsample=nsample, isothermal=t_iso, novel=True)
 
-spec_cube = make_speccube(snapshot_file, spfile, size=size, npix=npix, redshift=redshift, center=center,
-                          proj=proj, tcut=tcut, nh=nh, nsample=nsample)
+speccube = make_speccube(snapshotFile, spFile, size=size, npix=npix, redshift=redshift, center=center,
+                         proj=proj, tcut=tcut, nh=nh, nsample=nsample)
 
 
 def header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> bool:
@@ -39,7 +40,7 @@ def header_has_all_keywords_and_values_of_reference(header: fits.header, header_
     return result
 
 
-def test_file_created(inp=spec_cube_iso_novel, out=test_file):
+def test_file_created(inp=speccubeIsothermalNovel, out=testSimputFile):
     """
     The output SIMPUT file must be correctly created
     :param inp: (dict) spectral cube structure
@@ -52,7 +53,7 @@ def test_file_created(inp=spec_cube_iso_novel, out=test_file):
     os.remove(out)
 
 
-def test_primary_header_keywords(inp=spec_cube_iso_novel, out=test_file):
+def test_primary_header_keywords(inp=speccubeIsothermalNovel, out=testSimputFile):
     """
     The header of the Primary of the output SIMPUT file must contain a series of keywords whose value depend on the
     input data
@@ -80,7 +81,7 @@ def test_primary_header_keywords(inp=spec_cube_iso_novel, out=test_file):
     assert header.get('VPEC') == inp.get('velocities')
 
 
-def test_isothermal_spectrum(inp=spec_cube_iso_novel, out=test_file):
+def test_isothermal_spectrum(inp=speccubeIsothermalNovel, out=testSimputFile):
     """
     All the spectra contained in the Extension 2 of the SIMPUT file must be isothermal with T equal to the value
     indicated by the spec_cube, with arbitrary normalization.
@@ -92,7 +93,7 @@ def test_isothermal_spectrum(inp=spec_cube_iso_novel, out=test_file):
     if os.path.isfile(out):
         os.remove(out)
     cube2simputfile(inp, out)
-    hdulist = fits.open(test_file)
+    hdulist = fits.open(testSimputFile)
     os.remove(out)
     header0 = hdulist[0].header
 
@@ -101,8 +102,8 @@ def test_isothermal_spectrum(inp=spec_cube_iso_novel, out=test_file):
     temp = header0.get('ISOTHERM') / keV2K  # [keV]
 
     # Getting energy and (normalized spectrum) from table and from
-    z = spec_cube_iso_novel.get('z_cos')
-    energy_reference = spec_cube_iso_novel.get('energy')  # [keV]
+    z = speccubeIsothermalNovel.get('z_cos')
+    energy_reference = speccubeIsothermalNovel.get('energy')  # [keV]
     spectrum_reference = calc_spec(sptable, z, temp, no_z_interp=True)
     spectrum_reference /= spectrum_reference.mean()  # normalize to mean = 1
 
@@ -118,14 +119,14 @@ def test_isothermal_spectrum(inp=spec_cube_iso_novel, out=test_file):
             assert val == pytest.approx(val_reference, rel=1.e-6)
 
 
-def test_created_file_matches_reference(inp=spec_cube, out=test_file, reference=reference_file):
+def test_created_file_matches_reference(inp=speccube, out=testSimputFile, reference=referenceSimputFile):
     """
     Writing the spec_cube to a SIMPUT file should produce a file with data identical to the reference one.
     """
-    if os.path.isfile(test_file):
-        os.remove(test_file)
+    if os.path.isfile(testSimputFile):
+        os.remove(testSimputFile)
     cube2simputfile(inp, out)
-    hdulist = fits.open(test_file)
+    hdulist = fits.open(testSimputFile)
     os.remove(out)
     hdulist_reference = fits.open(reference)
 

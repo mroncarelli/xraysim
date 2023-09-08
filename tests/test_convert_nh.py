@@ -4,7 +4,7 @@ from src.pkg.specutils import absorption as spabs
 from src.pkg.specutils import tables
 import numpy as np
 
-spfile_path = os.path.join(os.path.dirname(__file__), "data/test_emission_table.fits")
+spfile_path = os.path.join(os.path.dirname(__file__), "inp/test_emission_table.fits")
 spectable = tables.read_spectable(spfile_path)
 
 
