@@ -593,16 +593,16 @@ def read_speccube(infile: str):
     header0 = hdulist[0].header
     header1 = hdulist[1].header
     result = {
-        'data': hdulist[0].data,
+        'data': hdulist[0].data.transpose(),
         'xrange': (np.float32(header0.get('X_MIN')), np.float32(header0.get('X_MAX'))),  # [h^-1 kpc]
         'yrange': (np.float32(header0.get('Y_MIN')), np.float32(header0.get('Y_MAX'))),  # [h^-1 kpc]
         'size': np.float32(header0.get('ANG_MAP')),  # [deg]
-        'size_units': header0.comment.get('ANG_MAP').replace('[', '').replace(']', ''),
+        'size_units': header0.comments['ANG_MAP'].replace('[', '').replace(']', ''),
         'pixel_size': np.float32(header0.get('ANG_PIX')),  # [arcmin]
-        'pixel_size_units': header0.comment.get('ANG_PIX').replace('[', '').replace(']', ''),
+        'pixel_size_units': header0.comments['ANG_PIX'].replace('[', '').replace(']', ''),
         'energy': hdulist[1].data,
         'energy_interval': hdulist[2].data,
-        'units': header0.get('ANG_MAP').replace('[', '').replace(']', ''),
+        'units': header0.get('UNITS').replace('[', '').replace(']', ''),
         'coord_units': header0.get('C_UNITS').replace('[', '').replace(']', ''),
         'energy_units': header1.get('UNITS').replace('[', '').replace(']', ''),
         'simulation_file': header0.get('SIM_FILE'),
@@ -622,6 +622,6 @@ def read_speccube(infile: str):
         result['zrange'] = (header0.get('Z_MIN'), header0.get('Z_MAX'))
     if 'N_H' in header0:
         result['nh'] = header0.get('N_H')
-        result['nh_units'] = header0.comment.get('N_H').replace('[', '').replace(']', '')
+        result['nh_units'] = header0.comments['N_H'].replace('[', '').replace(']', '')
 
     return result

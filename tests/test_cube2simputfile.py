@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 import os
 from astropy.io import fits
 
@@ -130,21 +131,9 @@ def test_created_file_matches_reference(inp=speccube, out=testSimputFile, refere
     os.remove(out)
     hdulist_reference = fits.open(reference)
 
-    # Checking header keywords: created file must contain all keywords of reference file, with same value
-    for index, hdu_reference in enumerate(hdulist_reference):
-        assert header_has_all_keywords_and_values_of_reference(hdulist[index].header, hdu_reference.header)
+    for hdu, hdu_reference in zip(hdulist, hdulist_reference):
+        # Checking header keywords: created file must contain all keywords of reference file, with same value
+        assert header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
+        # Checking that data match
+        assert np.all(hdu.data == hdu_reference.data)
 
-    # Data values must match
-    assert len(hdulist[0].data) == len(hdulist_reference[0].data)
-    for val, val_reference in zip(hdulist[0].data, hdulist_reference[0].data):
-        assert val == pytest.approx(val_reference)
-
-    assert len(hdulist[1].data) == len(hdulist_reference[1].data)
-    for val, val_reference in zip(hdulist[1].data, hdulist_reference[1].data):
-        assert val == pytest.approx(val_reference)
-
-    assert len(hdulist[2].data) == len(hdulist_reference[2].data)
-    for row, row_reference in zip(hdulist[2].data, hdulist_reference[2].data):
-        assert len(row) == len(row_reference)
-        for val, val_reference in zip(row, row_reference):
-            assert val == pytest.approx(val_reference)
