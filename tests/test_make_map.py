@@ -3,8 +3,8 @@ import numpy as np
 import pygadgetreader as pygr
 import os
 
-from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
-from src.pkg.sphprojection.mapping import make_map
+from xraysim.gadgetutils.readspecial import readtemperature, readvelocity
+from xraysim.sphprojection.mapping import make_map
 
 # Snapshot file on which the tests are performed
 snapshot_file = os.environ.get('XRAYSIM') + '/tests/inp/snap_Gadget_sample'

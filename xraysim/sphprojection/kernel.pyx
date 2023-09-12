@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-from src.pkg.specutils.tables import calc_spec
+from xraysim.specutils.tables import calc_spec
 
 def intkernel(x):
     """

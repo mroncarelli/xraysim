@@ -3,9 +3,9 @@ import numpy as np
 import os
 from astropy.io import fits
 
-from src.pkg.sphprojection.mapping import make_speccube, write_speccube
-from src.pkg.gadgetutils.phys_const import keV2K
-from src.pkg.specutils.tables import read_spectable, calc_spec
+from xraysim.sphprojection.mapping import make_speccube, write_speccube
+from xraysim.gadgetutils.phys_const import keV2K
+from xraysim.specutils.tables import read_spectable, calc_spec
 
 data_dir = os.environ.get('XRAYSIM') + '/tests/inp/'
 reference_dir = os.environ.get('XRAYSIM') + '/tests/reference_files/'

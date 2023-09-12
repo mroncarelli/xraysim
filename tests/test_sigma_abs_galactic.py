@@ -1,5 +1,5 @@
 import pytest
-from src.pkg.specutils import absorption as spabs
+from xraysim.specutils import absorption as spabs
 
 
 def test_table_energy_ascending():

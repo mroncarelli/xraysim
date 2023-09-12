@@ -3,10 +3,10 @@ import numpy as np
 import os
 from astropy.io import fits
 
-from src.pkg.specutils.sixte import cube2simputfile
-from src.pkg.sphprojection.mapping import make_speccube
-from src.pkg.specutils.tables import read_spectable, calc_spec
-from src.pkg.gadgetutils.phys_const import keV2K
+from xraysim.specutils.sixte import cube2simputfile
+from xraysim.sphprojection.mapping import make_speccube
+from xraysim.specutils.tables import read_spectable, calc_spec
+from xraysim.gadgetutils.phys_const import keV2K
 
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'

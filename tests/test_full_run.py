@@ -3,8 +3,8 @@ import numpy as np
 import os
 from astropy.io import fits
 
-from src.pkg.sphprojection.mapping import make_speccube, write_speccube, read_speccube
-from src.pkg.specutils.sixte import cube2simputfile, create_eventlist, make_pha
+from xraysim.sphprojection.mapping import make_speccube, write_speccube, read_speccube
+from xraysim.specutils.sixte import cube2simputfile, create_eventlist, make_pha
 
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'

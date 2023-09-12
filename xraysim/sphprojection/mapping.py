@@ -4,11 +4,11 @@ from astropy import cosmology
 import pygadgetreader as pygr
 from tqdm import tqdm
 
-from src.pkg.gadgetutils.readspecial import readtemperature, readvelocity
-from src.pkg.gadgetutils import convert, phys_const
-from src.pkg.sphprojection.kernel import intkernel, make_map_loop, make_map_loop2, make_speccube_loop
-from src.pkg.sphprojection.linkedlist import linkedlist2d
-from src.pkg.specutils import tables, absorption
+from xraysim.gadgetutils.readspecial import readtemperature, readvelocity
+from xraysim.gadgetutils import convert, phys_const
+from xraysim.sphprojection.kernel import intkernel, make_map_loop, make_map_loop2, make_speccube_loop
+from xraysim.sphprojection.linkedlist import linkedlist2d
+from xraysim.specutils import tables, absorption
 
 intkernel_vec = np.vectorize(intkernel)
 

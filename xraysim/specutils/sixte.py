@@ -1,8 +1,8 @@
 import numpy as np
 from astropy.io import fits
-from src.pkg.specutils import absorption
+from xraysim.specutils import absorption
 import copy as cp
-from src.pkg.gadgetutils import phys_const
+from xraysim.gadgetutils import phys_const
 import os
 import json
 import matplotlib.pyplot as plt

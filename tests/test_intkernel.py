@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from src.pkg.sphprojection.kernel import intkernel
+from xraysim.sphprojection.kernel import intkernel
 
 intkernel_vec = np.vectorize(intkernel)
 

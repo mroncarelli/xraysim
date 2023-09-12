@@ -1,4 +1,4 @@
-from src.pkg.specutils import absorption as spabs
+from xraysim.specutils import absorption as spabs
 import numpy as np
 
 

@@ -1,7 +1,7 @@
 import os
 import pytest
-from src.pkg.specutils import absorption as spabs
-from src.pkg.specutils import tables
+from xraysim.specutils import absorption as spabs
+from xraysim.specutils import tables
 import numpy as np
 
 spfile_path = os.path.join(os.path.dirname(__file__), "inp/test_emission_table.fits")
