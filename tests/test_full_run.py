@@ -22,6 +22,21 @@ evtFile = referenceDir + "evt_file_created_for_test.evt"
 phaFile = referenceDir + "pha_file_created_for_test.pha"
 
 
+def history_unpack(history: list) -> list:
+    """
+    Modifies a HISTORY list record by appending lines that correspond to the same record.
+    :param history: (list of str) HISTORY record.
+    :return: (list of str) Modified HISTORY record.
+    """
+    result = []
+    for index, record in enumerate(history):
+        if index > 0 and record.startswith('P') and record.split(' ')[0] == history[index - 1].split(' ')[0]:
+            result[-1] += record[record.index(' ') + 1:]
+        else:
+            result.append(record)
+    return result
+
+
 def header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> bool:
     """
     Checks that a header contains all the keys, with same values, than the reference one. Other keywords/values may
@@ -32,9 +47,22 @@ def header_has_all_keywords_and_values_of_reference(header: fits.header, header_
     """
     result = True
     for key in header_reference.keys():
-        # TODO: Create a method to check HISTORY
-        # TODO: Check why COMMENT in pha file fails
-        if key not in ['DATE', 'CREADATE', 'HISTORY', 'COMMENT']:
+        if key in ['DATE', 'CREADATE', 'COMMENT']:
+            pass
+        elif key == 'HISTORY':
+            history = history_unpack(header.get('HISTORY'))
+            history_reference = history_unpack(header_reference.get('HISTORY'))
+            skip_tags = ['START PARAMETER '] + \
+                        [s.split(' ')[0] for s in history_reference if ' EvtFile = ' in s or ' Simput = ' in s]
+
+            for history_record, history_record_reference in zip(history, history_reference):
+                if any(history_record_reference.startswith(tag) for tag in skip_tags):
+                    split_list = history_record.split(' ')
+                    split_list_history = history_record_reference.split(' ')
+                    result = result and split_list[0:2] == split_list_history[0:2]
+                else:
+                    result = result and history_record == history_record_reference
+        else:
             result = result and header.get(key) == pytest.approx(header_reference.get(key))
     return result
 
