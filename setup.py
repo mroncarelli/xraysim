@@ -4,7 +4,8 @@ from Cython.Build import cythonize
 import numpy
 
 extensions = [
-    Extension("sphprojection.kernel", ["xraysim/sphprojection/kernel.pyx"])
+    Extension("sphprojection.kernel", sources=["xraysim/sphprojection/kernel.pyx"]),
+    Extension("sphprojection.mapping_loops", sources=["xraysim/sphprojection/mapping_loops.pyx"])
 ]
 
 setup(

@@ -6,7 +6,8 @@ from tqdm import tqdm
 
 from xraysim.gadgetutils.readspecial import readtemperature, readvelocity
 from xraysim.gadgetutils import convert, phys_const
-from xraysim.sphprojection.kernel import intkernel, make_map_loop, make_map_loop2, make_speccube_loop
+from xraysim.sphprojection.kernel import intkernel
+from xraysim.sphprojection.mapping_loops import  make_map_loop, make_map_loop2, make_speccube_loop
 from xraysim.sphprojection.linkedlist import linkedlist2d
 from xraysim.specutils import tables, absorption
 
