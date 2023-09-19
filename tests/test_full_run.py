@@ -37,15 +37,14 @@ def history_unpack(history: list) -> list:
     return result
 
 
-def header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> bool:
+def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> None:
     """
     Checks that a header contains all the keys, with same values, than the reference one. Other keywords/values may
     be present and do not affect the result.
     :param header: (fits.header) Header to check.
     :param header_reference: (fits.header) Reference header.
-    :return: (bool) True if all key/values match, False otherwise.
+    :return: None.
     """
-    result = True
     for key in header_reference.keys():
         if key in ['DATE', 'CREADATE', 'COMMENT']:
             pass
@@ -59,15 +58,15 @@ def header_has_all_keywords_and_values_of_reference(header: fits.header, header_
                 if any(history_record_reference.startswith(tag) for tag in skip_tags):
                     split_list = history_record.split(' ')
                     split_list_history = history_record_reference.split(' ')
-                    result = result and split_list[0:2] == split_list_history[0:2]
+                    assert split_list[0:2] == split_list_history[0:2]
                 else:
-                    result = result and history_record == history_record_reference
+                    assert history_record == history_record_reference
         else:
-            result = result and header.get(key) == pytest.approx(header_reference.get(key))
-    return result
+            assert header.get(key) == pytest.approx(header_reference.get(key))
+    return None
 
 
-def hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: fits.hdu.hdulist.HDUList) -> bool:
+def assert_hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: fits.hdu.hdulist.HDUList) -> None:
     """
     Checks that a speccube file matches a reference one
     :param inp: (HDUList) HDUList to check.
@@ -75,12 +74,11 @@ def hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: fits.hd
     :return: (bool) True if the HDUList content matches the reference, False otherwise.
     """
 
-    result = True
     for hdu, hdu_reference in zip(inp, reference):
-        result = result and header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
-        result = result and bool(np.all(hdu.data == hdu_reference.data))
+        assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
+        assert bool(np.all(hdu.data == hdu_reference.data))
 
-    return result
+    return None
 
 
 def test_full_run():
@@ -101,7 +99,7 @@ def test_full_run():
     reference_speccube = fits.open(referenceSpcubeFile)
 
     # Checking that file content matches reference
-    assert hdu_list_matches_reference(fits.open(spcubeFile), reference_speccube)
+    assert_hdu_list_matches_reference(fits.open(spcubeFile), reference_speccube)
 
     # Creating a speccube file from the speccube read from the file
     speccube_read = read_speccube(spcubeFile)
@@ -112,7 +110,7 @@ def test_full_run():
     assert os.path.isfile(spcubeFile2)
 
     # Checking that file content matches reference
-    assert hdu_list_matches_reference(fits.open(spcubeFile2), reference_speccube)
+    assert_hdu_list_matches_reference(fits.open(spcubeFile2), reference_speccube)
 
     # Creating a SIMPUT file from a speccube
     if os.path.isfile(simputFile):
@@ -121,7 +119,7 @@ def test_full_run():
     del speccube_read
 
     # Checking that file content matches reference
-    assert hdu_list_matches_reference(fits.open(simputFile), fits.open(referenceSimputFile))
+    assert_hdu_list_matches_reference(fits.open(simputFile), fits.open(referenceSimputFile))
 
     # Creating an event-list file from the SIMPUT file
     if os.path.isfile(evtFile):
@@ -130,7 +128,7 @@ def test_full_run():
     os.remove(simputFile)
 
     # Checking that file content matches reference
-    assert hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
+    assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
 
     # Creating a pha from the event-list file
     if os.path.isfile(phaFile):
@@ -139,5 +137,5 @@ def test_full_run():
     os.remove(evtFile)
 
     # Checking that file content matches reference
-    assert hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
+    assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
     os.remove(phaFile)
