@@ -532,7 +532,7 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube.
     :param outfile: (str) FITS file.
     :param overwrite: (bool) If set to True the file is overwritten. Default: True.
-    :return: None
+    :return: System output of the writing operation (usually None)
     """
     hdulist = fits.HDUList()
     data = spec_cube.get('data')
@@ -563,14 +563,13 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     hdulist[-1].header.set('E_MAX', spec_cube.get('energy')[-1] + 0.5 * spec_cube.get('energy_interval')[-1])
     hdulist[-1].header.set('FLAG_ENE', 1 if spec_cube.get('flag_ene') else 0)
     hdulist[-1].header.set('UNITS', '[' + spec_cube.get('units') + ']')
-    hdulist[-1].header.set('X_MIN', xrange[0])
-    hdulist[-1].header.set('X_MAX', xrange[1])
-    hdulist[-1].header.set('Y_MIN', yrange[0])
-    hdulist[-1].header.set('Y_MAX', yrange[1])
+    hdulist[-1].header.set('X_MIN', xrange[0], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('X_MAX', xrange[1], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('Y_MIN', yrange[0], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('Y_MAX', yrange[1], '[' + spec_cube.get('coord_units') + ']')
     if zrange:
-        hdulist[-1].header.set('Z_MIN', zrange[0])
-        hdulist[-1].header.set('Z_MAX', zrange[1])
-    hdulist[-1].header.set('C_UNITS', '[' + spec_cube.get('coord_units') + ']', 'X-Y(-Z) coordinate units')
+        hdulist[-1].header.set('Z_MIN', zrange[0], '[' + spec_cube.get('coord_units') + ']')
+        hdulist[-1].header.set('Z_MAX', zrange[1], '[' + spec_cube.get('coord_units') + ']')
     if spec_cube.get('tcut'):
         hdulist[-1].header.set('T_CUT', spec_cube.get('tcut'), '[K]')
     if spec_cube.get('isothermal'):
@@ -609,7 +608,7 @@ def read_speccube(infile: str):
         'energy': hdulist[1].data,
         'energy_interval': hdulist[2].data,
         'units': header0.get('UNITS').replace('[', '').replace(']', ''),
-        'coord_units': header0.get('C_UNITS').replace('[', '').replace(']', ''),
+        'coord_units': header0.comments['X_MIN'].replace('[', '').replace(']', ''),
         'energy_units': header1.get('UNITS').replace('[', '').replace(']', ''),
         'simulation_file': header0.get('SIM_FILE'),
         'spectral_table': header0.get('SP_FILE'),

@@ -106,16 +106,19 @@ def test_full_run():
     os.remove(spcubeFile)
     if os.path.isfile(spcubeFile2):
         os.remove(spcubeFile2)
-    write_speccube(speccube_read, spcubeFile2)
+    sys_out_write_speccube = write_speccube(speccube_read, spcubeFile2)
+    assert sys_out_write_speccube is None
     assert os.path.isfile(spcubeFile2)
 
     # Checking that file content matches reference
     assert_hdu_list_matches_reference(fits.open(spcubeFile2), reference_speccube)
+    os.remove(spcubeFile2)
 
     # Creating a SIMPUT file from a speccube
     if os.path.isfile(simputFile):
         os.remove(simputFile)
-    cube2simputfile(speccube_read, simputFile)
+    sys_out_write_cube2simputfile = cube2simputfile(speccube_read, simputFile)
+    assert sys_out_write_cube2simputfile is None
     del speccube_read
 
     # Checking that file content matches reference
@@ -124,7 +127,9 @@ def test_full_run():
     # Creating an event-list file from the SIMPUT file
     if os.path.isfile(evtFile):
         os.remove(evtFile)
-    create_eventlist(simputFile, 'xrism-resolve-test', 1.e5, evtFile, background=False, seed=42)
+    sys_out_create_eventlist = create_eventlist(simputFile, 'xrism-resolve-test', 1.e5, evtFile, background=False,
+                                                seed=42)
+    assert sys_out_create_eventlist == 0
     os.remove(simputFile)
 
     # Checking that file content matches reference
@@ -133,7 +138,8 @@ def test_full_run():
     # Creating a pha from the event-list file
     if os.path.isfile(phaFile):
         os.remove(phaFile)
-    make_pha(evtFile, phaFile)
+    sys_out_make_pha = make_pha(evtFile, phaFile)
+    assert sys_out_make_pha == 0
     os.remove(evtFile)
 
     # Checking that file content matches reference
