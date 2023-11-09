@@ -1,21 +1,58 @@
 [
-  {
+    
+    {
     "name": "TheThreeHundred-1",
     "code": "xspec",
     "model": "apec",
-    "commands": ["abund angr", "xset APECTHERMAL yes", "xset APEC_TRACE_ABUND Fe"],
-    "metal_var": "ZMET",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "yes"]
+      },
+      {"method":  "addModelString",
+        "arg":  ["APEC_TRACE_ABUND", "Fe"]
+      }
+    ],
     "n_metals": 1,
     "metals_ref": [0]
-  },
-
-  {
+    
+    },
+    
+    {
     "name": "TheThreeHundred-2",
     "code": "xspec",
     "model": "vvapec",
-    "commands": ["abund angr", "xset APECTHERMAL yes"],
-    "metal_var": "ZMET",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "yes"]
+      }
+    ],
     "n_metals": 1,
-    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  }
+    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    },
+
+
+    {
+    "name": "TheThreeHundred-3",
+    "code": "xspec",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "yes"]
+      }
+    ],
+    "n_metals": 11,
+    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    }
+       
 ]
