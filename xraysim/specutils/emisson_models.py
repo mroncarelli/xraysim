@@ -3,6 +3,8 @@ import os
 
 import numpy as np
 import xspec as xsp
+
+
 # from gadgetutils.convert import gadgget2xspecnorm
 
 
@@ -37,8 +39,16 @@ class EmissionModels:
             init_settings[cmd['method']](cmd)
 
     def set_metals_ref(self, metal):
-        met_species = np.array([1, 2, 6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
-        self.json_record['metals_ref'][met_species] = metal
+
+        if self.json_record['name'] == 'TheThreeHundred-1':
+            self.json_record['metals_ref'][0] = metal[0]
+
+        elif self.json_record['name'] == 'TheThreeHundred-2':
+            self.json_record['metals_ref'][2:] = metal[0]
+
+        elif self.json_record['name'] == 'TheThreeHundred-3':
+            met_species = np.array([1, 2, 6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
+            self.json_record['metals_ref'][met_species] = metal
 
     def calculate_spectrum(self, z, temperature, metallicity, flag_ene=False):
 
@@ -56,7 +66,15 @@ class EmissionModels:
 
 
 # Testing Line For Checking The Class :
-a = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
+a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
 
-print(a.calculate_spectrum(0.1, 0.34, np.linspace(0.5, 0.6, 11), False))
-print(a.calculate_spectrum(.2, 0.6, np.linspace(0.1, .2, 11), False))
+print(a.calculate_spectrum(0.1, 0.34, [0.04], False))
+print(a.calculate_spectrum(.2, 0.6, [0.01], False))
+print(a.calculate_spectrum(.2, 0.2, [0.07], False))
+
+
+b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
+
+print(a.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), False))
+print(a.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), False))
+print(a.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), False))
