@@ -1,0 +1,30 @@
+[
+  {
+    "name": "athena-xifu",
+    "subdir": "athena-xifu",
+    "command": "xifupipeline",
+    "xml": "xifu_baseline.xml",
+    "adv_xml": "xifu_detector_lpa25_tdm_33_275um_20211103.xml"
+  },
+  {
+    "name": "athena-xifu-test",
+    "subdir": "athena-xifu",
+    "command": "xifupipeline",
+    "xml": "xifu_baseline_test.xml",
+    "adv_xml": "xifu_detector_lpa25_tdm_33_275um_20211103_test.xml"
+  },
+  {
+    "name": "xrism-resolve",
+    "subdir": "xrism-resolve",
+    "command": "xifupipeline",
+    "xml": "resolve_baseline.xml",
+    "adv_xml": "resolve_detector.xml"
+  },
+  {
+    "name": "xrism-resolve-test",
+    "subdir": "xrism-resolve",
+    "command": "xifupipeline",
+    "xml": "resolve_baseline_test.xml",
+    "adv_xml": "resolve_detector_test.xml"
+  }
+]
