@@ -15,7 +15,7 @@ class EmissionModels:
         if self.json_record is None:
             raise ValueError(f"Model with name '{model_name}' not found in the json file.")
 
-        self.json_record['metals_ref'] = np.array(self.json_record['metals_ref'])
+        self.json_record['metals_ref'] = np.array(self.json_record['metals_ref'], dtype=float)
         self.energy = energy
         self.set_commands()
 
@@ -32,20 +32,18 @@ class EmissionModels:
             'addModelString': lambda cmd: xsp.Xset.addModelString(cmd['arg'][0], cmd['arg'][1])
         }
 
-        for cmd in self.json_record['xset']:
-            init_settings[cmd['method']](cmd)
+        for command in self.json_record['xset']:
+            init_settings[command['method']](command)
 
     def set_metals_ref(self, metal):
 
-        if self.json_record['name'] == 'TheThreeHundred-1':
-            self.json_record['metals_ref'][0] = metal[0]
+        metal_idx = {'TheThreeHundred-1': [0],
+                     'TheThreeHundred-2': np.arange(3, 31, 1) - 1,
+                     'TheThreeHundred-3': np.array([1, 2, 6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
+                     }
 
-        elif self.json_record['name'] == 'TheThreeHundred-2':
-            self.json_record['metals_ref'][2:] = metal[0]
-
-        elif self.json_record['name'] == 'TheThreeHundred-3':
-            met_species = np.array([1, 2, 6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
-            self.json_record['metals_ref'][met_species] = metal
+        print(np.arange(2, 31, 1))
+        np.put(self.json_record['metals_ref'], metal_idx.get(self.json_record['name']), metal)
 
     def calculate_spectrum(self, z, temperature, metallicity, norm, flag_ene=False):
 
@@ -71,14 +69,14 @@ from gadgetutils.convert import gadgget2xspecnorm
 
 xspec_norm = 1E-14
 
-a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
+a = EmissionModels('TheThreeHundred-2', np.linspace(0.1, 10, 1000))
 
-print(a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
-print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
-print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
+a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False)
+#print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
+#print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
 
-b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
+#b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
 
-print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
-print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
-print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+#print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
+# print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
+# print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
