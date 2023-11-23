@@ -5,11 +5,14 @@ import numpy as np
 import xspec as xsp
 
 
+models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
+with open(models_config_file) as file:
+    json_data = json.load(file)
+
+
 class EmissionModels:
     def __init__(self, model_name: str, energy: np.ndarray):
-        models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
-        with open(models_config_file) as file:
-            json_data = json.load(file)
+
         self.json_record = next((i for i in json_data if i['name'] == model_name), None)
 
         if self.json_record is None:
@@ -21,7 +24,7 @@ class EmissionModels:
 
         self.model = xsp.Model(self.json_record['model'])
 
-        print(self.json_record['metals_ref'], self.json_record['n_metals'])
+        # print(self.json_record['metals_ref'], self.json_record['n_metals'])
 
     def set_commands(self):
         xsp.AllModels.setEnergies(f"{self.energy.min()} {self.energy.max()} {len(self.energy) - 1} lin")
@@ -37,13 +40,14 @@ class EmissionModels:
 
     def set_metals_ref(self, metal):
 
-        metal_idx = {'TheThreeHundred-1': [0],
-                     'TheThreeHundred-2': np.arange(3, 31, 1) - 1,
-                     'TheThreeHundred-3': np.array([1, 2, 6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
+        metal_idx = {('apec', 1): [0],
+                     ('vvapec', 1): np.arange(3, 31, 1) - 1,
+                     ('vvapec', 11): np.array([6, 7, 8, 10, 12, 14, 16, 20, 26]) - 1
                      }
 
-        print(np.arange(2, 31, 1))
-        np.put(self.json_record['metals_ref'], metal_idx.get(self.json_record['name']), metal)
+        idx = metal_idx.get((self.json_record['model'], self.json_record['n_metals']))
+
+        np.put(self.json_record['metals_ref'], idx, metal)
 
     def calculate_spectrum(self, z, temperature, metallicity, norm, flag_ene=False):
 
@@ -62,21 +66,27 @@ class EmissionModels:
 
 # Testing Line For Checking The Class and setup :
 
-from gadgetutils.convert import gadgget2xspecnorm
-
-# gad
-#
-
 xspec_norm = 1E-14
 
-a = EmissionModels('TheThreeHundred-2', np.linspace(0.1, 10, 1000))
+a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
 
-a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False)
-#print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
-#print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
+print(a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
+print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
+print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
 
-#b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
+b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
 
-#print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
-# print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
-# print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
+print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
+print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+
+# For actual sim
+
+# from gadgetutils.convert import gadgget2xspecnorm
+# from xraysim.pygadgetreader import readsnap
+
+
+# sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_Gadget_sample'
+# mass = readsnap(sim_path,'U   ', 'gas').shape
+# print(mass)
+# gad
