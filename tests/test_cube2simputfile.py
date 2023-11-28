@@ -7,12 +7,11 @@ from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import make_speccube
 from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.gadgetutils.phys_const import keV2K
-print('xyz',os.environ.get('XRAYSIM'))
+from .fitstestutils import assert_header_has_all_keywords_and_values_of_reference
+
+environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE_INSTRUMENTS')]
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'
-
-print(referenceDir)
-print(inputDir)
 snapshotFile = inputDir + 'snap_Gadget_sample'
 spFile = inputDir + 'test_emission_table.fits'
 referenceSimputFile = referenceDir + 'reference.simput'
@@ -28,23 +27,6 @@ speccubeIsothermalNovel = make_speccube(snapshotFile, spFile, size=size, npix=np
 
 speccube = make_speccube(snapshotFile, spFile, size=size, npix=npix, redshift=redshift, center=center,
                          proj=proj, tcut=tcut, nh=nh, nsample=nsample)
-
-
-def header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header) -> bool:
-    """
-    Checks that a header contains all the keys, with same values, than the reference one. Other keywords/values may
-    be present and do not affect the result.
-    :param header: (fits.header) Header to check.
-    :param header_reference: (fits.header) Reference header.
-    :return: (bool) True if all key/values match, False otherwise.
-    """
-    result = True
-    for key in header_reference.keys():
-        print(header.get(key), header_reference.get(key),header.get(key)==header_reference.get(key),header.get(key) == pytest.approx(header_reference.get(key)))
-
-        result = result and header.get(key) == pytest.approx(header_reference.get(key))
-    print(result)
-    return result
 
 
 def test_file_created(inp=speccubeIsothermalNovel, out=testSimputFile):
@@ -139,13 +121,6 @@ def test_created_file_matches_reference(inp=speccube, out=testSimputFile, refere
 
     for hdu, hdu_reference in zip(hdulist, hdulist_reference):
         # Checking header keywords: created file must contain all keywords of reference file, with same value
-        assert header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
+        assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
         # Checking that data match
-
-        # print(hdu.header)
-
-        # print(hdu_reference.header)
-        #print('DATA CHECK')
-        #print(hdu_reference.data,hdu.data,(hdu.data == hdu_reference.data))
-        #assert np.all(hdu.data == hdu_reference.data)
-
+        assert np.all(hdu.data == hdu_reference.data)  # TODO: check that this line actually works

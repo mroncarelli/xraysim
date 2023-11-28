@@ -6,8 +6,6 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/scripts" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/xraysim" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/venv" />
-      <excludeFolder url="file://$MODULE_DIR$/venv2" />
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache/v" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (DataScience)" jdkType="Python SDK" />
