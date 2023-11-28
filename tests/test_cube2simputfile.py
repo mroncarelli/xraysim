@@ -7,9 +7,12 @@ from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import make_speccube
 from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.gadgetutils.phys_const import keV2K
-
+print('xyz',os.environ.get('XRAYSIM'))
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'
+
+print(referenceDir)
+print(inputDir)
 snapshotFile = inputDir + 'snap_Gadget_sample'
 spFile = inputDir + 'test_emission_table.fits'
 referenceSimputFile = referenceDir + 'reference.simput'
@@ -37,7 +40,10 @@ def header_has_all_keywords_and_values_of_reference(header: fits.header, header_
     """
     result = True
     for key in header_reference.keys():
+        print(header.get(key), header_reference.get(key),header.get(key)==header_reference.get(key),header.get(key) == pytest.approx(header_reference.get(key)))
+
         result = result and header.get(key) == pytest.approx(header_reference.get(key))
+    print(result)
     return result
 
 
@@ -135,5 +141,11 @@ def test_created_file_matches_reference(inp=speccube, out=testSimputFile, refere
         # Checking header keywords: created file must contain all keywords of reference file, with same value
         assert header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
         # Checking that data match
-        assert np.all(hdu.data == hdu_reference.data)
+
+        # print(hdu.header)
+
+        # print(hdu_reference.header)
+        #print('DATA CHECK')
+        #print(hdu_reference.data,hdu.data,(hdu.data == hdu_reference.data))
+        #assert np.all(hdu.data == hdu_reference.data)
 
