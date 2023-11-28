@@ -7,6 +7,7 @@ from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import make_speccube
 from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.gadgetutils.phys_const import keV2K
+from .fitstestutils import assert_header_has_all_keywords_and_values_of_reference
 
 environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE_INSTRUMENTS')]
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
@@ -26,43 +27,6 @@ speccubeIsothermalNovel = make_speccube(snapshotFile, spFile, size=size, npix=np
 
 speccube = make_speccube(snapshotFile, spFile, size=size, npix=npix, redshift=redshift, center=center,
                          proj=proj, tcut=tcut, nh=nh, nsample=nsample)
-
-
-def assert_string_in_header_matches_reference(string: str, string_reference: str):
-    """
-    Checks that a string in a header matches a reference string. If the string corresponds to a file name it may start
-    with a path corresponding to an environment variable: in this case this part of the string is ignored, and it
-    checks that the final parts of the strings match. Otherwise, it checks that the two sting are identical.
-    :param string: (str) String to check.
-    :param string_reference: (str) Reference string.
-    :return: None
-    """
-
-    for envVar in environmentVariablesPathList:
-        if string.startswith(envVar):
-            assert string_reference.endswith(string.replace(envVar, ''))
-            return None
-    assert string == string_reference
-    return None
-
-
-def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, header_reference: fits.header):
-    """
-    Checks that a header contains all the keys, with same values, than the reference one. Other keywords/values may
-    be present and do not affect the result.
-    :param header: (fits.header) Header to check.
-    :param header_reference: (fits.header) Reference header.
-    :return: None.
-    """
-    for key in header_reference.keys():
-        val_reference = header_reference.get(key)
-        assert key in header
-        val = header.get(key)
-        if type(val) == str:
-            assert_string_in_header_matches_reference(val, val_reference)
-        else:
-            assert val == pytest.approx(val_reference)
-    return None
 
 
 def test_file_created(inp=speccubeIsothermalNovel, out=testSimputFile):
@@ -159,5 +123,4 @@ def test_created_file_matches_reference(inp=speccube, out=testSimputFile, refere
         # Checking header keywords: created file must contain all keywords of reference file, with same value
         assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
         # Checking that data match
-        assert np.all(hdu.data == hdu_reference.data)
-
+        assert np.all(hdu.data == hdu_reference.data)  # TODO: check that this line actually works
