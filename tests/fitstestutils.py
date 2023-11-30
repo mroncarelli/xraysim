@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import os
+import warnings
 from astropy.io import fits
 
 # List of environment variables that may appear in the path of files written in FITS headers
@@ -76,6 +77,40 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
     return None
 
 
+def assert_data_matches_reference(inp, reference) -> None:
+    """
+    Checks that data in an HDU match reference.
+    :param inp: Input data.
+    :param reference: Reference data.
+    :return: None.
+    """
+
+    # Checking that the two objects are of the same type
+    assert isinstance(inp, type(reference))
+
+    if isinstance(inp, type(None)):
+        # Nothing to do here since the type check already done ensures also inp is None
+        pass
+
+    elif isinstance(inp, np.ndarray):
+        if isinstance(inp, fits.fitsrec.FITS_rec):
+            # Checking number of rows and field names
+            assert len(inp) == len(reference)
+            assert inp.dtype.names == reference.dtype.names
+            # Checking data iterating by field and vale
+            for name in inp.dtype.names:
+                for val, val_reference in zip(inp[name], reference[name]):
+                    assert val == pytest.approx(val_reference)
+        else:
+            # Checking all values
+            assert np.all(inp == pytest.approx(reference))
+
+    else:
+        warnings.warn(UserWarning("Found unknown data type in FITS hdu:" + str(type(inp))))
+
+    return None
+
+
 def assert_hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: fits.hdu.hdulist.HDUList) -> None:
     """
     Checks that a FITS file matches a reference one
@@ -86,6 +121,6 @@ def assert_hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: 
 
     for hdu, hdu_reference in zip(inp, reference):
         assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
-        assert bool(np.all(hdu.data == hdu_reference.data))  # TODO: check that this line actually works
+        assert_data_matches_reference(hdu.data, hdu_reference.data)
 
     return None
