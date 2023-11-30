@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import xspec as xsp
+import pyatomdb
 
 
 models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
@@ -20,10 +21,13 @@ class EmissionModels:
 
         self.json_record['metals_ref'] = np.array(self.json_record['metals_ref'], dtype=float)
         self.energy = energy
-        self.set_commands()
 
-        self.model = xsp.Model(self.json_record['model'])
+        if self.json_record['code'] == 'xspec':
+            self.model = xsp.Model(self.json_record['model'])
+        elif self.json_record['code'] == 'atomdb':
+            self.model = pyatomdb.spectrum.CIESession()
 
+        #self.set_commands()
         # print(self.json_record['metals_ref'], self.json_record['n_metals'])
 
     def set_commands(self):
@@ -32,7 +36,8 @@ class EmissionModels:
 
         init_settings = {
             'abund': lambda cmd: setattr(xsp.Xset, cmd['method'], cmd['arg']),
-            'addModelString': lambda cmd: xsp.Xset.addModelString(cmd['arg'][0], cmd['arg'][1])
+            'addModelString': lambda cmd: xsp.Xset.addModelString(cmd['arg'][0], cmd['arg'][1]),
+            'abundset':lambda cmd: setattr(self.model, cmd['method'], cmd['arg'])
         }
 
         for command in self.json_record['xset']:
@@ -68,17 +73,17 @@ class EmissionModels:
 
 xspec_norm = 1E-14
 
-a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
+# a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
 
-print(a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
-print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
-print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
+# print(a.calculate_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
+# print(a.calculate_spectrum(.2, 0.6, [0.01], xspec_norm, False))
+# print(a.calculate_spectrum(.2, 0.2, [0.07], xspec_norm, False))
 
-b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
+# b = EmissionModels('TheThreeHundred-3', np.linspace(0.1, 10, 1000))
 
-print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
-print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
-print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+# print(b.calculate_spectrum(0.1, 0.34, np.linspace(0.1, 0.3, 11), xspec_norm, False))
+# print(b.calculate_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
+# print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
 
 # For actual sim
 
@@ -90,3 +95,6 @@ print(b.calculate_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False
 # mass = readsnap(sim_path,'U   ', 'gas').shape
 # print(mass)
 # gad
+
+a = EmissionModels('TheThreeHundred-4', np.linspace(0.1, 10, 1000))
+print(a.model)

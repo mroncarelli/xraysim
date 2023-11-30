@@ -53,6 +53,26 @@
     "n_metals": 11,
     "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     
-    }
+    },
+
+  {
+    "name": "TheThreeHundred-4",
+    "code": "atomdb",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abundset",
+        "arg": "AG89"
+      },
+      {"method":  "set_broadening",
+        "arg":  ["True"]
+      },
+      {"method":  "do_eebrems",
+        "arg":  ["False"]
+      }
+    ],
+    "n_metals": 1,
+    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  }
        
 ]
