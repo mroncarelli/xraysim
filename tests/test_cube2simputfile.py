@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import os
 from astropy.io import fits
 
@@ -7,7 +6,7 @@ from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import make_speccube
 from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.gadgetutils.phys_const import keV2K
-from .fitstestutils import assert_header_has_all_keywords_and_values_of_reference
+from .fitstestutils import assert_hdu_list_matches_reference
 
 environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE_INSTRUMENTS')]
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
@@ -118,9 +117,4 @@ def test_created_file_matches_reference(inp=speccube, out=testSimputFile, refere
     hdulist = fits.open(testSimputFile)
     os.remove(out)
     hdulist_reference = fits.open(reference)
-
-    for hdu, hdu_reference in zip(hdulist, hdulist_reference):
-        # Checking header keywords: created file must contain all keywords of reference file, with same value
-        assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
-        # Checking that data match
-        assert np.all(hdu.data == hdu_reference.data)  # TODO: check that this line actually works
+    assert_hdu_list_matches_reference(hdulist, hdulist_reference)
