@@ -6,6 +6,14 @@ import xspec as xsp
 import pyatomdb
 import matplotlib.pyplot as plt
 
+
+def str2bool(v):
+    if v == 'True':
+        return True
+    elif v == 'False':
+        return False
+
+
 models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
 with open(models_config_file) as file:
     json_data = json.load(file)
@@ -45,10 +53,11 @@ class AtomdbModel:
     def set_atomdb_commands(self, commands):
         atomdb_settings = {
             'abundset': lambda cmd: setattr(self.atomdb_model, cmd['method'], cmd['arg']),
-            'do_eebrems': lambda cmd: setattr(self.atomdb_model, cmd['method'], cmd['arg']),
-            'set_broadening': lambda cmd: self.atomdb_model.set_broadening(thermal_broadening=True)
+            'do_eebrems': lambda cmd: setattr(self.atomdb_model, cmd['method'], str2bool(cmd['arg'][0])),
+            'set_broadening': lambda cmd: self.atomdb_model.set_broadening(thermal_broadening=str2bool(cmd['arg'][0]))
         }
         for command in commands:
+
             atomdb_settings.get(command['method'], lambda cmd: None)(command)
 
     def calculate_spectrum(self, z, temperature, elements_index, metallicity, norm):
@@ -111,17 +120,17 @@ class EmissionModels:
 xspec_norm = 1
 pyatomdb_norm = 1
 
-a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
+# a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
 
-print(a.compute_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
-print(a.compute_spectrum(.2, 0.6, [0.01], xspec_norm, False))
-print(a.compute_spectrum(.2, 0.2, [0.07], xspec_norm, False))
+# print(a.compute_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
+# print(a.compute_spectrum(.2, 0.6, [0.01], xspec_norm, False))
+# print(a.compute_spectrum(.2, 0.2, [0.07], xspec_norm, False))
 
-b = EmissionModels('TheThreeHundred-2', np.linspace(0.1, 10, 1000))
+# b = EmissionModels('TheThreeHundred-2', np.linspace(0.1, 10, 1000))
 
-print(b.compute_spectrum(0.1, 3, [0.05], xspec_norm, False))
-print(b.compute_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
-print(b.compute_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+# print(b.compute_spectrum(0.1, 3, [0.05], xspec_norm, False))
+# print(b.compute_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
+# print(b.compute_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
 
 b = EmissionModels('TheThreeHundred-4', np.linspace(0.1, 10, 1000))
 
