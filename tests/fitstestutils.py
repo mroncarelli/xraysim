@@ -5,7 +5,8 @@ import warnings
 from astropy.io import fits
 
 # List of environment variables that may appear in the path of files written in FITS headers
-environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE_INSTRUMENTS')]
+environmentVariablesList = ['XRAYSIM', 'SIXTE_INSTRUMENTS']
+environmentVariablesPathList = [os.environ.get(envVar) for envVar in environmentVariablesList]
 
 
 def history_unpack(history: list) -> list:
@@ -25,9 +26,9 @@ def history_unpack(history: list) -> list:
 
 def assert_string_in_header_matches_reference(string: str, string_reference: str) -> None:
     """
-    Checks that a string in a header matches a reference string. If the string corresponds to a file name it may start
-    with a path corresponding to an environment variable: in this case this part of the string is ignored, and it
-    checks that the final parts of the strings match. Otherwise, it checks that the two sting are identical.
+    Checks that a string in a header matches a reference string. If the string contains an environment variable it may
+    differ from the reference one, but the test should not fail: in this case the test checks that the parts before and
+    after the environment variable match. Otherwise, it checks that the two sting are identical.
     :param string: (str) String to check.
     :param string_reference: (str) Reference string.
     :return: None.
@@ -35,7 +36,8 @@ def assert_string_in_header_matches_reference(string: str, string_reference: str
 
     for envVar in environmentVariablesPathList:
         if string.startswith(envVar):
-            assert string_reference.endswith(string.replace(envVar, ''))
+            split_list = string.split(envVar)
+            assert string_reference.startswith(split_list[0]) and string_reference.endswith(split_list[-1])
             return None
     assert string == string_reference
     return None
