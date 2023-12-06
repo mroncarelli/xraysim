@@ -15,6 +15,7 @@ def history_unpack(history: list) -> list:
     :param history: (list of str) HISTORY record.
     :return: (list of str) Modified HISTORY record.
     """
+
     result = []
     for index, record in enumerate(history):
         if index > 0 and record.startswith('P') and record.split(' ')[0] == history[index - 1].split(' ')[0]:
@@ -51,6 +52,7 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
     :param header_reference: (fits.header) Reference header.
     :return: None.
     """
+
     for key in header_reference.keys():
         val_reference = header_reference.get(key)
         assert key in header
