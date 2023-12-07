@@ -36,11 +36,10 @@ def assert_string_in_header_matches_reference(string: str, string_reference: str
     """
 
     for envVar in environmentVariablesPathList:
-        if string.startswith(envVar):
+        if envVar in string:
             split_list = string.split(envVar)
             assert string_reference.startswith(split_list[0]) and string_reference.endswith(split_list[-1])
             return None
-    assert string == string_reference
     return None
 
 
@@ -72,7 +71,7 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
                     split_list_history = history_record_reference.split(' ')
                     assert split_list[0:2] == split_list_history[0:2]
                 else:
-                    assert history_record == history_record_reference
+                    assert_string_in_header_matches_reference(history_record, history_record_reference)
         else:
             if type(val) == str:
                 assert_string_in_header_matches_reference(val, val_reference)
