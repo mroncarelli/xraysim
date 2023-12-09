@@ -36,11 +36,10 @@ def assert_string_in_header_matches_reference(string: str, string_reference: str
     """
 
     for envVar in environmentVariablesPathList:
-        if string.startswith(envVar):
+        if envVar in string:
             split_list = string.split(envVar)
             assert string_reference.startswith(split_list[0]) and string_reference.endswith(split_list[-1])
             return None
-    assert string == string_reference
     return None
 
 
@@ -67,16 +66,13 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
                         [s.split(' ')[0] for s in history_reference if ' EvtFile = ' in s or ' Simput = ' in s]
 
             for history_record, history_record_reference in zip(history, history_reference):
-
                 if any(history_record_reference.startswith(tag) for tag in skip_tags):
                     split_list = history_record.split(' ')
                     split_list_history = history_record_reference.split(' ')
                     assert split_list[0:2] == split_list_history[0:2]
                 else:
-                    print('check-this',history_record, history_record_reference, history_record == history_record_reference)
-                    assert history_record == history_record_reference
+                    assert_string_in_header_matches_reference(history_record, history_record_reference)
         else:
-            print('checking....',val, val_reference,'\n')
             if type(val) == str:
                 assert_string_in_header_matches_reference(val, val_reference)
             else:
@@ -93,7 +89,6 @@ def assert_data_matches_reference(inp, reference) -> None:
     """
 
     # Checking that the two objects are of the same type
-    print('DataType_Check',isinstance(inp, type(reference)))
     assert isinstance(inp, type(reference))
 
     if isinstance(inp, type(None)):
@@ -103,16 +98,11 @@ def assert_data_matches_reference(inp, reference) -> None:
     elif isinstance(inp, np.ndarray):
         if isinstance(inp, fits.fitsrec.FITS_rec):
             # Checking number of rows and field names
-            if len(inp) != len(reference):
-                print('FieldNames',reference)
-                print('IS THIS WORKING FINE',len(inp) == len(reference))
             assert len(inp) == len(reference)
-
             assert inp.dtype.names == reference.dtype.names
             # Checking data iterating by field and vale
             for name in inp.dtype.names:
                 for val, val_reference in zip(inp[name], reference[name]):
-
                     assert val == pytest.approx(val_reference)
         else:
             # Checking all values
@@ -133,14 +123,7 @@ def assert_hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: 
     """
 
     for hdu, hdu_reference in zip(inp, reference):
-        print ('\n\n\n')
-        print('Input',hdu.header)
-        print('Ref.', hdu_reference.header)
-        # print ('\n\n\n')
-        # print ('Data')
-        # print('Input',hdu.data)
-        # print('Ref.',hdu_reference.data)
         assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
-        #assert_data_matches_reference(hdu.data, hdu_reference.data)
+        assert_data_matches_reference(hdu.data, hdu_reference.data)
 
     return None
