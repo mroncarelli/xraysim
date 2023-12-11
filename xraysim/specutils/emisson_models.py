@@ -25,22 +25,23 @@ with open(models_config_file) as file:
 
 
 class XspecModel:
-    def __init__(self, model_name, energy):
+    def __init__(self, model_name: str, energy: np.array) -> None:
         """
-
-        :param model_name:
-        :param energy:
+        This Xspec Model constructor sets the PyXspec model energies, initializes the APEC version, and configures the
+        emission model based on the string variable model_name. It can be either APEC or VVAPEC.
+        :param model_name: str - type of X-ray Emission Model apec/vvapec
+        :param energy: list of float - Represents the range of energy values in KeV for spectrum calculation in pyxspec.
         """
         xsp.AllModels.setEnergies(f"{energy.min()} {energy.max()} {len(energy) - 1} lin")
         xsp.Xset.addModelString("APECROOT", "3.0.9")
         self.xspec_model = xsp.Model(model_name)
 
     # doesn't change the object itself, that's why we have this warning
-    def set_xspec_commands(self, commands):
+    def set_xspec_commands(self, commands: dict) -> None:
         """
-
-        :param commands:
-        :return:
+        This class method set up all the commands for the XSPEC model
+        :param commands: dict : dictionary of commands specific to XSPEC which are set up iteratively inside a loop
+        :return: None
         """
         xspec_settings = {
             'abund': lambda cmd: setattr(xsp.Xset, cmd['method'], cmd['arg']),
@@ -50,15 +51,17 @@ class XspecModel:
         for command in commands:
             xspec_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z, temperature, elements_index, metallicity, norm):
+    def calculate_spectrum(self, z: float, temperature: float, elements_index: int, metallicity: np.array,
+                           norm: float) -> np.array:
         """
-
-        :param z:
-        :param temperature:
-        :param elements_index:
-        :param metallicity:
-        :param norm:
-        :return:
+        This class method computes the X-ray emission spectra for a gas particle using Pyxspec.
+        :param z: float - redshift for the gas particle
+        :param temperature: float - Temperature in keV in for the gas particle
+        :param elements_index: int - list of index corresponding to metal species
+        :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
+        :param norm: float - xspec normalization value, units - 10^-14 cm^-5
+        :return: the emission spectra for the gas particle in the units -
+                norm * units from xspec module--->(10^-14 cm^-5) * (photons s^-1 cm^3)---->10^-14 photons s^-1 cm-2
         """
         params = [temperature, *metallicity.tolist(), z, norm]
         self.xspec_model.setPars(params)
@@ -70,20 +73,20 @@ class XspecModel:
 
 class AtomdbModel:
 
-    def __init__(self, model_name, energy):
+    def __init__(self, model_name: str, energy: np.array) -> None:
         """
-
-        :param model_name:
-        :param energy:
+        This AtomDB Model constructor sets the AtomDB model energies and set up the AtomDB CIESession.
+        :param model_name:str - type of X-ray Emission Model, only vvapec
+        :param energy:list of float - Represents the range of energy values in KeV for spectrum calculation in pyatomDB
         """
         self.atomdb_model = pyatomdb.spectrum.CIESession()
         self.energy = energy
 
-    def set_atomdb_commands(self, commands):
+    def set_atomdb_commands(self, commands: dict) -> None:
         """
-
-        :param commands:
-        :return:
+        This class method set up all the commands for the pyatomdb model
+        :param commands: dict : dictionary of commands specific to pyatomdb which are set up iteratively inside a loop
+        :return: None
         """
         atomdb_settings = {
             'abundset': lambda cmd: setattr(self.atomdb_model, cmd['method'], cmd['arg']),
@@ -91,18 +94,17 @@ class AtomdbModel:
             'set_broadening': lambda cmd: self.atomdb_model.set_broadening(thermal_broadening=str2bool(cmd['arg'][0]))
         }
         for command in commands:
-
             atomdb_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z, temperature, elements_index, metallicity, norm):
+    def calculate_spectrum(self, z, temperature, elements_index, metallicity, norm) -> np.array:
         """
-
-        :param z:
-        :param temperature:
-        :param elements_index:
-        :param metallicity:
-        :param norm:
-        :return:
+        This class method computes the X-ray emission spectra for a gas particle using pyatomdb.
+        :param z: float - redshift for the gas particle
+        :param temperature: float - Temperature in keV in for the gas particle
+        :param elements_index: int - list of index corresponding to metal species
+        :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
+        :param norm: float - atomdb normalization value, units-cm^-5
+        :return: norm * units from atomdb module--->(cm^-5) * (photons s^-1 cm^3)---->photons s^-1 cm-2
         """
         self.atomdb_model.set_response(self.energy * (1 + z), raw=True)
         self.atomdb_model.set_abund(elements_index + 1, metallicity[elements_index])
@@ -112,11 +114,12 @@ class AtomdbModel:
 
 
 class EmissionModels:
-    def __init__(self, model_name: str, energy: np.ndarray):
+    def __init__(self, model_name: str, energy: np.array):
         """
-
-        :param model_name:
-        :param energy:
+        The EmissionModels constructor first searches for the model 'name' in the JSON record. Once it successfully
+        locates the name, it initializes the X-Ray library along with its corresponding commands
+        :param model_name: str - Specifies the model name as 'TheThreeHundred-1/2/3/4'.
+        :param energy: list of float - Represents the range of energy values in KeV for spectrum calculation.
         """
         self.json_record = next((i for i in json_data if i['name'] == model_name), None)
 
@@ -137,11 +140,13 @@ class EmissionModels:
         else:
             raise ValueError(f"Library '{self.json_record['code']}' not supported.")
 
-    def set_metals_ref(self, metal):
+    def set_metals_ref(self, metal: np.array) -> np.array:
         """
-
-        :param metal:
-        :return:
+        This class method takes the metallicity array as input and assigns it to metals_ref based on the model type and
+        the number of chemical species. This information can later be utilized in the corresponding X-ray library for
+        spectrum calculation.
+        :param metal: array of float - metallicity corresponding to each sph gas particle
+        :return: The chemical species index which is essential for the PyAtomDB library (for the set abundance).
         """
         metal_idx = {('apec', 1): [0],
                      ('vvapec', 1): np.arange(3, 31, 1) - 1,
@@ -154,14 +159,16 @@ class EmissionModels:
 
         return idx
 
-    def compute_spectrum(self, z, temperature, metallicity, norm, flag_ene=False):
+    def compute_spectrum(self, z: float, temperature: float, metallicity: np.array, norm: float,
+                         flag_ene: bool = False) -> np.array:
         """
-
-        :param z:
-        :param temperature:
-        :param metallicity:
-        :param norm:
-        :param flag_ene:
+        This class method return the emission spectra for each gas particle at the given energy range using the gas
+        physical properties.
+        :param z: float - redshift for each gas particle
+        :param temperature: float - temperature in KeV for gas particle
+        :param metallicity: list of float - Metallicity values for gas particles, normalized to Anders & Grevesse.
+        :param norm: float - xspec and pyatomdb normalization factor
+        :param flag_ene: bool - conversion -----
         :return:
         """
         chem_species_index = self.set_metals_ref(metallicity)
@@ -176,30 +183,71 @@ class EmissionModels:
 
 # Testing Line For Checking The Class and setup :
 
-xspec_norm = 1
-pyatomdb_norm = 1
+# just for initial test, the actual values depend on the emission measure and cosmological angular distance
+def check_cases():
+    xspec_norm = 1
+    pyatomdb_norm = 1
+    energy_range = np.linspace(0.1, 10, 2000)
+    e_bins = 0.5 * (energy_range[1:] + energy_range[:-1])
+    # for xspec - apec with single metallicity
+    a = EmissionModels('TheThreeHundred-1', energy_range)
 
-a = EmissionModels('TheThreeHundred-1', np.linspace(0.1, 10, 1000))
+    plt.plot(e_bins, a.compute_spectrum(0.2, 0.34, np.array([0.04]), xspec_norm, False),
+             label='T=0.34, Z=0.04')
+    plt.plot(e_bins, a.compute_spectrum(0.2, 0.63, np.array([0.3]), xspec_norm, False),
+             label='T=0.63, Z=0.3')
+    plt.plot(e_bins, a.compute_spectrum(0.2, 0.23, np.array([0.09]), xspec_norm, False),
+             label='T=0.23, Z=0.09')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.title('Xspec-Apec+single metallicity')
+    plt.show()
 
-print(a.compute_spectrum(0.1, 0.34, [0.04], xspec_norm, False))
-print(a.compute_spectrum(.2, 0.6, [0.01], xspec_norm, False))
-print(a.compute_spectrum(.2, 0.2, [0.07], xspec_norm, False))
+    # for xspec - vvapec with single metallicity
+    b = EmissionModels('TheThreeHundred-2', energy_range)
+    plt.plot(e_bins, b.compute_spectrum(0.2, 0.44, np.array([0.04]), xspec_norm, False),
+             label='T=0.44, Z=0.04')
+    plt.plot(e_bins, b.compute_spectrum(0.2, 0.73, np.array([0.33]), xspec_norm, False),
+             label='T=0.73, Z=0.33')
+    plt.plot(e_bins, b.compute_spectrum(0.2, 0.93, np.array([0.07]), xspec_norm, False),
+             label='T=0.93, Z=0.07')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.title('Xspec-vvapec+single metallicity')
+    plt.show()
 
-b = EmissionModels('TheThreeHundred-2', np.linspace(0.1, 10, 1000))
+    # for xspec - vvapec with 11 species metallicity
+    c = EmissionModels('TheThreeHundred-3', energy_range)
+    plt.plot(e_bins, c.compute_spectrum(0.2, 0.44, np.linspace(0.04, 0.1, 11), xspec_norm, False),
+             label='T=0.44, Z=[0.04, 0.1]')
+    plt.plot(e_bins, c.compute_spectrum(0.2, 0.73, np.linspace(0.1, 0.7, 11), xspec_norm, False),
+             label='T=0.73, Z=[0.1,0.7]')
+    plt.plot(e_bins, c.compute_spectrum(0.2, 0.93, np.linspace(0.004, 0.006, 11), xspec_norm, False),
+             label='T=0.93, Z=[0.004, 0.006]')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.title('Xspec-vvapec+11 species metallicity')
+    plt.show()
 
-print(b.compute_spectrum(0.1, 3, [0.05], xspec_norm, False))
-print(b.compute_spectrum(.2, 0.6, np.linspace(0.2, 0.3, 11), xspec_norm, False))
-print(b.compute_spectrum(.2, 0.2, np.linspace(0.4, 0.5, 11), xspec_norm, False))
+    # for pyatomdb - vvapec with 11 species metallicity
+    d = EmissionModels('TheThreeHundred-4', energy_range)
+    plt.plot(e_bins, d.compute_spectrum(0.2, 0.54, np.linspace(0.04, 0.1, 11), xspec_norm, False),
+             label='T=0.54, Z=[0.04, 0.1]')
+    plt.plot(e_bins, d.compute_spectrum(0.2, 0.83, np.linspace(0.1, 0.7, 11), xspec_norm, False),
+             label='T=0.83, Z=[0.1,0.7]')
+    plt.plot(e_bins, d.compute_spectrum(0.2, 3, np.linspace(0.004, 0.006, 11), xspec_norm, False),
+             label='T=3, Z=[0.004, 0.006]')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.legend()
+    plt.title('pyatomdb-vvapec+11 species metallicity')
+    plt.show()
 
-b = EmissionModels('TheThreeHundred-4', np.linspace(0.1, 10, 1000))
 
-print(b.compute_spectrum(0.1, 2, [0.05], pyatomdb_norm, False))
-print(b.compute_spectrum(0.1, 2, np.linspace(0.2, 0.3, 11), pyatomdb_norm, False))
-print(b.compute_spectrum(0.1, 2, np.linspace(0.2, 0.3, 11), pyatomdb_norm, False))
-# print(pydb1)
-# print(xspec1)
-
-
+check_cases()
 # For actual sim
 
 # from gadgetutils.convert import gadgget2xspecnorm
