@@ -1,4 +1,4 @@
-from .phys_const import Xp, Msun2g, Mpc2cm, m_p, kpc2cm, x_e0, pi, c_light
+from .phys_const import Xp, Msun2g, m_p, kpc2cm, x_e0, pi, c_light
 import numpy as np
 
 
@@ -14,7 +14,7 @@ def rho2nH(rho, h, xp=None):
     return rho * 1e10 * Msun2g / kpc2cm ** 3 * h ** 2 * xp / m_p  # [cm^-3]
 
 
-def gadgget2xspecnorm(mass, rho, d_c, h, ne=None):
+def gadget2xspecnorm(mass, rho, d_c, h, ne=None):
     """
     Calculates the Xspec normalization from Gadget units
     :param mass: particle mass [10^10 h^-1 M_Sun]
