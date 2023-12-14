@@ -64,8 +64,8 @@ class XspecModel:
         for command in commands:
             xspec_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z: float, temperature: float, elements_index: int, metallicity: np.array,
-                           norm: float) -> np.array:
+    def calculate_spectrum(self, z: float, temperature: float, metallicity: np.array,
+                           norm: float, elements_index=None) -> np.array:
         """
         This class method computes the X-ray emission spectra for a gas particle using Pyxspec.
         :param z: float - redshift for the gas particle
@@ -109,7 +109,7 @@ class AtomdbModel:
         for command in commands:
             atomdb_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z, temperature, elements_index, metallicity, norm) -> np.array:
+    def calculate_spectrum(self, z, temperature, metallicity, norm, elements_index) -> np.array:
         """
         This class method computes the X-ray emission spectra for a gas particle using pyatomdb.
         :param z: float - redshift for the gas particle
@@ -186,7 +186,7 @@ class EmissionModels:
         """
         chem_species_index = self.set_metals_ref(metallicity)
 
-        result = self.model.calculate_spectrum(z, temperature, chem_species_index, self.json_record['metals_ref'], norm)
+        result = self.model.calculate_spectrum(z, temperature, self.json_record['metals_ref'], norm, chem_species_index)
         if flag_ene:
             bins = 0.5 * (np.array(self.energy[1:] + np.array(self.energy)[:-1]))
             result = result * bins
