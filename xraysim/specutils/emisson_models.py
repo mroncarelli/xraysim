@@ -6,6 +6,19 @@ import xspec as xsp
 import pyatomdb
 import matplotlib.pyplot as plt
 
+# Anders and Grevesse abundance table in terms of number fraction
+angr_array = np.array(
+    [1.00E+00, 9.77E-02, 1.45E-11, 1.41E-11, 3.98E-10, 3.63E-04, 1.12E-04, 8.51E-04, 3.63E-08, 1.23E-04,
+     2.14E-06, 3.80E-05, 2.95E-06, 3.55E-05, 2.82E-07, 1.62E-05, 3.16E-07, 3.63E-06, 1.32E-07, 2.29E-06,
+     1.26E-09, 9.77E-08, 1.00E-08, 4.68E-07, 2.45E-07, 4.68E-05, 8.32E-08, 1.78E-06, 1.62E-08, 3.98E-08])
+
+atomic_weights = np.array([1.008, 4.0026, 6.94, 9.0122, 10.81, 12.011, 14.007, 15.999, 18.998, 20.180, 22.990, 24.305,
+                           26.982, 28.085, 30.974, 32.06, 35.45, 39.948, 39.098, 40.078, 44.956, 47.867, 50.942, 51.996,
+                           54.938, 55.845, 58.933, 58.693, 63.546, 65.38])
+
+# Anders and Grevesse abundance table in terms of mass fraction
+angr_array = (angr_array * atomic_weights) / (np.sum(angr_array * atomic_weights))
+
 
 def str2bool(v):
     """
@@ -234,11 +247,11 @@ def check_cases():
 
     # for pyatomdb - vvapec with 11 species metallicity
     d = EmissionModels('TheThreeHundred-4', energy_range)
-    plt.plot(e_bins, d.compute_spectrum(0.2, 0.54, np.linspace(0.04, 0.1, 11), xspec_norm, False),
+    plt.plot(e_bins, d.compute_spectrum(0.2, 0.54, np.linspace(0.04, 0.1, 11), pyatomdb_norm, False),
              label='T=0.54, Z=[0.04, 0.1]')
-    plt.plot(e_bins, d.compute_spectrum(0.2, 0.83, np.linspace(0.1, 0.7, 11), xspec_norm, False),
+    plt.plot(e_bins, d.compute_spectrum(0.2, 0.83, np.linspace(0.1, 0.7, 11), pyatomdb_norm, False),
              label='T=0.83, Z=[0.1,0.7]')
-    plt.plot(e_bins, d.compute_spectrum(0.2, 3, np.linspace(0.004, 0.006, 11), xspec_norm, False),
+    plt.plot(e_bins, d.compute_spectrum(0.2, 3, np.linspace(0.004, 0.006, 11), pyatomdb_norm, False),
              label='T=3, Z=[0.004, 0.006]')
     plt.xscale('log')
     plt.yscale('log')
