@@ -29,11 +29,12 @@
         "arg": "angr"
       },
       {"method":  "addModelString",
-        "arg":  ["APECTHERMAL", "yes"]
+        "arg":  ["APECTHERMAL", "no"]
       }
     ],
     "n_metals": 1,
-    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    "chemical_elements": ["Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "K", "Ar", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     
     },
 
@@ -50,9 +51,9 @@
         "arg":  ["APECTHERMAL", "yes"]
       }
     ],
-    "n_metals": 11,
-    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    
+    "n_metals": 9,
+    "chemical_elements": ["C", "N", "O", "Ne", "Mg", "Si", "S", "Ca", "Fe"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     },
 
   {
@@ -70,9 +71,32 @@
         "arg":  ["False"]
       }
     ],
-    "n_metals": 11,
-    "metals_ref": [1E-3, 1E-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    "n_metals": 9,
+    "chemical_elements": ["C", "N", "O", "Ne", "Mg", "Si", "S", "Ca", "Fe"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  },
+
+
+  {
+    "name": "TheThreeHundred-5",
+    "code": "atomdb",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abundset",
+        "arg": "AG89"
+      },
+      {"method":  "set_broadening",
+        "arg":  ["True"]
+      },
+      {"method":  "do_eebrems",
+        "arg":  ["False"]
+      }
+    ],
+    "n_metals": 1,
+    "chemical_elements": ["Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "K", "Ar", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
   }
-       
+
 ]
