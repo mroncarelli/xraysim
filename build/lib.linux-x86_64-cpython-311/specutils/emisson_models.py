@@ -100,7 +100,7 @@ class XspecModel:
         """
         params = [temperature, *metallicity.tolist(), z, norm]
         self.xspec_model.setPars(params)
-        # self.xspec_model.show()
+        self.xspec_model.show()
         result = self.xspec_model.values(0)
 
         return result
@@ -142,13 +142,9 @@ class AtomdbModel:
         """
         self.atomdb_model.set_response(self.energy * (1 + z), raw=True)
         self.atomdb_model.set_abund(np.arange(1, 31, 1), metallicity)
-        result = self.atomdb_model.return_spectrum(temperature, log_interp=True, teunit='KeV') * norm * (
+        result = self.atomdb_model.return_spectrum(temperature, log_interp=False) * norm * (
                 1 / (1 + z)) ** 1
 
-        # This extra condition is due the difference between the two libraries when no corresponding spectrum is found
-        # in table. The xspec returns an array of 0.0 with size equivalent to number of energy bins whereas atomdb
-        # returns simply zero. Therefore, to be consistent next part is required.
-        result = np.zeros(len(self.energy) - 1,dtype=np.float32) if isinstance(result, float) else result
         # to match up with xspec
         return 1E14 * np.array(result)
 
@@ -189,7 +185,7 @@ class EmissionModels:
         :param metal: array of float - metallicity corresponding to each sph gas particle
         :return: The chemical species index which is essential for the PyAtomDB library (for the set abundance).
         """
-        if self.json_record['n_metals'] == len(metal):
+        if self.json_record['n_metals'] == len(metal) :
             metal_idx = {('apec', False): [0],
                          ('vvapec', False): np.nonzero(np.in1d(Abundance_Table['Symbols'],
                                                                self.json_record['chemical_elements']))[0] + 1 - 1,
@@ -207,7 +203,6 @@ class EmissionModels:
                 else self.json_record['metals_ref'][idx] / Z_solar
         else:
             raise ValueError(f"wrong setting n_metals is'{self.json_record['n_metals']} and len of metal'{len(metal)}.")
-
     def compute_spectrum(self, z: float, temperature: float, metallicity: np.array, norm: float,
                          flag_ene: bool = False) -> np.array:
         """
@@ -221,7 +216,6 @@ class EmissionModels:
         :return:
         """
         self.set_metals_ref(metallicity)
-        # print(self.json_record['metals_ref'])
 
         result = self.model.calculate_spectrum(z, temperature, self.json_record['metals_ref'], norm)
         if flag_ene:
@@ -233,11 +227,8 @@ class EmissionModels:
 
 # Testing Line For Checking The Class and setup :
 def check_gizmo(lib):
-    sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_Gadget_sample'
-    # '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
-    # sim_metal = readsnap(sim_path, 'Metallicity', 'gas')
-    sim_metal = readsnap(sim_path, 'Z    ', 'gas')
-    # sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
+    sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
+    sim_metal = readsnap(sim_path, 'Metallicity', 'gas')[:, 2:]
     sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
     sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
 
@@ -250,16 +241,14 @@ def check_gizmo(lib):
     sim_emission_model = EmissionModels(model_name='TheThreeHundred-' + str(lib), energy=energies_array)
 
     spectrum = []
-    # for i in tqdm(range(100), desc="Processing Regions"):
-    #    spectrum.append(sim_emission_model.compute_spectrum(sim_z, sim_temp[i], [sim_metal[i]], 1, False))
-    # print(spectrum[25],sim_temp[25],sim_metal[25])
-    print(sim_emission_model.compute_spectrum(sim_z, sim_temp[25], [sim_metal[25]], 1, False))
+    for i in tqdm(range(10), desc="Processing Regions"):
+        spectrum.append(sim_emission_model.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
+
+    return spectrum, energies_array
 
 
 # spectrum_xspec, energy_array = check_gizmo(3)
-check_gizmo(2)
-check_gizmo(5)
-
+# spectrum_atomdb, energy_array = check_gizmo(4)
 # for i, j in zip(spectrum_xspec, spectrum_atomdb):
 #    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), i, label='xspec')
 

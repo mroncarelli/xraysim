@@ -370,7 +370,8 @@ def get_rsppath(evtfile: str):
     return rsppath
 
 
-def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, logfile=None, no_exec=False):
+def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, logfile=None, overwrite=True,
+             no_exec=False):
     """ Creates a .pha file containing the spectrum extracted from an event file using the SIXTE makespec command
     :param evtfile: (str) Event file
     :param phafile: (str) Output file
@@ -378,6 +379,7 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     :param pixid: TODO
     :param grading: (int or int list) Grading of photons included in the spectrum (default, 1)
     :param logfile: (str) If set the output is not written on screen but saved in the file
+    :param overwrite: (bool) If set overwrites previous output file (phafile) if exists, default True
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
     :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
     """
@@ -403,10 +405,11 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
 
     # If rsppath is not provided I try to recover it from the evtfile
     rsppath_ = get_rsppath(evtfile) if rsppath is None else rsppath
-
     tag_rsppath = "" if rsppath_ is None else " RSPPath=" + rsppath_
 
-    command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath
+    clobber_ = 'yes' if overwrite else 'no'
+
+    command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath + ' clobber=' + clobber_
     if type_grading != "":
         command += " EventFilter=" + tag_grading
 
