@@ -12,7 +12,7 @@ def test_unit_value():
     all values equal to 1 in Gadget units) must have a Xspec normalization equal to 269033750046.39606 (obtained by
     multiplying conversion factors as follows).
     """
-    assert convert.gadgget2xspecnorm(1., 1., 1., 1.) == pytest.approx(gadget_unit_normalization)
+    assert convert.gadget2xspecnorm(1., 1., 1., 1.) == pytest.approx(gadget_unit_normalization)
 
 
 def test_mass_dependence():
@@ -20,7 +20,7 @@ def test_mass_dependence():
     Xspec normalization should scale linearly with mass
     """
     v = 7.5
-    assert convert.gadgget2xspecnorm(v, 1., 1., 1.) / convert.gadgget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v)
+    assert convert.gadget2xspecnorm(v, 1., 1., 1.) / convert.gadget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v)
 
 
 def test_density_dependence():
@@ -28,7 +28,7 @@ def test_density_dependence():
     Xspec normalization should scale linearly with density, if mass is preserved
     """
     v = 42.
-    assert convert.gadgget2xspecnorm(1., v, 1., 1.) / convert.gadgget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v)
+    assert convert.gadget2xspecnorm(1., v, 1., 1.) / convert.gadget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v)
 
 
 def test_distance_dependence():
@@ -36,7 +36,7 @@ def test_distance_dependence():
     Xspec normalization should scale inversely with the square of the comoving distance
     """
     v = 123.
-    assert convert.gadgget2xspecnorm(1., 1., v, 1.) / convert.gadgget2xspecnorm(1., 1., 1., 1.) == pytest.approx(
+    assert convert.gadget2xspecnorm(1., 1., v, 1.) / convert.gadget2xspecnorm(1., 1., 1., 1.) == pytest.approx(
         1. / v ** 2)
 
 
@@ -45,7 +45,7 @@ def test_hubble_constant_dependence():
     Xspec normalization should scale like h^3
     """
     v = 0.7
-    assert convert.gadgget2xspecnorm(1., 1., 1., v) / convert.gadgget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v ** 3)
+    assert convert.gadget2xspecnorm(1., 1., 1., v) / convert.gadget2xspecnorm(1., 1., 1., 1.) == pytest.approx(v ** 3)
 
 
 def test_xe_dependence():
@@ -56,6 +56,6 @@ def test_xe_dependence():
     mass = rho = d_c = np.full(npart, 1.)
     x_e = np.full(npart, 0.8)
     h = 0.67
-    norm_reference = convert.gadgget2xspecnorm(mass, rho, d_c, h)
-    norm_test = convert.gadgget2xspecnorm(mass, rho, d_c, h, ne=x_e)
+    norm_reference = convert.gadget2xspecnorm(mass, rho, d_c, h)
+    norm_test = convert.gadget2xspecnorm(mass, rho, d_c, h, ne=x_e)
     assert all(nt / nr == pytest.approx(x_e_i / x_e0) for nt, nr, x_e_i in zip(norm_test, norm_reference, x_e))

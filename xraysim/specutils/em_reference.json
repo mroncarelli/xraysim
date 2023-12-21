@@ -1,0 +1,102 @@
+[
+    
+    {
+    "name": "TheThreeHundred-1",
+    "code": "xspec",
+    "model": "apec",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "yes"]
+      },
+      {"method":  "addModelString",
+        "arg":  ["APEC_TRACE_ABUND", "Fe"]
+      }
+    ],
+    "n_metals": 1,
+    "metals_ref": [0]
+    
+    },
+    
+    {
+    "name": "TheThreeHundred-2",
+    "code": "xspec",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "no"]
+      }
+    ],
+    "n_metals": 1,
+    "chemical_elements": ["Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "K", "Ar", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    },
+
+
+    {
+    "name": "TheThreeHundred-3",
+    "code": "xspec",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abund",
+        "arg": "angr"
+      },
+      {"method":  "addModelString",
+        "arg":  ["APECTHERMAL", "yes"]
+      }
+    ],
+    "n_metals": 9,
+    "chemical_elements": ["C", "N", "O", "Ne", "Mg", "Si", "S", "Ca", "Fe"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+
+  {
+    "name": "TheThreeHundred-4",
+    "code": "atomdb",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abundset",
+        "arg": "AG89"
+      },
+      {"method":  "set_broadening",
+        "arg":  ["True"]
+      },
+      {"method":  "do_eebrems",
+        "arg":  ["False"]
+      }
+    ],
+    "n_metals": 9,
+    "chemical_elements": ["C", "N", "O", "Ne", "Mg", "Si", "S", "Ca", "Fe"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  },
+
+
+  {
+    "name": "TheThreeHundred-5",
+    "code": "atomdb",
+    "model": "vvapec",
+    "xset": [
+      {"method":  "abundset",
+        "arg": "AG89"
+      },
+      {"method":  "set_broadening",
+        "arg":  ["True"]
+      },
+      {"method":  "do_eebrems",
+        "arg":  ["False"]
+      }
+    ],
+    "n_metals": 1,
+    "chemical_elements": ["Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "K", "Ar", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"],
+    "metals_ref": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+  }
+
+]
