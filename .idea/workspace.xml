@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/convert.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/phys_const.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/readspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/pygadgetreader/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget1.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget_blockordering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/hdf5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/header.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/names.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/rs_structs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/tipsy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readfofspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readgadget.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readpstar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readrockstar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/absorption.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/sixte.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/tables.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/kernel.cpython-311-x86_64-linux-gnu.so" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/linkedlist.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/mapping.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-311/xraysim/sphprojection/kernel.o" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/xraysim-0.6-py3.11-linux-x86_64.egg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xraysim/xraysim.egg-info/PKG-INFO" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xraysim/xraysim.egg-info/SOURCES.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xraysim/xraysim.egg-info/dependency_links.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xraysim/xraysim.egg-info/not-zip-safe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/xraysim/xraysim.egg-info/top_level.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2ZpjCcSA9L58DDABjbfvVGYGnlY" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="" />
+      <created>1703125790938</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1703125790938</updated>
+      <workItem from="1703125794125" duration="172000" />
+      <workItem from="1703125987236" duration="553000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+  </component>
+</project>
