@@ -247,15 +247,15 @@ def check_gizmo(lib):
     return spectrum, energies_array
 
 
-spectrum_xspec, energy_array = check_gizmo(3)
-spectrum_atomdb, energy_array = check_gizmo(4)
-for i, j in zip(spectrum_xspec, spectrum_atomdb):
-    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), i, label='xspec')
+# spectrum_xspec, energy_array = check_gizmo(3)
+# spectrum_atomdb, energy_array = check_gizmo(4)
+# for i, j in zip(spectrum_xspec, spectrum_atomdb):
+#    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), i, label='xspec')
 
-    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), j, label='atomdb',alpha=.5)
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.legend()
-    plt.show()
+#    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), j, label='atomdb',alpha=.5)
+#    plt.xscale('log')
+#    plt.yscale('log')
+#    plt.legend()
+#    plt.show()
 
-print(len(spectrum_atomdb))
+# print(len(spectrum_atomdb))
