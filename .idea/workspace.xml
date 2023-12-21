@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/emisson_models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/xraysim/sphprojection/kernel.cpython-311-x86_64-linux-gnu.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/convert.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/convert.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/sixte.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/sixte.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/xraysim-0.6-py3.11-linux-x86_64.egg" beforeDir="false" afterPath="$PROJECT_DIR$/dist/xraysim-0.6-py3.11-linux-x86_64.egg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_emisson_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_emisson_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" afterDir="false" />
-    </list>
+    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -78,7 +68,7 @@
       <workItem from="1703125987236" duration="553000" />
       <workItem from="1703126914449" duration="1169000" />
       <workItem from="1703158043340" duration="3259000" />
-      <workItem from="1703172550414" duration="13279000" />
+      <workItem from="1703172550414" duration="13579000" />
     </task>
     <task id="LOCAL-00001" summary="first">
       <option name="closed" value="true" />
@@ -112,7 +102,15 @@
       <option name="project" value="LOCAL" />
       <updated>1703169290525</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table">
+      <option name="closed" value="true" />
+      <created>1703198563370</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1703198563391</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -122,7 +120,8 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="first" />
     <MESSAGE value="removed kernel.c and xraysim.iml" />
-    <option name="LAST_COMMIT_MESSAGE" value="removed kernel.c and xraysim.iml" />
+    <MESSAGE value="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table" />
+    <option name="LAST_COMMIT_MESSAGE" value="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
