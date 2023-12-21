@@ -1,0 +1,5 @@
+gadgetutils
+pygadgetreader
+readgadget
+specutils
+sphprojection
