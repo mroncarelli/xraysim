@@ -29,7 +29,7 @@
         "arg": "angr"
       },
       {"method":  "addModelString",
-        "arg":  ["APECTHERMAL", "no"]
+        "arg":  ["APECTHERMAL", "yes"]
       }
     ],
     "n_metals": 1,

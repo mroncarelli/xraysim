@@ -10,7 +10,7 @@ from xraysim.gadgetutils.readspecial import readtemperature
 from xraysim.specutils.emisson_models import EmissionModels
 from xraysim.specutils.emisson_models import XspecModel
 from xraysim.specutils.emisson_models import AtomdbModel
-
+import matplotlib.pyplot as plt
 
 def test_sample_gadget():
     sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_Gadget_sample'
@@ -38,3 +38,6 @@ def test_sample_gadget():
 
     assert np.all([len(i) == len(energies_array) - 1 for i in spectrum_atomdb])
     assert isinstance(sim_emission_model_atomdb.model, AtomdbModel)
+
+    assert np.all([spec_xsp == pytest.approx(spec_atmdb) for spec_xsp, spec_atmdb in zip(np.sum(spectrum_atomdb,axis=1),np.sum(spectrum_xspec,axis=1))])
+

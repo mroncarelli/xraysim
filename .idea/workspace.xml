@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table" />
+    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_emisson_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_emisson_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/em_reference.json" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/em_reference.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -68,7 +73,9 @@
       <workItem from="1703125987236" duration="553000" />
       <workItem from="1703126914449" duration="1169000" />
       <workItem from="1703158043340" duration="3259000" />
-      <workItem from="1703172550414" duration="13579000" />
+      <workItem from="1703172550414" duration="13906000" />
+      <workItem from="1703278980052" duration="589000" />
+      <workItem from="1703283678205" duration="10568000" />
     </task>
     <task id="LOCAL-00001" summary="first">
       <option name="closed" value="true" />
@@ -110,7 +117,15 @@
       <option name="project" value="LOCAL" />
       <updated>1703198563391</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table">
+      <option name="closed" value="true" />
+      <created>1703198812486</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1703198812486</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -125,8 +140,8 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
-    <SUITE FILE_PATH="coverage/xraysim$test_emisson_model.coverage" NAME="test_emisson_model Coverage Results" MODIFIED="1703195763438" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1703198270258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+    <SUITE FILE_PATH="coverage/xraysim$test_emisson_model.coverage" NAME="test_emisson_model Coverage Results" MODIFIED="1703293518477" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1703292456442" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
     <SUITE FILE_PATH="coverage/xraysim$test_calc_spec.coverage" NAME="test_calc_spec Coverage Results" MODIFIED="1703127606908" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
 </project>
