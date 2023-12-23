@@ -152,7 +152,7 @@ class AtomdbModel:
         """
         self.atomdb_model.set_response(self.energy * (1 + z), raw=True)
         # print(element_index,metallicity[element_index])
-        self.atomdb_model.set_abund(element_index+1, metallicity[element_index])
+        self.atomdb_model.set_abund(element_index + 1, metallicity[element_index])
         result = self.atomdb_model.return_spectrum(temperature, log_interp=False, teunit='KeV') * norm * (
                 1 / (1 + z)) ** 1
 
@@ -161,7 +161,7 @@ class AtomdbModel:
         # returns simply zero. Therefore, to be consistent next part is required.
         result = np.zeros(len(self.energy) - 1, dtype=np.float32) if isinstance(result, float) else result
         # to match up with xspec
-        return np.array(result)*1E14
+        return np.array(result) * 1E14
 
 
 class EmissionModels:
@@ -268,7 +268,7 @@ def test_sample_gadget():
 
     for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
         plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-.', label='spectrum_atomdb')
-        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', lw=.3,label='spectrum_xsp')
+        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', lw=.3, label='spectrum_xsp')
         # plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), (j - i) / j, ls='-', lw=.3, label='rel - diff')
         plt.xscale('log')
         plt.yscale('log')
@@ -277,3 +277,40 @@ def test_sample_gadget():
 
 
 # test_sample_gadget()
+
+def test_gizmo_sample():
+    sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
+    sim_metal = readsnap(sim_path, 'Metallicity', 'gas')[:, 2:]
+    sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
+    sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
+    print(sim_z)
+
+    indices = np.where((sim_temp > 0.08))[0]
+    sim_temp = sim_temp[indices]
+
+    sim_metal = sim_metal[indices]
+
+    energies_array = np.linspace(0.1, 10, 2000)
+
+    sim_emission_model_xspec = EmissionModels(model_name='TheThreeHundred-3', energy=energies_array)
+    sim_emission_model_atomdb = EmissionModels(model_name='TheThreeHundred-4', energy=energies_array)
+
+    spectrum_xspec = []
+    for i in tqdm(range(1000), desc="Processing Regions"):
+        spectrum_xspec.append(sim_emission_model_xspec.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
+
+    spectrum_atomdb = []
+    for i in tqdm(range(1000), desc="Processing Regions"):
+        spectrum_atomdb.append(sim_emission_model_atomdb.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
+
+    for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
+        #plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-.', label='spectrum_atomdb')
+        #plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', lw=.3, label='spectrum_xsp')
+        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), (j - i) / j, ls='-', lw=.3, label='rel - diff')
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.legend()
+        plt.show()
+
+
+# test_gizmo_sample()
