@@ -13,35 +13,26 @@ from readgadget.readgadget import readhead
 from gadgetutils.readspecial import readtemperature
 from tqdm.auto import tqdm
 
-# Anders and Grevesse abundance table in terms of number fraction
-chemical_species = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
-                    'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']
+from gadgetutils.convert import gadget2xspecnorm
 
-angr_array = np.array(
-    [1.00E+00, 9.77E-02, 1.45E-11, 1.41E-11, 3.98E-10, 3.63E-04, 1.12E-04, 8.51E-04, 3.63E-08, 1.23E-04,
-     2.14E-06, 3.80E-05, 2.95E-06, 3.55E-05, 2.82E-07, 1.62E-05, 3.16E-07, 3.63E-06, 1.32E-07, 2.29E-06,
-     1.26E-09, 9.77E-08, 1.00E-08, 4.68E-07, 2.45E-07, 4.68E-05, 8.32E-08, 1.78E-06, 1.62E-08, 3.98E-08])
-
-atomic_weights = np.array([1.008, 4.0026, 6.94, 9.0122, 10.81, 12.011, 14.007, 15.999, 18.998, 20.180, 22.990, 24.305,
-                           26.982, 28.085, 30.974, 32.06, 35.45, 39.948, 39.098, 40.078, 44.956, 47.867, 50.942, 51.996,
-                           54.938, 55.845, 58.933, 58.693, 63.546, 65.38])
-
+# Anders and Grevesse abundance table in terms of number fraction--->angr in mass fraction
 # Anders and Grevesse abundance table in terms of mass fraction
-angr_array = (angr_array * atomic_weights) / (np.sum(angr_array * atomic_weights))
-
-# solar metallicity calculation abundance table of Anders and Grevesse (Z>2)
-# Z_solar = ~ 0.0193
-Z_solar = np.sum(angr_array[2:])
+# angr_array = (angr_array * atomic_weights) / (np.sum(angr_array * atomic_weights))
 
 Abundance_Table = {
-    'Symbols': np.array(chemical_species),
-    'AbundanceTable': angr_array
+    'Symbols': np.array(['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl',
+                         'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']),
+    'AbundanceTable': np.array([7.06534941e-01, 2.74100525e-01, 7.05343364e-11, 8.90682759e-11,
+                                3.01565655e-09, 3.05603908e-03, 1.09960388e-03, 9.54323263e-03,
+                                4.83378824e-07, 1.73980024e-03, 3.44846527e-05, 6.47369649e-04,
+                                5.57916578e-05, 6.98837004e-04, 6.12236919e-06, 3.64042128e-04,
+                                7.85193027e-06, 1.01642369e-04, 3.61744208e-06, 6.43301606e-05,
+                                3.97037310e-08, 3.27796178e-06, 3.57066498e-07, 1.70564600e-05,
+                                9.43435125e-06, 1.83190632e-03, 3.43680576e-06, 7.32283794e-05,
+                                7.21566472e-07, 1.82390032e-06])
 }
 
-
-# in order to convert metallicity to angr values we priorly need to know the kind of sim and the number of
-# metal species; should I include it in the emission metals_ref
-
+Z_solar = np.sum(Abundance_Table['AbundanceTable'][2:])
 
 def str2bool(v):
     """
@@ -213,7 +204,7 @@ class EmissionModels:
             np.put(self.json_record['metals_ref'], idx, metal)
             # print(Abundance_Table['Symbols'][idx], idx, '\n')
 
-            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / angr_array[idx] \
+            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / Abundance_Table['AbundanceTable'][idx] \
                 if self.json_record['n_metals'] > 1 \
                 else self.json_record['metals_ref'][idx] / Z_solar
         else:
@@ -243,41 +234,7 @@ class EmissionModels:
 
         return np.array(result)
 
-
 # Testing Line For Checking The Class and setup :
-def test_sample_gadget():
-    sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_Gadget_sample'
-    sim_metal = readsnap(sim_path, 'Z   ', 'gas')
-    sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
-    sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
-
-    indices = np.where((sim_temp > 0.08))[0]
-    sim_temp = sim_temp[indices]
-    sim_metal = sim_metal[indices]
-
-    energies_array = np.linspace(0.1, 10, 3000)
-    sim_emission_model_xspec = EmissionModels(model_name='TheThreeHundred-2', energy=energies_array)
-    spectrum_xspec = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_xspec.append(sim_emission_model_xspec.compute_spectrum(sim_z, sim_temp[i], [sim_metal[i]], 1, False))
-
-    sim_emission_model_atomdb = EmissionModels(model_name='TheThreeHundred-5', energy=energies_array)
-    spectrum_atomdb = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_atomdb.append(sim_emission_model_atomdb.compute_spectrum(sim_z, sim_temp[i], [sim_metal[i]], 1, False))
-
-    for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
-        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-.', label='spectrum_atomdb')
-        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', lw=.3, label='spectrum_xsp')
-        # plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), (j - i) / j, ls='-', lw=.3, label='rel - diff')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.legend()
-        plt.show()
-
-
-# test_sample_gadget()
-
 def test_gizmo_sample():
     sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
     sim_metal = readsnap(sim_path, 'Metallicity', 'gas')[:, 2:]
@@ -304,13 +261,16 @@ def test_gizmo_sample():
         spectrum_atomdb.append(sim_emission_model_atomdb.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
 
     for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
-        #plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-.', label='spectrum_atomdb')
-        #plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', lw=.3, label='spectrum_xsp')
-        plt.plot(0.5 * (energies_array[1:] + energies_array[:-1]), (j - i) / j, ls='-', lw=.3, label='rel - diff')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.legend()
+        # Plot for spectrum_atomdb
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        axes[0].plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-', label='spectrum_atomdb')
+
+        # Plot for spectrum_xspec
+        axes[1].plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', label='spectrum_xsp')
+        for ax in axes:
+            ax.set_xscale('log')
+            ax.set_yscale('log')
+            ax.legend()
         plt.show()
 
-
-# test_gizmo_sample()
+test_gizmo_sample()
