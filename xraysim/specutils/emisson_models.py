@@ -2,10 +2,11 @@ import json
 import os
 
 import numpy as np
+import pytest
 import xspec as xsp
 import pyatomdb
 import matplotlib.pyplot as plt
-
+from scipy.stats import pearsonr, spearmanr
 # For sim Testing
 
 from readgadget.readgadget import readsnap
@@ -33,6 +34,7 @@ Abundance_Table = {
 }
 
 Z_solar = np.sum(Abundance_Table['AbundanceTable'][2:])
+
 
 def str2bool(v):
     """
@@ -204,7 +206,8 @@ class EmissionModels:
             np.put(self.json_record['metals_ref'], idx, metal)
             # print(Abundance_Table['Symbols'][idx], idx, '\n')
 
-            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / Abundance_Table['AbundanceTable'][idx] \
+            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / \
+                                                  Abundance_Table['AbundanceTable'][idx] \
                 if self.json_record['n_metals'] > 1 \
                 else self.json_record['metals_ref'][idx] / Z_solar
         else:
@@ -233,6 +236,7 @@ class EmissionModels:
             result = result * bins
 
         return np.array(result)
+
 
 # Testing Line For Checking The Class and setup :
 def test_gizmo_sample():
@@ -273,4 +277,35 @@ def test_gizmo_sample():
             ax.legend()
         plt.show()
 
-test_gizmo_sample()
+
+# test_gizmo_sample()
+def check_scaling(mod_name):
+    energies_array = np.linspace(0.1, 10, 2000)
+
+    redshift = 0
+    temperature = [0.7, 1, 9]  # KeV
+    metallicity = np.linspace(1E-5, 1E-1, 100).reshape((-1, 1))
+
+    xsp_emission_model = EmissionModels(model_name=mod_name, energy=energies_array)
+
+    spectrum = np.zeros((len(temperature), len(metallicity), len(energies_array) - 1), dtype=np.float32)
+    for i in range(len(temperature)):
+        for j in tqdm(range(len(metallicity))):
+            spectrum[i, j, :] = xsp_emission_model.compute_spectrum(
+                redshift, temperature[i], metallicity[j], 1, False)
+
+    for i in range(len(temperature)):
+        coefficient = np.array(
+            [spearmanr(spectrum[i, :, j], metallicity.flatten())[0] for j in range(len(energies_array) - 1)])
+        if not (np.all(coefficient > 0.80)):
+            print(i, coefficient[np.where(coefficient < 0.99)[0]])
+
+
+def test_metallicity_and_bins():
+    print('Xspec\n')
+    check_scaling(mod_name='TheThreeHundred-2')
+    print('AtomDB\n')
+    check_scaling(mod_name='TheThreeHundred-5')
+
+
+# test_metallicity_and_bins()

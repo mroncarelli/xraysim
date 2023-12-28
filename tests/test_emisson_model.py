@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+from scipy.stats import pearsonr
 import os
 
 from tqdm.auto import tqdm
@@ -62,3 +63,34 @@ def test_sample_gadget():
 
     assert np.all([spec_xsp == pytest.approx(spec_atmdb) for spec_xsp, spec_atmdb in
                    zip(np.sum(spectrum_atomdb, axis=1), np.sum(spectrum_xspec, axis=1))])
+
+
+def check_scaling(mod_name):
+    energies_array = np.linspace(0.1, 10, 2000)
+
+    redshift = 0
+    temperature = [0.7, 1, 9]  # KeV
+    metallicity = np.linspace(1E-5, 1E-1, 100).reshape((-1, 1))
+
+    xsp_emission_model = EmissionModels(model_name=mod_name, energy=energies_array)
+
+    spectrum = np.zeros((len(temperature), len(metallicity), len(energies_array) - 1), dtype=np.float32)
+    for i in range(len(temperature)):
+        for j in range(len(metallicity)):
+            spectrum[i, j, :] = xsp_emission_model.compute_spectrum(
+                redshift, temperature[i], metallicity[j], 1, False)
+
+    for i in range(len(temperature)):
+        coefficient = np.array(
+            [pearsonr(spectrum[i, :, j], metallicity.flatten())[0] for j in range(len(energies_array) - 1)])
+
+        assert np.all(coefficient > 0.80)
+        # if not (np.all(coefficient > 0.80)):
+        #    print(i, coefficient[np.where(coefficient < 0.99)[0]])
+
+
+def test_metallicity_and_bins():
+    print('Xspec\n')
+    check_scaling(mod_name='TheThreeHundred-2')
+    print('AtomDB\n')
+    check_scaling(mod_name='TheThreeHundred-5')
