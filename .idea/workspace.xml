@@ -5,8 +5,70 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/gadgetutils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/gadgetutils/convert.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/gadgetutils/phys_const.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/gadgetutils/readspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/pygadgetreader/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/common.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/gadget1.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/gadget2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/gadget_blockordering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/hdf5.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/header.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/names.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/rs_structs.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/tipsy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/readfofspecial.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/readgadget.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/readpstar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/readrockstar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/absorption.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/emisson_models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/sixte.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/tables.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/kernel.cpython-39-x86_64-linux-gnu.so" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/linkedlist.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-39/xraysim/sphprojection/kernel.o" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/xraysim-0.6-py3.9-linux-x86_64.egg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_emisson_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_emisson_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/convert.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/phys_const.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/gadgetutils/readspecial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/pygadgetreader/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/common.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget1.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/gadget_blockordering.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/hdf5.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/header.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/names.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/rs_structs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/modules/tipsy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readfofspecial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readgadget.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readpstar.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/readgadget/readrockstar.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/absorption.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/emisson_models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/sixte.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/specutils/tables.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/kernel.cpython-311-x86_64-linux-gnu.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/linkedlist.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-311/sphprojection/mapping.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-311/xraysim/sphprojection/kernel.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/xraysim-0.6-py3.11-linux-x86_64.egg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/em_reference.json" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/em_reference.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -22,6 +84,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -91,7 +158,12 @@
       <workItem from="1703283678205" duration="11180000" />
       <workItem from="1703354718986" duration="12271000" />
       <workItem from="1703621311187" duration="7356000" />
-      <workItem from="1703779750401" duration="6374000" />
+      <workItem from="1703779750401" duration="7089000" />
+      <workItem from="1705057206029" duration="3692000" />
+      <workItem from="1705187400549" duration="759000" />
+      <workItem from="1705189472946" duration="2012000" />
+      <workItem from="1705248417809" duration="9888000" />
+      <workItem from="1705316787381" duration="21910000" />
     </task>
     <task id="LOCAL-00001" summary="first">
       <option name="closed" value="true" />
@@ -165,7 +237,15 @@
       <option name="project" value="LOCAL" />
       <updated>1703373288419</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="added few test for Gadget snapshot - single metallicity&#10;corrected some issue with the setting of params and metallicity for both xpsec and atomdb&#10;&#10;added another test to check linear relationship b/w emission in each bin and metallicity for range of temp values">
+      <option name="closed" value="true" />
+      <created>1703789256112</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1703789256112</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -177,12 +257,13 @@
     <MESSAGE value="removed kernel.c and xraysim.iml" />
     <MESSAGE value="added few test for Gadget snapshot - single metallicity vvapec model and also ensure there is consistency b/w two libraries when no spectrum is found in the table" />
     <MESSAGE value="added few test for Gadget snapshot - single metallicity&#10;corrected some issue with the setting of params and metallicity for both xpsec and atomdb" />
-    <option name="LAST_COMMIT_MESSAGE" value="added few test for Gadget snapshot - single metallicity&#10;corrected some issue with the setting of params and metallicity for both xpsec and atomdb" />
+    <MESSAGE value="added few test for Gadget snapshot - single metallicity&#10;corrected some issue with the setting of params and metallicity for both xpsec and atomdb&#10;&#10;added another test to check linear relationship b/w emission in each bin and metallicity for range of temp values" />
+    <option name="LAST_COMMIT_MESSAGE" value="added few test for Gadget snapshot - single metallicity&#10;corrected some issue with the setting of params and metallicity for both xpsec and atomdb&#10;&#10;added another test to check linear relationship b/w emission in each bin and metallicity for range of temp values" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
     <SUITE FILE_PATH="coverage/xraysim$test_emisson_model.coverage" NAME="test_emisson_model Coverage Results" MODIFIED="1703788527174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1703788180005" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1705358432042" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
     <SUITE FILE_PATH="coverage/xraysim$test_calc_spec.coverage" NAME="test_calc_spec Coverage Results" MODIFIED="1703127606908" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
 </project>

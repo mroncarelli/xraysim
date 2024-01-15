@@ -2,19 +2,29 @@ import json
 import os
 
 import numpy as np
-import pytest
 import xspec as xsp
 import pyatomdb
+import pyspex as spex
+
+from gadgetutils.phys_const import kpc2cm, Xp, m_p, Msun2g, Mpc2cm
+from astropy.cosmology import FlatLambdaCDM
+
+# For sim Testing
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr, spearmanr
-# For sim Testing
-
 from readgadget.readgadget import readsnap
 from readgadget.readgadget import readhead
 from gadgetutils.readspecial import readtemperature
 from tqdm.auto import tqdm
-
 from gadgetutils.convert import gadget2xspecnorm
+
+# Cosmological parameters
+h0 = 67.77
+omega_m = 0.27
+omega_l = 0.73
+omega_r = 0.0
+
+cosmo = FlatLambdaCDM(H0=h0, Om0=omega_m)
 
 # Anders and Grevesse abundance table in terms of number fraction--->angr in mass fraction
 # Anders and Grevesse abundance table in terms of mass fraction
@@ -34,6 +44,11 @@ Abundance_Table = {
 }
 
 Z_solar = np.sum(Abundance_Table['AbundanceTable'][2:])
+
+
+def spex_norm(mi, rhoi, nei, h):
+    conversion_factor = (1E10 * Msun2g * Xp / m_p) ** 2 * (h) * (kpc2cm ** -3)
+    return mi * rhoi * nei * conversion_factor
 
 
 def str2bool(v):
@@ -116,6 +131,7 @@ class AtomdbModel:
         :param model_name:str - type of X-ray Emission Model, only vvapec
         :param energy:list of float - Represents the range of energy values in KeV for spectrum calculation in pyatomDB
         """
+        self.atomdb_model_name = model_name
         self.atomdb_model = pyatomdb.spectrum.CIESession()
         self.energy = energy
 
@@ -157,6 +173,66 @@ class AtomdbModel:
         return np.array(result) * 1E14
 
 
+class SpexModel:
+
+    def __init__(self, model_name: str, energy: np.array) -> None:
+        # model name
+        self.spex_model_name = model_name
+
+        # initiate the spex session
+        self.spex_model = spex.Session()
+
+        # cosmo settings
+        self.spex_model.dist_cosmo(h0, omega_m, omega_l, omega_r)
+
+        # energy grid - not in logspace
+        self.spex_model.egrid(energy.min(), energy.max(), len(energy) - 1, 'kev', False)
+
+        # CIE model with cosmological redshift on to it
+        self.spex_model.mod.comp_new('red', isect=1)
+        self.spex_model.mod.comp_new('cie', isect=1)
+        self.spex_model.com_rel(1, 2, np.array([1]))
+
+    def set_spex_commands(self, commands: dict) -> None:
+        """
+        This class method set up all the commands for the spex model
+        :param commands: dict : dictionary of commands specific to pyatomdb which are set up iteratively inside a loop
+        :return: None
+        """
+        spex_settings = {
+            'abundset': lambda cmd: self.spex_model.abun(cmd['arg'])
+        }
+        for command in commands:
+            spex_settings.get(command['method'], lambda cmd: None)(command)
+
+    def calculate_spectrum(self, z, temperature, metallicity, element_index, norm) -> np.array:
+        element_index = [i.zfill(2) for i in element_index.astype(str)]
+
+        # this is required for cosmological distance calculation which is required in final spectrum calculation
+        self.spex_model.dist(1, z, 'z')
+
+        # this is required for applying redshift to CIE model - energy shift and S(E) - redshift correction
+        self.spex_model.par(1, 1, 'z', z)
+        # the redshift is cosmo for flag - 0 and peculiar velocity for flag - 1, for now let us consider 0
+        self.spex_model.par(1, 1, 'flag', 0)
+
+        # this nenhV, I have to set it according to spex unit, spex just take nenhV and in multiple of E64 m-3
+        self.spex_model.par(1, 2, 'norm', norm)  # 1 * E64 m-3
+        self.spex_model.par(1, 2, 't', temperature)
+        # we want interpolation on temperature for spectrum to be linear, therefore zero
+        self.spex_model.par(1, 2, 'logt', 0)
+        self.spex_model.par_show()
+        for element_index_i, abund_i in zip(element_index, metallicity):
+            self.spex_model.par(1, 2, element_index_i, abund_i)
+
+        self.spex_model.calc()
+        self.spex_model.mod_spectrum.get(1)
+
+        # The spectrum given by spex is in ph bin-1 s-1 m-2. In order to compare with xspec cgs unit is required
+        # i.e. ph bin-1 cm-2 s-1 (hence, multiplied by 1E-4)
+        return np.array(self.spex_model.mod_spectrum.spectrum) * 1E-4
+
+
 class EmissionModels:
     def __init__(self, model_name: str, energy: np.array):
         """
@@ -181,6 +257,10 @@ class EmissionModels:
         elif self.json_record['code'] == 'atomdb':
             self.model = AtomdbModel(self.json_record['model'], self.energy)
             self.model.set_atomdb_commands(self.json_record['xset'])
+
+        elif self.json_record['code'] == 'spex':
+            self.model = SpexModel(self.json_record['model'], self.energy)
+            self.model.set_spex_commands(self.json_record['xset'])
 
         else:
             raise ValueError(f"Library '{self.json_record['code']}' not supported.")
@@ -237,75 +317,63 @@ class EmissionModels:
 
         return np.array(result)
 
+    def __enter__(self):
+        return self
 
-# Testing Line For Checking The Class and setup :
-def test_gizmo_sample():
-    sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
-    sim_metal = readsnap(sim_path, 'Metallicity', 'gas')[:, 2:]
-    sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
-    sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
-    print(sim_z)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("removing dummy files")
+        dir_name = "/home/atulit-pc/IdeaProjects/xraysim/xraysim/specutils/"
+        test = os.listdir(dir_name)
 
-    indices = np.where((sim_temp > 0.08))[0]
-    sim_temp = sim_temp[indices]
-
-    sim_metal = sim_metal[indices]
-
-    energies_array = np.linspace(0.1, 10, 2000)
-
-    sim_emission_model_xspec = EmissionModels(model_name='TheThreeHundred-3', energy=energies_array)
-    sim_emission_model_atomdb = EmissionModels(model_name='TheThreeHundred-4', energy=energies_array)
-
-    spectrum_xspec = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_xspec.append(sim_emission_model_xspec.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
-
-    spectrum_atomdb = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_atomdb.append(sim_emission_model_atomdb.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
-
-    for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
-        # Plot for spectrum_atomdb
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-        axes[0].plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-', label='spectrum_atomdb')
-
-        # Plot for spectrum_xspec
-        axes[1].plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', label='spectrum_xsp')
-        for ax in axes:
-            ax.set_xscale('log')
-            ax.set_yscale('log')
-            ax.legend()
-        plt.show()
+        for item in test:
+            if item.endswith(".dum"):
+                os.remove(os.path.join(dir_name, item))
 
 
-# test_gizmo_sample()
-def check_scaling(mod_name):
-    energies_array = np.linspace(0.1, 10, 2000)
+# testing line for gadget
+sim_path = '/home/atulit-pc/MockXray/MockSpectra_GadgetX/Simulation/snap_119'
+sim_metal = readsnap(sim_path, 'Z   ', 'gas', dtype=float)
+sim_mass = readsnap(sim_path, 'MASS', 'gas', dtype=float)
+sim_density = readsnap(sim_path, 'RHO ', 'gas', dtype=float)
+sim_ne = readsnap(sim_path, 'NE  ', 'gas', dtype=float)
 
-    redshift = 0
-    temperature = [0.7, 1, 9]  # KeV
-    metallicity = np.linspace(1E-5, 1E-1, 100).reshape((-1, 1))
+sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
+sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
 
-    xsp_emission_model = EmissionModels(model_name=mod_name, energy=energies_array)
+indices = np.where((sim_temp > 0.08) & (sim_metal > 0.0))[0]
+sim_temp = sim_temp[indices]
+sim_metal = sim_metal[indices]
+sim_mass = sim_mass[indices]
+sim_density = sim_density[indices]
+sim_ne = sim_ne[indices]
 
-    spectrum = np.zeros((len(temperature), len(metallicity), len(energies_array) - 1), dtype=np.float32)
-    for i in range(len(temperature)):
-        for j in tqdm(range(len(metallicity))):
-            spectrum[i, j, :] = xsp_emission_model.compute_spectrum(
-                redshift, temperature[i], metallicity[j], 1, False)
+print(cosmo.angular_diameter_distance(sim_z))
+xsp_norm = np.array(
+    gadget2xspecnorm(sim_mass, sim_density, 1E3 * cosmo.angular_diameter_distance(sim_z).value, h0 / 100, sim_ne),
+    dtype=float)
+sim_metal = np.reshape(sim_metal, (-1, 1))
+print(xsp_norm)
+spx_norm = spex_norm(sim_mass, sim_density, sim_ne, h0 / 100) * 1E6
+spx_norm = spx_norm / 1E64
+erange = np.linspace(.1, 10, 9901)
+ebins_mid = 0.5 * (erange[1:] + erange[:-1])
+print(spx_norm)
 
-    for i in range(len(temperature)):
-        coefficient = np.array(
-            [spearmanr(spectrum[i, :, j], metallicity.flatten())[0] for j in range(len(energies_array) - 1)])
-        if not (np.all(coefficient > 0.80)):
-            print(i, coefficient[np.where(coefficient < 0.99)[0]])
-
-
-def test_metallicity_and_bins():
-    print('Xspec\n')
-    check_scaling(mod_name='TheThreeHundred-2')
-    print('AtomDB\n')
-    check_scaling(mod_name='TheThreeHundred-5')
+xsp_spectrum = []
+spx_spectrum = []
+with EmissionModels('TheThreeHundred-2', erange) as em:
+    xsp_spectrum.append(em.compute_spectrum(sim_z, sim_temp[100], sim_metal[100], xsp_norm[100], False))
 
 
-# test_metallicity_and_bins()
+with EmissionModels('TheThreeHundred-6', erange) as em:
+    spx_spectrum.append(em.compute_spectrum(sim_z, sim_temp[100], sim_metal[100], spx_norm[100], False))
+
+plt.plot(ebins_mid, xsp_spectrum[0], label='xspec')
+plt.plot(ebins_mid, spx_spectrum[0], label='spex')
+plt.xscale('log')
+plt.yscale('log')
+plt.legend()
+plt.show()
+
+plt.plot(ebins_mid, (xsp_spectrum[0] - spx_spectrum[0])/xsp_spectrum[0], label='diff')
+plt.show()
