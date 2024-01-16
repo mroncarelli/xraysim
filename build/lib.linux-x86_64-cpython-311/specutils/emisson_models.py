@@ -2,11 +2,10 @@ import json
 import os
 
 import numpy as np
-import pytest
 import xspec as xsp
 import pyatomdb
 import matplotlib.pyplot as plt
-from scipy.stats import pearsonr, spearmanr
+
 # For sim Testing
 
 from readgadget.readgadget import readsnap
@@ -14,26 +13,34 @@ from readgadget.readgadget import readhead
 from gadgetutils.readspecial import readtemperature
 from tqdm.auto import tqdm
 
-from gadgetutils.convert import gadget2xspecnorm
+# Anders and Grevesse abundance table in terms of number fraction
+chemical_species = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar',
+                    'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']
 
-# Anders and Grevesse abundance table in terms of number fraction--->angr in mass fraction
+angr_array = np.array(
+    [1.00E+00, 9.77E-02, 1.45E-11, 1.41E-11, 3.98E-10, 3.63E-04, 1.12E-04, 8.51E-04, 3.63E-08, 1.23E-04,
+     2.14E-06, 3.80E-05, 2.95E-06, 3.55E-05, 2.82E-07, 1.62E-05, 3.16E-07, 3.63E-06, 1.32E-07, 2.29E-06,
+     1.26E-09, 9.77E-08, 1.00E-08, 4.68E-07, 2.45E-07, 4.68E-05, 8.32E-08, 1.78E-06, 1.62E-08, 3.98E-08])
+
+atomic_weights = np.array([1.008, 4.0026, 6.94, 9.0122, 10.81, 12.011, 14.007, 15.999, 18.998, 20.180, 22.990, 24.305,
+                           26.982, 28.085, 30.974, 32.06, 35.45, 39.948, 39.098, 40.078, 44.956, 47.867, 50.942, 51.996,
+                           54.938, 55.845, 58.933, 58.693, 63.546, 65.38])
+
 # Anders and Grevesse abundance table in terms of mass fraction
-# angr_array = (angr_array * atomic_weights) / (np.sum(angr_array * atomic_weights))
+angr_array = (angr_array * atomic_weights) / (np.sum(angr_array * atomic_weights))
+
+# solar metallicity calculation abundance table of Anders and Grevesse (Z>2)
+# Z_solar = ~ 0.0193
+Z_solar = np.sum(angr_array[2:])
 
 Abundance_Table = {
-    'Symbols': np.array(['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl',
-                         'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn']),
-    'AbundanceTable': np.array([7.06534941e-01, 2.74100525e-01, 7.05343364e-11, 8.90682759e-11,
-                                3.01565655e-09, 3.05603908e-03, 1.09960388e-03, 9.54323263e-03,
-                                4.83378824e-07, 1.73980024e-03, 3.44846527e-05, 6.47369649e-04,
-                                5.57916578e-05, 6.98837004e-04, 6.12236919e-06, 3.64042128e-04,
-                                7.85193027e-06, 1.01642369e-04, 3.61744208e-06, 6.43301606e-05,
-                                3.97037310e-08, 3.27796178e-06, 3.57066498e-07, 1.70564600e-05,
-                                9.43435125e-06, 1.83190632e-03, 3.43680576e-06, 7.32283794e-05,
-                                7.21566472e-07, 1.82390032e-06])
+    'Symbols': np.array(chemical_species),
+    'AbundanceTable': angr_array
 }
 
-Z_solar = np.sum(Abundance_Table['AbundanceTable'][2:])
+
+# in order to convert metallicity to angr values we priorly need to know the kind of sim and the number of
+# metal species; should I include it in the emission metals_ref
 
 
 def str2bool(v):
@@ -61,10 +68,9 @@ class XspecModel:
         :param model_name: str - type of X-ray Emission Model apec/vvapec
         :param energy: list of float - Represents the range of energy values in KeV for spectrum calculation in pyxspec.
         """
-        self.xspec_model_name = model_name
         xsp.AllModels.setEnergies(f"{energy.min()} {energy.max()} {len(energy) - 1} lin")
         xsp.Xset.addModelString("APECROOT", "3.0.9")
-        self.xspec_model = xsp.Model(self.xspec_model_name)
+        self.xspec_model = xsp.Model(model_name)
 
     # doesn't change the object itself, that's why we have this warning
     def set_xspec_commands(self, commands: dict) -> None:
@@ -81,31 +87,23 @@ class XspecModel:
         for command in commands:
             xspec_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z: float, temperature: float, metallicity: np.array, element_index,
+    def calculate_spectrum(self, z: float, temperature: float, metallicity: np.array,
                            norm: float) -> np.array:
         """
         This class method computes the X-ray emission spectra for a gas particle using Pyxspec.
         :param z: float - redshift for the gas particle
         :param temperature: float - Temperature in keV in for the gas particle
         :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
-        :param element_index: list of abundance to set
         :param norm: float - xspec normalization value, units - 10^-14 cm^-5
         :return: the emission spectra for the gas particle in the units -
                 norm * units from xspec module--->(10^-14 cm^-5) * (photons s^-1 cm^3)---->10^-14 photons s^-1 cm-2
         """
-        params = {1: temperature, 32: z, 33: norm} if self.xspec_model_name == 'vvapec' \
-            else {1: temperature, 3: z, 4: norm} if self.xspec_model_name == 'apec' \
-            else None
-
-        if params is not None:
-            params.update({i + 2: metallicity[i] for i in element_index.tolist()})
-        # print(params)
+        params = [temperature, *metallicity.tolist(), z, norm]
         self.xspec_model.setPars(params)
-
-        # self.xspec_model.show()
+        self.xspec_model.show()
         result = self.xspec_model.values(0)
 
-        return np.array(result)
+        return result
 
 
 class AtomdbModel:
@@ -133,28 +131,22 @@ class AtomdbModel:
         for command in commands:
             atomdb_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z, temperature, metallicity, element_index, norm) -> np.array:
+    def calculate_spectrum(self, z, temperature, metallicity, norm) -> np.array:
         """
         This class method computes the X-ray emission spectra for a gas particle using pyatomdb.
         :param z: float - redshift for the gas particle
         :param temperature: float - Temperature in keV in for the gas particle
         :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
-        :param element_index:index of elements to set
         :param norm: float - atomdb normalization value, units-cm^-5
         :return: norm * units from atomdb module--->(cm^-5) * (photons s^-1 cm^3)---->photons s^-1 cm-2
         """
         self.atomdb_model.set_response(self.energy * (1 + z), raw=True)
-        # print(element_index,metallicity[element_index])
-        self.atomdb_model.set_abund(element_index + 1, metallicity[element_index])
-        result = self.atomdb_model.return_spectrum(temperature, log_interp=False, teunit='KeV') * norm * (
+        self.atomdb_model.set_abund(np.arange(1, 31, 1), metallicity)
+        result = self.atomdb_model.return_spectrum(temperature, log_interp=False) * norm * (
                 1 / (1 + z)) ** 1
 
-        # This extra condition is due the difference between the two libraries when no corresponding spectrum is found
-        # in table. The xspec returns an array of 0.0 with size equivalent to number of energy bins whereas atomdb
-        # returns simply zero. Therefore, to be consistent next part is required.
-        result = np.zeros(len(self.energy) - 1, dtype=np.float32) if isinstance(result, float) else result
         # to match up with xspec
-        return np.array(result) * 1E14
+        return 1E14 * np.array(result)
 
 
 class EmissionModels:
@@ -193,7 +185,7 @@ class EmissionModels:
         :param metal: array of float - metallicity corresponding to each sph gas particle
         :return: The chemical species index which is essential for the PyAtomDB library (for the set abundance).
         """
-        if self.json_record['n_metals'] == len(metal):
+        if self.json_record['n_metals'] == len(metal) :
             metal_idx = {('apec', False): [0],
                          ('vvapec', False): np.nonzero(np.in1d(Abundance_Table['Symbols'],
                                                                self.json_record['chemical_elements']))[0] + 1 - 1,
@@ -204,17 +196,13 @@ class EmissionModels:
 
             idx = metal_idx.get((self.json_record['model'], self.json_record['n_metals'] > 1))
             np.put(self.json_record['metals_ref'], idx, metal)
-            # print(Abundance_Table['Symbols'][idx], idx, '\n')
+            # print(Abundance_Table['Symbols'][idx], '\n')
 
-            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / \
-                                                  Abundance_Table['AbundanceTable'][idx] \
+            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / angr_array[idx] \
                 if self.json_record['n_metals'] > 1 \
                 else self.json_record['metals_ref'][idx] / Z_solar
         else:
             raise ValueError(f"wrong setting n_metals is'{self.json_record['n_metals']} and len of metal'{len(metal)}.")
-
-        return idx
-
     def compute_spectrum(self, z: float, temperature: float, metallicity: np.array, norm: float,
                          flag_ene: bool = False) -> np.array:
         """
@@ -227,10 +215,9 @@ class EmissionModels:
         :param flag_ene: bool - conversion -----
         :return:
         """
-        chem_idx = self.set_metals_ref(metallicity)
-        # print(self.json_record['metals_ref'])
+        self.set_metals_ref(metallicity)
 
-        result = self.model.calculate_spectrum(z, temperature, self.json_record['metals_ref'], chem_idx, norm)
+        result = self.model.calculate_spectrum(z, temperature, self.json_record['metals_ref'], norm)
         if flag_ene:
             bins = 0.5 * (np.array(self.energy[1:] + np.array(self.energy)[:-1]))
             result = result * bins
@@ -239,12 +226,11 @@ class EmissionModels:
 
 
 # Testing Line For Checking The Class and setup :
-def test_gizmo_sample():
+def check_gizmo(lib):
     sim_path = '/home/atulit-pc/IdeaProjects/xraysim/tests/inp/snap_sample.hdf5'
     sim_metal = readsnap(sim_path, 'Metallicity', 'gas')[:, 2:]
     sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
     sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
-    print(sim_z)
 
     indices = np.where((sim_temp > 0.08))[0]
     sim_temp = sim_temp[indices]
@@ -252,60 +238,24 @@ def test_gizmo_sample():
     sim_metal = sim_metal[indices]
 
     energies_array = np.linspace(0.1, 10, 2000)
+    sim_emission_model = EmissionModels(model_name='TheThreeHundred-' + str(lib), energy=energies_array)
 
-    sim_emission_model_xspec = EmissionModels(model_name='TheThreeHundred-3', energy=energies_array)
-    sim_emission_model_atomdb = EmissionModels(model_name='TheThreeHundred-4', energy=energies_array)
+    spectrum = []
+    for i in tqdm(range(10), desc="Processing Regions"):
+        spectrum.append(sim_emission_model.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
 
-    spectrum_xspec = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_xspec.append(sim_emission_model_xspec.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
-
-    spectrum_atomdb = []
-    for i in tqdm(range(1000), desc="Processing Regions"):
-        spectrum_atomdb.append(sim_emission_model_atomdb.compute_spectrum(sim_z, sim_temp[i], sim_metal[i], 1, False))
-
-    for (i, j) in zip(spectrum_atomdb[0:1000:100], spectrum_xspec[0:1000:100]):
-        # Plot for spectrum_atomdb
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-        axes[0].plot(0.5 * (energies_array[1:] + energies_array[:-1]), i, ls='-', label='spectrum_atomdb')
-
-        # Plot for spectrum_xspec
-        axes[1].plot(0.5 * (energies_array[1:] + energies_array[:-1]), j, ls='-', label='spectrum_xsp')
-        for ax in axes:
-            ax.set_xscale('log')
-            ax.set_yscale('log')
-            ax.legend()
-        plt.show()
+    return spectrum, energies_array
 
 
-# test_gizmo_sample()
-def check_scaling(mod_name):
-    energies_array = np.linspace(0.1, 10, 2000)
+# spectrum_xspec, energy_array = check_gizmo(3)
+# spectrum_atomdb, energy_array = check_gizmo(4)
+# for i, j in zip(spectrum_xspec, spectrum_atomdb):
+#    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), i, label='xspec')
 
-    redshift = 0
-    temperature = [0.7, 1, 9]  # KeV
-    metallicity = np.linspace(1E-5, 1E-1, 100).reshape((-1, 1))
+#    plt.plot(0.5 * (energy_array[1:] + energy_array[:-1]), j, label='atomdb',alpha=.5)
+#    plt.xscale('log')
+#    plt.yscale('log')
+#    plt.legend()
+#    plt.show()
 
-    xsp_emission_model = EmissionModels(model_name=mod_name, energy=energies_array)
-
-    spectrum = np.zeros((len(temperature), len(metallicity), len(energies_array) - 1), dtype=np.float32)
-    for i in range(len(temperature)):
-        for j in tqdm(range(len(metallicity))):
-            spectrum[i, j, :] = xsp_emission_model.compute_spectrum(
-                redshift, temperature[i], metallicity[j], 1, False)
-
-    for i in range(len(temperature)):
-        coefficient = np.array(
-            [spearmanr(spectrum[i, :, j], metallicity.flatten())[0] for j in range(len(energies_array) - 1)])
-        if not (np.all(coefficient > 0.80)):
-            print(i, coefficient[np.where(coefficient < 0.99)[0]])
-
-
-def test_metallicity_and_bins():
-    print('Xspec\n')
-    check_scaling(mod_name='TheThreeHundred-2')
-    print('AtomDB\n')
-    check_scaling(mod_name='TheThreeHundred-5')
-
-
-# test_metallicity_and_bins()
+# print(len(spectrum_atomdb))
