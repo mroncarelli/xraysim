@@ -295,9 +295,9 @@ def make_speccube_loop(double[:, :, ::1] spcube, iter_, float[:] x, float[:] y, 
     """
     cdef float[:] spectrum, wx, wy
     cdef int nx = spcube.shape[0]
-    cdef int ny = spcube.sha
+    cdef int ny = spcube.shape[1]
 # this is set up by me in order to calculate spectra for the particles in a precise way
-pe[1]
+
     cdef Py_ssize_t nz = spcube.shape[2]
     cdef Py_ssize_t i0, i1
 
