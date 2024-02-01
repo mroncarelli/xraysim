@@ -6,17 +6,8 @@ import xspec as xsp
 import pyatomdb
 import pyspex as spex
 
-from gadgetutils.phys_const import kpc2cm
+from gadgetutils.phys_const import kpc2cm, Xp, m_p, Msun2g, Mpc2cm
 from astropy.cosmology import FlatLambdaCDM
-
-# For sim Testing
-import matplotlib.pyplot as plt
-from scipy.stats import pearsonr, spearmanr
-from readgadget.readgadget import readsnap
-from readgadget.readgadget import readhead
-from gadgetutils.readspecial import readtemperature
-from tqdm.auto import tqdm
-from gadgetutils.convert import gadget2xspecnorm
 
 # Cosmological parameters
 h0 = 67.77
@@ -46,11 +37,9 @@ Abundance_Table = {
 Z_solar = np.sum(Abundance_Table['AbundanceTable'][2:])
 
 
-def spex_norm(xspec_norm, d_cosmo, h):
-    emission_measure = xspec_norm * 1E14 * (4 * np.pi * kpc2cm ** 2) * (h ** -2) * (d_cosmo ** 2)
-    # converting the emission measure to m-3 from cm-3 and finally dividing by 1E64 as per spex requirement
-    # nenhV cm-3 ---> nenhV 1E6 m-3 & then nenhV (1E6/1E64) [in spex units]
-    return emission_measure * 1E-58
+def spex_norm(mi, rhoi, nei, h):
+    conversion_factor = (1E10 * Msun2g * Xp / m_p) ** 2 * (h) * (kpc2cm ** -3)
+    return mi * rhoi * nei * conversion_factor
 
 
 def str2bool(v):
@@ -65,7 +54,11 @@ def str2bool(v):
         return False
 
 
-models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
+current_directory = os.getcwd()
+
+models_config_file = os.path.join(current_directory, 'em_reference.json')
+
+print(models_config_file)
 with open(models_config_file) as file:
     json_data = json.load(file)
 
@@ -208,9 +201,7 @@ class SpexModel:
             spex_settings.get(command['method'], lambda cmd: None)(command)
 
     def calculate_spectrum(self, z, temperature, metallicity, element_index, norm) -> np.array:
-
-        d_c = cosmo.angular_diameter_distance(z) * 1E3  # (1Mpc to 1000 Kpc)
-        xspec_2_spex_norm = spex_norm(norm, d_c, h0)
+        element_index = [i.zfill(2) for i in element_index.astype(str)]
 
         # this is required for cosmological distance calculation which is required in final spectrum calculation
         self.spex_model.dist(1, z, 'z')
@@ -221,11 +212,11 @@ class SpexModel:
         self.spex_model.par(1, 1, 'flag', 0)
 
         # this nenhV, I have to set it according to spex unit, spex just take nenhV and in multiple of E64 m-3
-        self.spex_model.par(1, 2, 'norm', xspec_2_spex_norm)  # 1 * E64 m-3
+        self.spex_model.par(1, 2, 'norm', norm)  # 1 * E64 m-3
         self.spex_model.par(1, 2, 't', temperature)
         # we want interpolation on temperature for spectrum to be linear, therefore zero
         self.spex_model.par(1, 2, 'logt', 0)
-
+        self.spex_model.par_show()
         for element_index_i, abund_i in zip(element_index, metallicity):
             self.spex_model.par(1, 2, element_index_i, abund_i)
 
@@ -321,25 +312,16 @@ class EmissionModels:
 
         return np.array(result)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("removing dummy files")
+        dir_name = "/home/atulit-pc/IdeaProjects/xraysim/xraysim/specutils/"
+        test = os.listdir(dir_name)
+
+        for item in test:
+            if item.endswith(".dum"):
+                os.remove(os.path.join(dir_name, item))
 
 # testing line for gadget
-sim_path = '/home/atulit-pc/MockXray/MockSpectra_GadgetX/Simulation/snap_119'
-sim_metal = readsnap(sim_path, 'Z   ', 'gas')
-sim_mass = readsnap(sim_path, 'MASS', 'gas')
-sim_density = readsnap(sim_path, 'RHO ', 'gas')
-sim_ne = readsnap(sim_path, 'NE  ', 'gas')
-
-sim_temp = np.array(readtemperature(sim_path, units='KeV'), dtype=float)
-sim_z = 0 if readhead(sim_path, 'redshift') < 0 else readhead(sim_path, 'redshift')
-
-
-indices = np.where((sim_temp > 0.08))[0]
-sim_temp = sim_temp[indices]
-sim_metal = sim_metal[indices]
-print(sim_z)
-print(sim_temp)
-print(sim_metal[sim_metal>0])
-print(sim_mass)
-print(sim_density)
-print(sim_ne)
-# a = EmissionModels('TheThreeHundred-6', np.linspace(0.1, 10, 1000))

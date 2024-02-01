@@ -63,7 +63,11 @@ def str2bool(v):
         return False
 
 
-models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
+current_directory = os.getcwd()
+
+models_config_file = os.path.join(current_directory, 'em_reference.json')
+
+print(models_config_file)
 with open(models_config_file) as file:
     json_data = json.load(file)
 
@@ -329,8 +333,11 @@ class EmissionModels:
             if item.endswith(".dum"):
                 os.remove(os.path.join(dir_name, item))
 
-
 # testing line for gadget
+
+
+
+
 sim_path = '/home/atulit-pc/MockXray/MockSpectra_GadgetX/Simulation/snap_119'
 sim_metal = readsnap(sim_path, 'Z   ', 'gas', dtype=float)
 sim_mass = readsnap(sim_path, 'MASS', 'gas', dtype=float)
@@ -377,3 +384,5 @@ plt.show()
 
 plt.plot(ebins_mid, (xsp_spectrum[0] - spx_spectrum[0])/xsp_spectrum[0], label='diff')
 plt.show()
+
+
