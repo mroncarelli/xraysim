@@ -376,31 +376,55 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     :param evtfile: (str) Event file
     :param phafile: (str) Output file
     :param rsppath: (str) Path to the .rmf and .arf files
-    :param pixid: TODO
-    :param grading: (int or int list) Grading of photons included in the spectrum (default, 1)
+    :param pixid: (int or int list) Pixel id of photons to be included in the spectrum (default, None, i.e. all pixels)
+    :param grading: (int or int list) Grading of photons to be included in the spectrum (default, 1)
     :param logfile: (str) If set the output is not written on screen but saved in the file
     :param overwrite: (bool) If set overwrites previous output file (phafile) if exists, default True
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
     :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
     """
 
+    # Defining filter list to be used (if not empty) with the EventFilter keyword of makespec
+    filter_list = []
+
+    # Grading
     error_msg_grading = "ERROR in make_pha. Grading values must be integer, iterable of integers or None."
-    type_grading = type(grading)
-    if type_grading is type(None):
-        tag_grading = ""
-    elif type_grading is int:
-        tag_grading = "GRADING==" + str(grading)
-    elif type_grading in (tuple, list):
-        if all(type(gr) is int for gr in grading):
+    if isinstance(grading, type(None)):
+        pass
+    elif isinstance(grading, int):
+        filter_list.append("GRADING==" + str(grading))
+    elif isinstance(grading, tuple) or isinstance(grading, list):
+        if all(type(item) is int for item in grading):
             tag_grading = " '(GRADING==" + str(grading[0])
-            for gr in grading[1:]:
-                tag_grading += " || GRADING==" + str(gr)
+            for item in grading[1:]:
+                tag_grading += " || GRADING==" + str(item)
             tag_grading += ")'"
+            filter_list.append(tag_grading)
         else:
             print(error_msg_grading)
             raise ValueError
     else:
         print(error_msg_grading)
+        raise ValueError
+
+    # Pixel Id
+    error_msg_pixid = "ERROR in make_pha. Pixid values must be integer, iterable of integers or None."
+    if isinstance(pixid, type(None)):
+        pass
+    elif isinstance(pixid, int):
+        filter_list.append("PIXID==" + str(pixid))
+    elif isinstance(pixid, tuple) or isinstance(pixid, list):
+        if all(type(item) is int for item in pixid):
+            tag_pixid = " '(PIXID==" + str(pixid[0])
+            for item in pixid[1:]:
+                tag_pixid += " || PIXID==" + str(item)
+            tag_pixid += ")'"
+            filter_list.append(tag_pixid)
+        else:
+            print(error_msg_pixid)
+            raise ValueError
+    else:
+        print(error_msg_pixid)
         raise ValueError
 
     # If rsppath is not provided I try to recover it from the evtfile
@@ -410,8 +434,11 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     clobber_ = 'yes' if overwrite else 'no'
 
     command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath + ' clobber=' + clobber_
-    if type_grading != "":
-        command += " EventFilter=" + tag_grading
+
+    # Defining a tag to be used (if not empty) with the EventFilter keyword of makespec
+    tag_filter = " && ".join(filter_list)
+    if tag_filter != "":
+        command += " EventFilter=" + tag_filter
 
     if type(logfile) is str and logfile != '':
         command += ' > ' + logfile + ' 2>&1'
