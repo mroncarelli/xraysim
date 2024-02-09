@@ -128,7 +128,7 @@ def test_full_run():
     if os.path.isfile(evtFile):
         os.remove(evtFile)
     sys_out_create_eventlist = create_eventlist(simputFile, 'xrism-resolve-test', 1.e5, evtFile, background=False,
-                                                seed=42)
+                                                seed=42, verbosity=1)
     assert sys_out_create_eventlist == 0
     os.remove(simputFile)
 
