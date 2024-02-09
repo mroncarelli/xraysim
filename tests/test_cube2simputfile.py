@@ -87,7 +87,7 @@ def test_isothermal_spectrum(inp=speccubeIsothermalNovel, out=testSimputFile):
 
     # Reading the spectral table and the temperature from the header of the SIMPUT file just created
     sptable = read_spectable(header0.get('SP_FILE'))
-    temp = header0.get('ISOTHERM') / keV2K  # [keV]
+    temp = header0.get('ISO_T') / keV2K  # [keV]
 
     # Getting energy and (normalized spectrum) from table and from
     z = speccubeIsothermalNovel.get('z_cos')

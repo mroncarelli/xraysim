@@ -286,11 +286,11 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
         return qty_map
 
 
-def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
+def make_speccube(snapfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
                   energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None, gaussvel=None,
-                  seed=0, nosmooth=False, nh=None, progress=False):
+                  seed=0, nosmooth=False, nh=None, simulation_type=None, progress=False):
     """
-    :param simfile: (str) Simulation file (Gadget)
+    :param snapfile: (str) Simulation snapshot file (Gadget)
     :param spfile: (str) Spectrum file (FITS)
     :param size: (float) Angular size of the map [deg]
     :param npix: (int) Number of pixels per map side. Default: 256.
@@ -314,6 +314,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     :param nosmooth: (bool) If set the SPH smoothing is turned off, and particles ar treated as points. Default: False
     :param nh: (float) Hydrogen column density [10^22 cm^-2], overrides the value from the spectral table. Default:
         assumes the value in sofile.
+    :param simulation_type: (str) The name of the simulation set of the snapshot file. Default: None.
     :param progress: (bool) If set the progress bar is shown in output. Default: False.
     :return: A structure (dictionary) containing several info, including:
                     - data: spectral cube [photons keV^-1 s^-1 cm^-2 arcmin^-2] (or [keV keV^-1 s^-1 cm^-2 arcmin^-2]
@@ -336,21 +337,21 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
 
     # Reading header variables
     if redshift is None:
-        redshift = pygr.readhead(simfile, 'redshift')
-    h_hubble = pygr.readhead(simfile, 'hubble')
-    ngas = pygr.readhead(simfile, 'gascount')
-    f_cooling = pygr.readhead(simfile, 'f_cooling')
+        redshift = pygr.readhead(snapfile, 'redshift')
+    h_hubble = pygr.readhead(snapfile, 'hubble')
+    ngas = pygr.readhead(snapfile, 'gascount')
+    f_cooling = pygr.readhead(snapfile, 'f_cooling')
 
     # Reading positions of particles
     proj_index = get_proj_index(proj)
     if zrange:
-        x, y, z = get_map_coord(simfile, proj_index, True)  # [h^-1 kpc] comoving
+        x, y, z = get_map_coord(snapfile, proj_index, True)  # [h^-1 kpc] comoving
     else:
-        x, y = get_map_coord(simfile, proj_index)  # [h^-1 kpc] comoving
+        x, y = get_map_coord(snapfile, proj_index)  # [h^-1 kpc] comoving
         z = None
 
     # Reading smoothing length or assigning it to zero if smoothing is turned off
-    hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(simfile, 'hsml', 'gas',
+    hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(snapfile, 'hsml', 'gas',
                                                                  units=0, suppress=1)  # [h^-1 kpc] comoving
 
     # Geometry conversion
@@ -383,7 +384,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     if isothermal:
         temp_kev = np.full(ngas, isothermal / phys_const.keV2K)  # [keV]
     else:
-        temp_kev = readtemperature(simfile, f_cooling=f_cooling, units='keV', suppress=1)  # [keV]
+        temp_kev = readtemperature(snapfile, f_cooling=f_cooling, units='keV', suppress=1)  # [keV]
 
     # Cutting out particles outside the f.o.v.
     valid_mask = (x + hsml > 0) & (x - hsml < npix) & (y + hsml > 0) & (y - hsml < npix)
@@ -392,7 +393,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # temperature even in the isothermal case, to eliminate particles with extremely high densities that would dominate
     # the emission.
     if tcut > 0.:  # [K]
-        valid_mask = valid_mask & (readtemperature(simfile, f_cooling=f_cooling, suppress=1) > tcut)
+        valid_mask = valid_mask & (readtemperature(snapfile, f_cooling=f_cooling, suppress=1) > tcut)
 
     # If zrange is set, cutting out particles outside the l.o.s. range
     if zrange:
@@ -406,7 +407,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     del valid
 
     # Calculating quantity (q) to integrate and weight (w)
-    mass = pygr.readsnap(simfile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
+    mass = pygr.readsnap(snapfile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     if zrange:
         # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
         for ipart in particle_list[::nsample]:
@@ -433,15 +434,15 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
             raise ValueError
 
     else:
-        z_eff = convert.vpec2zobs(readvelocity(simfile, units='km/s', suppress=1)[:, proj_index],  # [km/s]
+        z_eff = convert.vpec2zobs(readvelocity(snapfile, units='km/s', suppress=1)[:, proj_index],  # [km/s]
                                   redshift,
                                   units='km/s')
 
     # Reading density (physical [10^10 h^2 M_Sun kpc^-3])
-    rho = pygr.readsnap(simfile, 'rho', 'gas', units=0, suppress=1) / (1 + redshift) ** 3
+    rho = pygr.readsnap(snapfile, 'rho', 'gas', units=0, suppress=1) / (1 + redshift) ** 3
 
     # Reading ionization fraction if f_cooling is on
-    ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
+    ne = pygr.readsnap(snapfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
     # Calculating Xspec normalization [10^14 cm^-5]
     norm = convert.gadget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
@@ -484,6 +485,11 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # Output
     result = {
         'data': np.float32(spcube),
+        'simulation_file': snapfile,
+        'spectral_table': spfile,
+        'proj': proj,
+        'z_cos': redshift,
+        'd_c': cosmo.comoving_distance(redshift).to_value(),  # [h^-1 Mpc]
         'xrange': (xmap0, xmap0 + size_gadget),  # [h^-1 kpc]
         'yrange': (ymap0, ymap0 + size_gadget),  # [h^-1 kpc]
         'size': np.float32(size),  # [deg]
@@ -495,13 +501,10 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'photons keV^-1 s^-1 cm^-2 arcmin^-2',
         'coord_units': 'h^-1 kpc',
         'energy_units': 'keV',
-        'simulation_file': simfile,
-        'spectral_table': spfile,
-        'proj': proj,
-        'z_cos': redshift,
-        'd_c': cosmo.comoving_distance(redshift).to_value(),  # [h^-1 Mpc]
         'flag_ene': flag_ene
     }
+    if simulation_type:
+        result['simulation_type']: simulation_type
     if tcut:
         result['tcut'] = tcut  # [K]
     if isothermal:
@@ -529,10 +532,11 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     :param spec_cube: (dict) Spectral-cube, i.e. output of make_speccube.
     :param outfile: (str) FITS file.
     :param overwrite: (bool) If set to True the file is overwritten. Default: True.
-    :return: None
+    :return: System output of the writing operation (usually None)
     """
     hdulist = fits.HDUList()
     data = spec_cube.get('data')
+    simulation_type = spec_cube.get('simulation_type')
     xrange = spec_cube.get('xrange')
     yrange = spec_cube.get('yrange')
     zrange = spec_cube.get('zrange')
@@ -542,6 +546,8 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     # Primary
     hdulist.append(fits.PrimaryHDU(data.transpose()))
     hdulist[-1].header.set('INFO', 'Created with Python xraysim and astropy')
+    if simulation_type:
+        hdulist[-1].header.set('SIM_TYPE', simulation_type)
     hdulist[-1].header.set('SIM_FILE', spec_cube.get('simulation_file'))
     hdulist[-1].header.set('SP_FILE', spec_cube.get('spectral_table'))
     hdulist[-1].header.set('PROJ', spec_cube.get('proj'))
@@ -557,14 +563,13 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     hdulist[-1].header.set('E_MAX', spec_cube.get('energy')[-1] + 0.5 * spec_cube.get('energy_interval')[-1])
     hdulist[-1].header.set('FLAG_ENE', 1 if spec_cube.get('flag_ene') else 0)
     hdulist[-1].header.set('UNITS', '[' + spec_cube.get('units') + ']')
-    hdulist[-1].header.set('X_MIN', xrange[0])
-    hdulist[-1].header.set('X_MAX', xrange[1])
-    hdulist[-1].header.set('Y_MIN', yrange[0])
-    hdulist[-1].header.set('Y_MAX', yrange[1])
+    hdulist[-1].header.set('X_MIN', xrange[0], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('X_MAX', xrange[1], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('Y_MIN', yrange[0], '[' + spec_cube.get('coord_units') + ']')
+    hdulist[-1].header.set('Y_MAX', yrange[1], '[' + spec_cube.get('coord_units') + ']')
     if zrange:
-        hdulist[-1].header.set('Z_MIN', zrange[0])
-        hdulist[-1].header.set('Z_MAX', zrange[1])
-    hdulist[-1].header.set('C_UNITS', '[' + spec_cube.get('coord_units') + ']', 'X-Y(-Z) coordinate units')
+        hdulist[-1].header.set('Z_MIN', zrange[0], '[' + spec_cube.get('coord_units') + ']')
+        hdulist[-1].header.set('Z_MAX', zrange[1], '[' + spec_cube.get('coord_units') + ']')
     if spec_cube.get('tcut'):
         hdulist[-1].header.set('T_CUT', spec_cube.get('tcut'), '[K]')
     if spec_cube.get('isothermal'):
@@ -572,7 +577,7 @@ def write_speccube(spec_cube: dict, outfile: str, overwrite=True):
     hdulist[-1].header.set('SMOOTH', spec_cube.get('smoothing'))
     hdulist[-1].header.set('VEL', spec_cube.get('velocities'))
     if nh:
-        hdulist[-1].header.set('N_H', spec_cube.get('nh'), '[' + spec_cube.get('nh_units') + ']')
+        hdulist[-1].header.set('N_H', nh, '[' + spec_cube.get('nh_units') + ']')
 
     # Extension 1
     hdulist.append(fits.ImageHDU(spec_cube.get('energy'), name='Energy'))
@@ -603,7 +608,7 @@ def read_speccube(infile: str):
         'energy': hdulist[1].data,
         'energy_interval': hdulist[2].data,
         'units': header0.get('UNITS').replace('[', '').replace(']', ''),
-        'coord_units': header0.get('C_UNITS').replace('[', '').replace(']', ''),
+        'coord_units': header0.comments['X_MIN'].replace('[', '').replace(']', ''),
         'energy_units': header1.get('UNITS').replace('[', '').replace(']', ''),
         'simulation_file': header0.get('SIM_FILE'),
         'spectral_table': header0.get('SP_FILE'),
@@ -612,6 +617,8 @@ def read_speccube(infile: str):
         'd_c': header0.get('D_C'),  # h^-1 Mpc
         'flag_ene': header0.get('FLAG_ENE') == 1
     }
+    if 'SIM_TYPE' in header0:
+        result['simulation_type'] = header0.get('SIM_TYPE')
     if 'T_CUT' in header0:
         result['tcut'] = header0.get('T_CUT')  # [K]
     if 'ISO_T' in header0:
