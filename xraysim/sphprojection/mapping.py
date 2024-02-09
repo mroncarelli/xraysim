@@ -445,7 +445,7 @@ def make_speccube(snapfile: str, spfile: str, size: float, npix=256, redshift=No
     ne = pygr.readsnap(snapfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
     # Calculating Xspec normalization [10^14 cm^-5]
-    norm = convert.gadgget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
+    norm = convert.gadget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
     del mass, rho, ne
 
     # Reading emission table [10^-14 photons s^-1 cm^3]
