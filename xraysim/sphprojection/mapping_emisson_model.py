@@ -17,8 +17,8 @@ from xraysim.specutils.emisson_models import EmissionModels
 from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import write_speccube
 
-
 intkernel_vec = np.vectorize(intkernel)
+
 
 def spatial_valid_points(x, y, nx, ny, pixel_size):
     points = np.column_stack((x, y))
@@ -44,7 +44,7 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
     print(len(iter_))
     chunks = np.array_split(iter_, chunk_size)
     [print(len(i), i) for i in chunks]
-
+    print(metallicity.shape)
     with Pool(processes=n_jobs) as pool:
         results = pool.starmap(spectrum_and_add_to_cube,
                                [(
@@ -60,7 +60,6 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
 
 def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, nz, energy, method,
                              flag_ene, chunk_name):
-
     spcube = np.full((nx, ny, nz), 0., dtype=np.float64)  # mind it nz is energy bins
 
     progress_bar = tqdm(total=len(z_eff), position=0, leave=True, desc=chunk_name)
@@ -85,11 +84,11 @@ def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, 
                 print(f"ERROR in {chunk_name}. Out of bounds in 3rd index.")
                 raise ValueError
 
+            # Computing the weighted spectrum and assigning them to the grids using numpy now
             matrix_wx, matrix_wy = np.meshgrid(wx, wy)
             weight_matrix = (matrix_wx * matrix_wy).T
             spcube[i0:i0 + weight_matrix.shape[0], j0:j0 + weight_matrix.shape[1], :] += weight_matrix[:, :,
                                                                                          np.newaxis] * spectrum
-
             # (second option to assign spectrum !)
             # index_iterable = np.ndindex(*weight_matrix.shape)
             # for ix in index_iterable:
@@ -105,7 +104,7 @@ def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, 
 def make_simput_emission_model(simfile: str, size: float, emin: float, emax: float, bins: int, method: str, npix=256,
                                redshift=None, center=None, proj='z', zrange=None, tcut=0., flag_ene=False, novel=None,
                                gaussvel=None, seed=0, n_jobs=2, chunk_size=2):
-
+    global metallicity
     pixsize = size / npix * 60.  # [arcmin]
 
     # Reading header variables
@@ -214,9 +213,17 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     # Reading ionization fraction if f_cooling is on
     ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
-    # metallcity from the simulation - for now it is just Gadget-X
     metallicity = pygr.readsnap(simfile, 'Z   ', 'gas', units=0, suppress=1)
-    metallicity = np.reshape(metallicity, newshape=(-1, 1))
+
+    if len(metallicity) == 0:
+        metallicity = pygr.readsnap(simfile, 'Metallicity', 'gas', units=0, suppress=1)
+    else:
+        print('Wrong keyword or unknown simulation file')
+
+    if len(metallicity.shape) == 1:
+        metallicity = np.reshape(metallicity, newshape=(-1, 1))
+    elif len(metallicity.shape) == 2:
+        metallicity = metallicity[:, 2:]
 
     # Calculating Xspec normalization [10^14 cm^-5]
     norm = convert.gadget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
@@ -252,7 +259,7 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
         'size_units': 'deg',
         'pixel_size': np.float32(pixsize),  # [arcmin]
         'pixel_size_units': 'arcmin',
-        'energy': np.float32(0.5*(energy[1:] + energy[:-1])),
+        'energy': np.float32(0.5 * (energy[1:] + energy[:-1])),
         'energy_interval': np.float32(np.full(nene, d_ene)),
         'units': 'keV keV^-1 s^-1 cm^-2 arcmin^-2' if flag_ene else 'photons keV^-1 s^-1 cm^-2 arcmin^-2',
         'coord_units': 'h^-1 kpc',
@@ -269,10 +276,7 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     if zrange:
         result['zrange'] = zrange  # [h^-1 kpc] comoving
 
-    cube2simputfile(result, 'check-xspec.simput')
+    # cube2simputfile(result, 'check-xspec.simput')
     write_speccube(result, 'check.spcube')
 
     return result
-
-
-
