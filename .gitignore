@@ -1,2 +1,5 @@
-/.idea/.workspace.xml
-./xraysim.iml
+/.idea/
+/.pytest_cache/
+/build/
+/xraysim/xraysim.egg-info/
+xraysim.iml

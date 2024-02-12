@@ -63,10 +63,10 @@ def set_simput_headers(hdulist: fits.HDUList):
     return hdulist
 
 
-def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
+def cube2simputfile(spcube: dict, simput_file: str, tag='', pos=(0., 0.), npix=None, fluxsc=1., addto=None,
                     appendto=None, nh=None, preserve_input=True, overwrite=True):
     """
-    :param spcube_input: spectral cube structure, i.e. output of make_speccube
+    :param spcube: (dict) spectral cube structure, i.e. output of make_speccube
     :param simput_file: (str) SIMPUT output file
     :param tag: (str) prefix of the source name, default None
     :param pos: (float 2) sky position in RA, DEC [deg]
@@ -79,10 +79,10 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     :param preserve_input: (bool) If set to true the 'data' key in spcube_struct is left untouched and duplicated in
         memory. If there is no need to preserve it, setting to False will save memory. Default: True.
     :param overwrite: (bool) If set to true the file is overwritten. Default: True.
-    :return: None
+    :return: System output of the writing operation (usually None)
     """
 
-    spcube_struct = cp.deepcopy(spcube_input) if preserve_input else spcube_input
+    spcube_struct = cp.deepcopy(spcube) if preserve_input else spcube
 
     if nh is not None:
         spcube_struct = absorption.convert_nh(spcube_struct, nh, preserve_input=False)
@@ -184,6 +184,9 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
 
     # Setting headers
     set_simput_headers(hdulist)
+    hdulist[0].header.set('INFO', 'Created with Python xraysim and astropy')
+    if 'simulation_type' in spcube_struct:
+        hdulist[0].header.set('SIM_TYPE', spcube_struct.get('simulation_type'))
     hdulist[0].header.set('SIM_FILE', spcube_struct.get('simulation_file'))
     hdulist[0].header.set('SP_FILE', spcube_struct.get('spectral_table'))
     hdulist[0].header.set('PROJ', spcube_struct.get('proj'))
@@ -191,6 +194,9 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     hdulist[0].header.set('X_MAX', spcube_struct.get('xrange')[1])
     hdulist[0].header.set('Y_MIN', spcube_struct.get('yrange')[0])
     hdulist[0].header.set('Y_MAX', spcube_struct.get('yrange')[1])
+    if spcube_struct.get('zrange'):
+        hdulist[0].header.set('Z_MIN', spcube_struct.get('zrange')[0])
+        hdulist[0].header.set('Z_MAX', spcube_struct.get('zrange')[1])
     hdulist[0].header.set('Z_COS', spcube_struct.get('z_cos'))
     hdulist[0].header.set('D_C', spcube_struct.get('d_c'), '[Mpc]')
     hdulist[0].header.set('NPIX', npix)
@@ -204,19 +210,9 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
     if spcube_struct.get('tcut'):
         hdulist[0].header.set('T_CUT', spcube_struct.get('tcut'))
     if spcube_struct.get('isothermal'):
-        hdulist[0].header.set('ISOTHERM', spcube_struct.get('isothermal'))
+        hdulist[0].header.set('ISO_T', spcube_struct.get('isothermal'))
     hdulist[0].header.set('SMOOTH', spcube_struct.get('smoothing'))
     hdulist[0].header.set('VPEC', spcube_struct.get('velocities'))
-
-    # There is this small error when setting Zrange it just requires one float value
-    # check after the commented code
-    #    if spcube_struct.get('zrange'):
-    #        hdulist[0].header.set('Z_RANGE', spcube_struct.get('zrange'))
-
-    if spcube_struct.get('zrange'):
-        hdulist[0].header.set('Z_Min', spcube_struct.get('zrange')[0])
-        hdulist[0].header.set('Z_Max', spcube_struct.get('zrange')[1])
-
     if spcube_struct.get('nsample'):
         hdulist[0].header.set('NSAMPLE', spcube_struct.get('nsample'))
     if nh is not None:
@@ -227,6 +223,27 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
 
     # Writing FITS file (returns None)
     return hdulist.writeto(simput_file, overwrite=overwrite)
+
+
+def inherit_keywords(input_file: str, output_file: str) -> int:
+    """
+    Writes a list of keywords (if present) from the Primary header of the input file into the Primary header of the
+    output file.
+    :param input_file: (str) Input FITS file.
+    :param output_file: (str) Output FITS file that will be modified.
+    :return: (int) System output of the writing operation
+    """
+    keyword_list = ['INFO', 'SIM_TYPE', 'SIM_FILE', 'SP_FILE', 'PROJ', 'X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN',
+                    'Z_MAX', 'Z_COS', 'D_C', 'NPIX', 'NENE', 'ANG_PIX', 'ANG_MAP', 'ISO_T', 'SMOOTH', 'VPEC',
+                    'NSAMPLE', 'NH', 'RA_C', 'DEC_C', 'FLUXSC', 'T_CUT']
+    header_inp = fits.getheader(input_file, 0)
+    hdulist = fits.open(output_file)
+
+    for key in keyword_list:
+        if key in header_inp:
+            hdulist[0].header.set(key, header_inp.get(key), header_inp.comments[key])
+
+    return hdulist.writeto(output_file, overwrite=True)
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
@@ -293,7 +310,13 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     if type(logfile) is str and logfile != '':
         command += ' > ' + logfile + ' 2>&1'
 
-    return command if no_exec else os.system(command)
+    if no_exec:
+        return command
+    else:
+        sys_out = os.system(command)
+        if sys_out == 0:
+            inherit_keywords(simputfile, evtfile)
+        return sys_out
 
 
 def get_fluxmap(simputfile: str):
@@ -384,31 +407,55 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     :param evtfile: (str) Event file
     :param phafile: (str) Output file
     :param rsppath: (str) Path to the .rmf and .arf files
-    :param pixid: TODO
-    :param grading: (int or int list) Grading of photons included in the spectrum (default, 1)
+    :param pixid: (int or int list) Pixel id of photons to be included in the spectrum (default, None, i.e. all pixels)
+    :param grading: (int or int list) Grading of photons to be included in the spectrum (default, 1)
     :param logfile: (str) If set the output is not written on screen but saved in the file
     :param overwrite: (bool) If set overwrites previous output file (phafile) if exists, default True
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
     :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
     """
 
+    # Defining filter list to be used (if not empty) with the EventFilter keyword of makespec
+    filter_list = []
+
+    # Grading
     error_msg_grading = "ERROR in make_pha. Grading values must be integer, iterable of integers or None."
-    type_grading = type(grading)
-    if type_grading is type(None):
-        tag_grading = ""
-    elif type_grading is int:
-        tag_grading = "GRADING==" + str(grading)
-    elif type_grading in (tuple, list):
-        if all(type(gr) is int for gr in grading):
+    if isinstance(grading, type(None)):
+        pass
+    elif isinstance(grading, int):
+        filter_list.append("GRADING==" + str(grading))
+    elif isinstance(grading, tuple) or isinstance(grading, list):
+        if all(type(item) is int for item in grading):
             tag_grading = " '(GRADING==" + str(grading[0])
-            for gr in grading[1:]:
-                tag_grading += " || GRADING==" + str(gr)
+            for item in grading[1:]:
+                tag_grading += " || GRADING==" + str(item)
             tag_grading += ")'"
+            filter_list.append(tag_grading)
         else:
             print(error_msg_grading)
             raise ValueError
     else:
         print(error_msg_grading)
+        raise ValueError
+
+    # Pixel Id
+    error_msg_pixid = "ERROR in make_pha. Pixid values must be integer, iterable of integers or None."
+    if isinstance(pixid, type(None)):
+        pass
+    elif isinstance(pixid, int):
+        filter_list.append("PIXID==" + str(pixid))
+    elif isinstance(pixid, tuple) or isinstance(pixid, list):
+        if all(type(item) is int for item in pixid):
+            tag_pixid = " '(PIXID==" + str(pixid[0])
+            for item in pixid[1:]:
+                tag_pixid += " || PIXID==" + str(item)
+            tag_pixid += ")'"
+            filter_list.append(tag_pixid)
+        else:
+            print(error_msg_pixid)
+            raise ValueError
+    else:
+        print(error_msg_pixid)
         raise ValueError
 
     # If rsppath is not provided I try to recover it from the evtfile
@@ -418,10 +465,20 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     clobber_ = 'yes' if overwrite else 'no'
 
     command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath + ' clobber=' + clobber_
-    if type_grading != "":
-        command += " EventFilter=" + tag_grading
+
+    # Defining a tag to be used (if not empty) with the EventFilter keyword of makespec
+    tag_filter = " && ".join(filter_list)
+    if tag_filter != "":
+        command += " EventFilter=" + tag_filter
 
     if type(logfile) is str and logfile != '':
         command += ' > ' + logfile + ' 2>&1'
 
-    return command if no_exec else os.system(command)
+    if no_exec:
+        return command
+    else:
+        sys_out = os.system(command)
+        if sys_out == 0:
+            inherit_keywords(evtfile, phafile)
+        return sys_out
+

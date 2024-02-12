@@ -5,36 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="added spex module for spectrum calculations.&#10;added context manager in order to delete files when exiting the program">
-      <change afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Untitled.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping_emisson_model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/.ipynb_checkpoints/plotEvlist-checkpoint.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/Spectrum.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/check-xspec.simput" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/check.spcube" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/checking_spec_cube.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/plotEvlist.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/snap_119" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/em_reference.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/hdf5.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/hdf5.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/emisson_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/sixte.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/sixte.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/kernel.cpython-39-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/kernel.cpython-39-x86_64-linux-gnu.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/linkedlist.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-39/xraysim/sphprojection/kernel.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-39/xraysim/sphprojection/kernel.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/xraysim-0.6-py3.9-linux-x86_64.egg" beforeDir="false" afterPath="$PROJECT_DIR$/dist/xraysim-0.6-py3.9-linux-x86_64.egg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/other.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/reference_files/reference.evt" beforeDir="false" afterPath="$PROJECT_DIR$/tests/reference_files/reference.evt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/reference_files/reference.pha" beforeDir="false" afterPath="$PROJECT_DIR$/tests/reference_files/reference.pha" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/reference_files/reference.simput" beforeDir="false" afterPath="$PROJECT_DIR$/tests/reference_files/reference.simput" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/reference_files/reference.speccube" beforeDir="false" afterPath="$PROJECT_DIR$/tests/reference_files/reference.speccube" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_cube2simputfile.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_cube2simputfile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/test_full_run.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_full_run.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/readgadget/modules/hdf5.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/readgadget/modules/hdf5.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/pygadgetreader.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/__init__" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/xraysim/specutils/sixte.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/sixte.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/kernel.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/kernel.pyx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/linkedlist.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/mapping.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/mapping_emisson_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/mapping_emisson_model.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +142,7 @@
       <workItem from="1707661243609" duration="12820000" />
       <workItem from="1707682677988" duration="5728000" />
       <workItem from="1707693696085" duration="1661000" />
-      <workItem from="1707745699146" duration="3853000" />
+      <workItem from="1707745699146" duration="4119000" />
     </task>
     <task id="LOCAL-00001" summary="first">
       <option name="closed" value="true" />
