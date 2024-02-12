@@ -6,6 +6,18 @@ cimport cython
 from xraysim.specutils.tables import calc_spec
 
 
+def kernel_mapping_p(x, h, n):
+    """
+    python version of kernel_mapping
+    """
+
+    cdef xc = x
+    cdef hc = h
+    cdef nc = n
+	
+    return kernel_mapping(xc, hc, nc)
+
+
 def intkernel(x):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
@@ -92,6 +104,9 @@ cdef float[:] kernel_weight(float[:] x):
 
 # TODO: Move the stuff after this comment in another file called mapping_loops.pyx. I tried to do this but got stuck
 # with import issues
+
+# Atulit
+# I added cpdef to this cython function below as I required it for my own specube routine for parallelization
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -296,13 +311,10 @@ def make_speccube_loop(double[:, :, ::1] spcube, iter_, float[:] x, float[:] y, 
     cdef float[:] spectrum, wx, wy
     cdef int nx = spcube.shape[0]
     cdef int ny = spcube.shape[1]
-# this is set up by me in order to calculate spectra for the particles in a precise way
-
     cdef Py_ssize_t nz = spcube.shape[2]
     cdef Py_ssize_t i0, i1
 
     for ipart in iter_:
-        # Calculating spectrum of the particle [photons s^-1 cm^-2]
         spectrum = norm[ipart] * calc_spec(spectable, z_eff[ipart], temp_kev[ipart], no_z_interp=True, flag_ene=False)
         # Getting the kernel weights in the two directions
         wx, i0 = kernel_mapping(x[ipart], hsml[ipart], nx)

@@ -10,6 +10,8 @@ from xraysim.sphprojection.kernel import intkernel, make_map_loop, make_map_loop
 from xraysim.sphprojection.linkedlist import linkedlist2d
 from xraysim.specutils import tables, absorption
 
+# from xraysim.sphprojection.kernel import make_speccube_loop_with_lib
+
 intkernel_vec = np.vectorize(intkernel)
 
 
@@ -288,8 +290,9 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
 
 def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
                   energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None, gaussvel=None,
-                  seed=0, nosmooth=False, nh=None, progress=False):
+                  seed=0, nosmooth=False, nh=None, progress=False, method='Tables'):
     """
+    :param method:
     :param simfile: (str) Simulation file (Gadget)
     :param spfile: (str) Spectrum file (FITS)
     :param size: (float) Angular size of the map [deg]
@@ -350,8 +353,7 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
         z = None
 
     # Reading smoothing length or assigning it to zero if smoothing is turned off
-    hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(simfile, 'hsml', 'gas',
-                                                                 units=0, suppress=1)  # [h^-1 kpc] comoving
+    hsml = np.full(ngas, 1.e-300) if nosmooth else pygr.readsnap(simfile, 'hsml', 'gas',                                                             units=0, suppress=1)  # [h^-1 kpc] comoving
 
     # Geometry conversion
     cosmo = cosmology.FlatLambdaCDM(H0=100., Om0=0.3)
@@ -443,43 +445,68 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     # Reading ionization fraction if f_cooling is on
     ne = pygr.readsnap(simfile, 'ne', 'gas', units=0, suppress=1) if f_cooling else None
 
+    # metallcity from the simulation
+    metallicity = pygr.readsnap(simfile, 'Z   ', 'gas', units=0, suppress=1)
+    metallicity = np.reshape(metallicity, newshape=(-1, 1))
+    print(metallicity)
+
+    # temp_kev = [float(i) for i in temp_kev]
+
     # Calculating Xspec normalization [10^14 cm^-5]
     norm = convert.gadget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
     del mass, rho, ne
 
-    # Reading emission table [10^-14 photons s^-1 cm^3]
-    spectable = tables.read_spectable(spfile, z_cut=(np.min(z_eff), np.max(z_eff)),
-                                      temperature_cut=(np.min(temp_kev), np.max(temp_kev)),
-                                      energy_cut=energy_cut)
-
-    # In nh is provided the spectral table is converted
-    if nh is not None:
-        spectable = absorption.convert_nh(spectable, nh)
-
-    energy = spectable.get('energy')  # [keV]
-    nene = len(energy)
-    # TODO: include d_ene while generating the table
-    d_ene = (energy[-1] - energy[0]) / (nene - 1)  # [keV] Assuming uniform energy interval.
-
-    # Converting photons to energy o viceversa, if necessary
-    if flag_ene != spectable.get('flag_ene'):
-        if flag_ene:
-            for iene in range(0, nene):
-                spectable['data'][:, :, iene] *= energy[iene]  # [10^-14 keV s^-1 cm^3]
-        else:
-            for iene in range(0, nene):
-                spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 photons s^-1 cm^3]
-
     # Defining iterable to iterate through particles
     iter_ = tqdm(particle_list[::nsample]) if progress else particle_list[::nsample]
+    print(iter_.max())
 
-    # Initializing spcube with double precision
-    spcube = np.full((npix, npix, nene), 0., dtype=np.float64)
+    # Reading emission table [10^-14 photons s^-1 cm^3]
+    if method == 'Tables':
+        print('HERE')
+        spectable = tables.read_spectable(spfile, z_cut=(np.min(z_eff), np.max(z_eff)),
+                                          temperature_cut=(np.min(temp_kev), np.max(temp_kev)),
+                                          energy_cut=energy_cut)
 
-    # Cython loop for mapping
-    make_speccube_loop(spcube, iter_, x, y, hsml, spectable, norm, z_eff, temp_kev)
+        # In nh is provided the spectral table is converted
+        if nh is not None:
+            spectable = absorption.convert_nh(spectable, nh)
+
+        energy = spectable.get('energy')  # [keV]
+        nene = len(energy)
+        # TODO: include d_ene while generating the table
+        d_ene = (energy[-1] - energy[0]) / (nene - 1)  # [keV] Assuming uniform energy interval.
+
+        # Converting photons to energy o viceversa, if necessary
+        if flag_ene != spectable.get('flag_ene'):
+            if flag_ene:
+                for iene in range(0, nene):
+                    spectable['data'][:, :, iene] *= energy[iene]  # [10^-14 keV s^-1 cm^3]
+            else:
+                for iene in range(0, nene):
+                    spectable['data'][:, :, iene] /= energy[iene]  # [10^-14 photons s^-1 cm^3]
+
+        # Initializing spcube with double precision
+        spcube = np.full((npix, npix, nene), 0., dtype=np.float64)
+
+        # Cython loop for mapping
+        make_speccube_loop(spcube, iter_, x, y, hsml, spectable, norm, z_eff, temp_kev)
+
+    #else:
+    #    print('HERE TOO')
+    #    energy = np.linspace(2.0, 8.0, 9901)  # [keV]
+    #    nene = len(energy)
+    #    # TODO: include d_ene while generating the table
+    #    d_ene = (energy[-1] - energy[0]) / (nene - 1)  # [keV] Assuming uniform energy interval.
+    #    # Initializing spcube with double precision
+
+    #    spcube = np.full((npix, npix, nene), 0., dtype=np.float64)
+
+        # Cython loop for mapping
+    #    make_speccube_loop_with_lib(spcube, iter_, x, y, hsml, norm, z_eff, temp_kev, method, metallicity, energy)
 
     spcube /= d_ene * pixsize ** 2  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
+
+    print(spcube.shape)
 
     # Output
     result = {
@@ -515,6 +542,8 @@ def make_speccube(simfile: str, spfile: str, size: float, npix=256, redshift=Non
     if nh is not None:
         result['nh'] = nh  # [10^22 cm^-2]
         result['nh_units'] = '10^22 cm^-2'
+        if method != 'Tables':
+            result = absorption.convert_nh(result, nh)
     else:
         if 'nh' in spectable:
             result['nh'] = spectable.get('nh')  # [10^22 cm^-2]

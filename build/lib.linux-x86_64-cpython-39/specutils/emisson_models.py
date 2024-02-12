@@ -6,7 +6,7 @@ import xspec as xsp
 import pyatomdb
 import pyspex as spex
 
-from gadgetutils.phys_const import kpc2cm, Xp, m_p, Msun2g, Mpc2cm
+from gadgetutils.phys_const import kpc2cm, Xp, m_p, Msun2g
 from astropy.cosmology import FlatLambdaCDM
 
 # Cosmological parameters
@@ -54,11 +54,14 @@ def str2bool(v):
         return False
 
 
-current_directory = os.getcwd()
+# current_directory = os.getcwd()
 
-models_config_file = os.path.join(current_directory, 'em_reference.json')
+# models_config_file = os.path.join(current_directory, 'em_reference.json')
 
-print(models_config_file)
+# print(models_config_file)
+# with open(models_config_file) as file:
+#     json_data = json.load(file)
+models_config_file = os.path.join(os.path.dirname(__file__), 'em_reference.json')
 with open(models_config_file) as file:
     json_data = json.load(file)
 
@@ -74,6 +77,9 @@ class XspecModel:
         self.xspec_model_name = model_name
         xsp.AllModels.setEnergies(f"{energy.min()} {energy.max()} {len(energy) - 1} lin")
         xsp.Xset.addModelString("APECROOT", "3.0.9")
+
+        # This is to turn off the logs
+        xsp.Xset.chatter = 0
         self.xspec_model = xsp.Model(self.xspec_model_name)
 
     # doesn't change the object itself, that's why we have this warning
@@ -91,8 +97,8 @@ class XspecModel:
         for command in commands:
             xspec_settings.get(command['method'], lambda cmd: None)(command)
 
-    def calculate_spectrum(self, z: float, temperature: float, metallicity: np.array, element_index,
-                           norm: float) -> np.array:
+    def calculate_spectrum(self, z, temperature, metallicity, element_index,
+                           norm) -> np.array:
         """
         This class method computes the X-ray emission spectra for a gas particle using Pyxspec.
         :param z: float - redshift for the gas particle
@@ -109,7 +115,12 @@ class XspecModel:
 
         if params is not None:
             params.update({i + 2: metallicity[i] for i in element_index.tolist()})
-        # print(params)
+
+        params = {key: np.float64(value) for key, value in params.items()}
+
+        # for key, value in params.items():
+        #    print(f"Data type of {key}: {type(value)}")
+
         self.xspec_model.setPars(params)
 
         # self.xspec_model.show()
@@ -216,7 +227,10 @@ class SpexModel:
         self.spex_model.par(1, 2, 't', temperature)
         # we want interpolation on temperature for spectrum to be linear, therefore zero
         self.spex_model.par(1, 2, 'logt', 0)
-        self.spex_model.par_show()
+
+        # to visualize the parameters for the spex model
+        # self.spex_model.par_show()
+
         for element_index_i, abund_i in zip(element_index, metallicity):
             self.spex_model.par(1, 2, element_index_i, abund_i)
 
@@ -260,7 +274,7 @@ class EmissionModels:
         else:
             raise ValueError(f"Library '{self.json_record['code']}' not supported.")
 
-    def set_metals_ref(self, metal: np.array) -> np.array:
+    def set_metals_ref(self, metal) -> np.array:
         """
         This class method takes the metallicity array as input and assigns it to metals_ref based on the model type and
         the number of chemical species. This information can later be utilized in the corresponding X-ray library for
@@ -290,8 +304,8 @@ class EmissionModels:
 
         return idx
 
-    def compute_spectrum(self, z: float, temperature: float, metallicity: np.array, norm: float,
-                         flag_ene: bool = False) -> np.array:
+    def compute_spectrum(self, z, temperature, metallicity, norm,
+                         flag_ene=False):
         """
         This class method return the emission spectra for each gas particle at the given energy range using the gas
         physical properties.
@@ -302,22 +316,23 @@ class EmissionModels:
         :param flag_ene: bool - conversion -----
         :return:
         """
+
         chem_idx = self.set_metals_ref(metallicity)
         # print(self.json_record['metals_ref'])
 
         result = self.model.calculate_spectrum(z, temperature, self.json_record['metals_ref'], chem_idx, norm)
         if flag_ene:
-            bins = 0.5 * (np.array(self.energy[1:] + np.array(self.energy)[:-1]))
+            bins = 0.5 * (np.array(self.energy[1:] + np.array(self.energy)[:-1]))  # [10^-14 keV s^-1 cm-2]
             result = result * bins
 
-        return np.array(result)
+        return np.array(result, dtype=np.float32)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         print("removing dummy files")
-        dir_name = "/home/atulit-pc/IdeaProjects/xraysim/xraysim/specutils/"
+        dir_name = os.getcwd()
         test = os.listdir(dir_name)
 
         for item in test:

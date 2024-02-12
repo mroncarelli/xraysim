@@ -4,8 +4,37 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="">
+    <list default="true" id="c68a3cc4-ccfa-4625-b457-f12167d743e7" name="Changes" comment="added spex module for spectrum calculations.&#10;added context manager in order to delete files when exiting the program">
+      <change afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Untitled.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping_emisson_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/.ipynb_checkpoints/plotEvlist-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/Spectrum.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/check-xspec.simput" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/check.spcube" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/checking_spec_cube.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/plotEvlist.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Gadget_simulations/snap_119" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/em_reference.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/hdf5.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/readgadget/modules/hdf5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/emisson_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/sixte.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/specutils/sixte.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/kernel.cpython-39-x86_64-linux-gnu.so" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/kernel.cpython-39-x86_64-linux-gnu.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/linkedlist.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib.linux-x86_64-cpython-39/sphprojection/mapping.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-39/xraysim/sphprojection/kernel.o" beforeDir="false" afterPath="$PROJECT_DIR$/build/temp.linux-x86_64-cpython-39/xraysim/sphprojection/kernel.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/xraysim-0.6-py3.9-linux-x86_64.egg" beforeDir="false" afterPath="$PROJECT_DIR$/dist/xraysim-0.6-py3.9-linux-x86_64.egg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/reference_files/reference.evt" beforeDir="false" afterPath="$PROJECT_DIR$/tests/reference_files/reference.evt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_full_run.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_full_run.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/readgadget/modules/hdf5.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/readgadget/modules/hdf5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/emisson_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/specutils/sixte.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/specutils/sixte.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/kernel.pyx" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/kernel.pyx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/linkedlist.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/linkedlist.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/mapping.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/mapping.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/xraysim/sphprojection/mapping_emisson_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/xraysim/sphprojection/mapping_emisson_model.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +51,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="SPEX_emisson_model" />
+        <entry key="$PROJECT_DIR$" value="spec_cube_emisson_models" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -42,6 +71,7 @@
     </option>
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/xraysim/specutils/emisson_models.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/xraysim/sphprojection/mapping.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -107,6 +137,27 @@
       <workItem from="1706293313393" duration="6002000" />
       <workItem from="1706703248429" duration="10451000" />
       <workItem from="1706786897997" duration="861000" />
+      <workItem from="1706866182143" duration="3675000" />
+      <workItem from="1706874511455" duration="9777000" />
+      <workItem from="1706982560895" duration="21155000" />
+      <workItem from="1707005489258" duration="13864000" />
+      <workItem from="1707081465091" duration="2633000" />
+      <workItem from="1707085247527" duration="6056000" />
+      <workItem from="1707093460269" duration="13162000" />
+      <workItem from="1707145841559" duration="11417000" />
+      <workItem from="1707212602831" duration="9466000" />
+      <workItem from="1707262327078" duration="9791000" />
+      <workItem from="1707310318402" duration="6488000" />
+      <workItem from="1707321571709" duration="8184000" />
+      <workItem from="1707331297874" duration="17326000" />
+      <workItem from="1707387132371" duration="18377000" />
+      <workItem from="1707484648302" duration="28344000" />
+      <workItem from="1707580204736" duration="20027000" />
+      <workItem from="1707610436043" duration="1715000" />
+      <workItem from="1707661243609" duration="12820000" />
+      <workItem from="1707682677988" duration="5728000" />
+      <workItem from="1707693696085" duration="1661000" />
+      <workItem from="1707745699146" duration="3853000" />
     </task>
     <task id="LOCAL-00001" summary="first">
       <option name="closed" value="true" />
@@ -196,7 +247,23 @@
       <option name="project" value="LOCAL" />
       <updated>1705359293749</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="added spex module for spectrum calculations.&#10;added context manager in order to delete files when exiting the program">
+      <option name="closed" value="true" />
+      <created>1707605219072</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1707605219072</updated>
+    </task>
+    <task id="LOCAL-00013" summary="added spex module for spectrum calculations.&#10;added context manager in order to delete files when exiting the program">
+      <option name="closed" value="true" />
+      <created>1707669213775</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1707669213775</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -213,10 +280,18 @@
     <option name="LAST_COMMIT_MESSAGE" value="added spex module for spectrum calculations.&#10;added context manager in order to delete files when exiting the program" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
-    <SUITE FILE_PATH="coverage/xraysim$kernel_pyx.coverage" NAME="kernel.pyx Coverage Results" MODIFIED="1706713591151" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/sphprojection" />
+    <SUITE FILE_PATH="coverage/xraysim$kernel_pyx.coverage" NAME="kernel.pyx Coverage Results" MODIFIED="1707140412540" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/sphprojection" />
     <SUITE FILE_PATH="coverage/xraysim$test_emisson_model.coverage" NAME="test_emisson_model Coverage Results" MODIFIED="1703788527174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1706314388517" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+    <SUITE FILE_PATH="coverage/xraysim$.coverage" NAME=" Coverage Results" MODIFIED="1707212745770" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/xraysim$test_calc_spec.coverage" NAME="test_calc_spec Coverage Results" MODIFIED="1703127606908" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/xraysim$absorption.coverage" NAME="absorption Coverage Results" MODIFIED="1703126030509" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+    <SUITE FILE_PATH="coverage/xraysim$sixte.coverage" NAME="sixte Coverage Results" MODIFIED="1707090106162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
+    <SUITE FILE_PATH="coverage/xraysim$Spectrum.coverage" NAME="Spectrum Coverage Results" MODIFIED="1707164212425" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/Gadget_simulations" />
+    <SUITE FILE_PATH="coverage/xraysim$mapping.coverage" NAME="mapping Coverage Results" MODIFIED="1707164200575" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/sphprojection" />
+    <SUITE FILE_PATH="coverage/xraysim$test_full_run.coverage" NAME="test_full_run Coverage Results" MODIFIED="1707212680489" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/xraysim$checking_spec_cube.coverage" NAME="checking_spec_cube Coverage Results" MODIFIED="1707747126628" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/Gadget_simulations" />
+    <SUITE FILE_PATH="coverage/xraysim$mapping_emisson_model.coverage" NAME="mapping_emisson_model Coverage Results" MODIFIED="1707686676606" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/sphprojection" />
+    <SUITE FILE_PATH="coverage/xraysim$parallel.coverage" NAME="parallel Coverage Results" MODIFIED="1706998275514" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/anaconda3/envs/DataScience/lib/python3.9/site-packages/joblib" />
+    <SUITE FILE_PATH="coverage/xraysim$emisson_models.coverage" NAME="emisson_models Coverage Results" MODIFIED="1707265914401" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/xraysim/specutils" />
   </component>
 </project>

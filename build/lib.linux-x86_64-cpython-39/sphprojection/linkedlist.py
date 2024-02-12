@@ -19,6 +19,7 @@ def linkedlist2d(x: array, y: array, nx=None, ny=None) -> list:
     first = full((nx, ny), -1)
     last = full((nx, ny), -1)
     lkdlist = full(len(x), -1)
+    
 
     for index, item in enumerate(x):
         i = min(max(int(item), 0), nx - 1)
@@ -29,6 +30,7 @@ def linkedlist2d(x: array, y: array, nx=None, ny=None) -> list:
         else:
             lkdlist[last[i, j]] = index
         last[i, j] = index
+    
 
     # Creating a single list
     result = []
@@ -41,5 +43,5 @@ def linkedlist2d(x: array, y: array, nx=None, ny=None) -> list:
                 while index != -1:
                     result.append(index)
                     index = lkdlist[index]
-
+    
     return result

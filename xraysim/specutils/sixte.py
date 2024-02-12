@@ -207,8 +207,16 @@ def cube2simputfile(spcube_input, simput_file: str, tag='', pos=(0., 0.), npix=N
         hdulist[0].header.set('ISOTHERM', spcube_struct.get('isothermal'))
     hdulist[0].header.set('SMOOTH', spcube_struct.get('smoothing'))
     hdulist[0].header.set('VPEC', spcube_struct.get('velocities'))
+
+    # There is this small error when setting Zrange it just requires one float value
+    # check after the commented code
+    #    if spcube_struct.get('zrange'):
+    #        hdulist[0].header.set('Z_RANGE', spcube_struct.get('zrange'))
+
     if spcube_struct.get('zrange'):
-        hdulist[0].header.set('Z_RANGE', spcube_struct.get('zrange'))
+        hdulist[0].header.set('Z_Min', spcube_struct.get('zrange')[0])
+        hdulist[0].header.set('Z_Max', spcube_struct.get('zrange')[1])
+
     if spcube_struct.get('nsample'):
         hdulist[0].header.set('NSAMPLE', spcube_struct.get('nsample'))
     if nh is not None:

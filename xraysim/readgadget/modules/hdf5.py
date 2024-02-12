@@ -95,6 +95,7 @@ def hdf5_readmetals(f,h,ptype,single=1):
             arr = np.zeros(0,dtype=np.float32)
         else:
             arr = np.zeros((0,h.flag_metals),dtype=np.float32)
+	
 
     return arr
 

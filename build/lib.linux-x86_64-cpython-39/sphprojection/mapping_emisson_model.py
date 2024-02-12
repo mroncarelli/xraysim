@@ -1,7 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 from scipy.spatial import cKDTree
-
+from astropy.io import fits
 from multiprocessing import Pool
 from astropy import cosmology
 
@@ -18,25 +19,6 @@ from xraysim.specutils.sixte import cube2simputfile
 from xraysim.sphprojection.mapping import write_speccube
 
 intkernel_vec = np.vectorize(intkernel)
-
-
-def spatial_valid_points(x, y, nx, ny, pixel_size):
-    points = np.column_stack((x, y))
-
-    tree = cKDTree(points)  # Build the kd-tree once
-
-    x, y = np.mgrid[0:nx, 0:ny]
-
-    pixel_points = np.c_[x.ravel(), y.ravel()]
-
-    result = np.array([], dtype=np.int32)
-
-    for i in pixel_points:
-        temp = tree.query_ball_point(i, pixel_size, workers=3)
-        result = np.concatenate((result, temp))
-
-    del points, pixel_points, x, y, temp, tree
-    return np.array(np.unique(result), dtype=np.int32)
 
 
 def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, temp_kev, metallicity, energy, method,
@@ -61,6 +43,7 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
 def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, nz, energy, method,
                              flag_ene, chunk_name):
     spcube = np.full((nx, ny, nz), 0., dtype=np.float64)  # mind it nz is energy bins
+
     progress_bar = tqdm(total=len(z_eff), position=0, leave=True, desc=chunk_name)
 
     with (EmissionModels(method, energy) as em):
@@ -103,7 +86,6 @@ def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, 
 def make_simput_emission_model(simfile: str, size: float, emin: float, emax: float, bins: int, method: str, npix=256,
                                redshift=None, center=None, proj='z', zrange=None, tcut=0., flag_ene=False, novel=None,
                                gaussvel=None, seed=0, n_jobs=2, chunk_size=2):
-
     pixsize = size / npix * 60.  # [arcmin]
 
     # Reading header variables
@@ -252,7 +234,7 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     spectrum_cube = make_spectrum_cube(iter_, npix, npix, nene, iter_, x, y, hsml, norm, z_eff, temp_kev, metallicity,
                                        energy, method, flag_ene, n_jobs, chunk_size)
 
-    spectrum_cube = spectrum_cube/(d_ene * pixsize ** 2)  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
+    spectrum_cube = spectrum_cube / (d_ene * pixsize ** 2)  # [photons s^-1 cm^-2 arcmin^-2 keV^-1]
 
     result = {
         'data': np.float32(spectrum_cube),
