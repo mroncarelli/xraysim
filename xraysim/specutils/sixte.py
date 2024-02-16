@@ -467,9 +467,9 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     command = "makespec EvtFile=" + evtfile + " Spectrum=" + phafile + tag_rsppath + ' clobber=' + clobber_
 
     # Defining a tag to be used (if not empty) with the EventFilter keyword of makespec
-    tag_filter = " && ".join(filter_list)
-    if tag_filter != "":
-        command += " EventFilter=" + tag_filter
+    tag_filter = ' && '.join(filter_list)
+    if tag_filter != '':
+        command += ' EventFilter="' + tag_filter + '"'
 
     if type(logfile) is str and logfile != '':
         command += ' > ' + logfile + ' 2>&1'
