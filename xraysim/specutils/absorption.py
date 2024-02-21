@@ -46,13 +46,11 @@ def convert_nh(struct, nh: float, nh_input=None, preserve_input=True):
     are left untouched.
     """
     if ('data' not in struct) or ('energy' not in struct):
-        print("Invalid argument in convert_nh: it must contain the 'data' and 'energy' keys.")
-        raise ValueError
+        raise ValueError("Invalid argument in convert_nh: it must contain the 'data' and 'energy' keys.")
 
     energy = struct.get('energy')
     if len(energy) != struct['data'].shape[-1]:
-        print("Invalid argument in convert_nh: incoherent shape between 'data' and 'energy' keys.")
-        raise ValueError
+        raise ValueError("Invalid argument in convert_nh: incoherent shape between 'data' and 'energy' keys.")
 
     if 'nh' in struct:
         fabs0 = f_abs_galactic(energy, struct.get('nh'))

@@ -53,9 +53,8 @@ def vpec2zobs(v_pec, z_h, units=None):
         elif units == 'km/s':
             conv = c_light * 1e-5
         else:
-            print("ERROR IN vpec2zobs. Invalid unit: ", units,
-                  "Must be one of 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s' or None")
-            raise ValueError
+            raise ValueError("ERROR IN vpec2zobs. Invalid unit: ", units,
+                             "Must be one of 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s' or None")
     else:
         conv = 1.
 
@@ -76,8 +75,8 @@ def ra_corr(ra, units=None, zero=False):
     elif units_ in ['deg', 'degree']:
         full = 360.  # [deg]
     else:
-        print("ERROR IN ra_corr. Invalid unit: ", units, "Must be one of 'rad', 'radians', 'deg', 'degree' or None")
-        raise ValueError
+        raise ValueError("ERROR IN ra_corr. Invalid unit: ", units, "Must be one of 'rad', 'radians', 'deg', 'degree' "
+                                                                    "or None")
 
     result = ra % full  # in range [0, 2pi[ or [0, 360[
 

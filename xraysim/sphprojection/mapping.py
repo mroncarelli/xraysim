@@ -26,8 +26,7 @@ def get_proj_index(proj: str) -> int:
     elif proj == 'z' or proj == 2:
         return 2
     else:
-        print("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1) and 'z' (2)")
-        raise ValueError
+        raise ValueError("Invalid projection axis: ", proj, "Choose between 'x' (or 0), 'y' (1) and 'z' (2)")
 
 
 def get_map_coord(simfile: str, proj_index: int, z=False):
@@ -122,8 +121,7 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
         try:
             xc, yc = float(center[0]), float(center[1])
         except BaseException:
-            print("Invalid center: ", center, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid center: ", center, "Must be a 2d number vector")
 
         if size is None:
             xmin, xmax = min(x - hsml), max(x + hsml)
@@ -215,9 +213,8 @@ def make_map(simfile: str, quantity, npix=256, center=None, size=None, proj='z',
             del rho
         del mass, vel
     else:
-        print("Invalid mapping quantity: ", quantity,
-              "Must be one of 'rho', 'rho2', 'Tmw', 'Tew', 'Tsl', 'vmw', 'vew', 'wmw', 'wew'")
-        raise ValueError
+        raise ValueError("Invalid mapping quantity: ", quantity,
+                         "Must be one of 'rho', 'rho2', 'Tmw', 'Tew', 'Tsl', 'vmw', 'vew', 'wmw', 'wew'")
 
     # Mapping
     qty_map = np.full((npix, npix), 0., dtype=np.float64)
@@ -369,8 +366,7 @@ def make_speccube(snapfile: str, spfile: str, size: float, npix=256, redshift=No
         try:
             xc, yc = float(center[0]), float(center[1])  # [h^-1 kpc]
         except BaseException:
-            print("Invalid center: ", center, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid center: ", center, "Must be a 2d number vector")
 
     xmap0, ymap0 = xc - 0.5 * size_gadget, yc - 0.5 * size_gadget  # [h^-1 kpc]
 
@@ -430,8 +426,7 @@ def make_speccube(snapfile: str, spfile: str, size: float, npix=256, redshift=No
                                       units='km/s')
             del vel
         except BaseException:
-            print("Invalid value for gaussvel: ", gaussvel, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid value for gaussvel: ", gaussvel, "Must be a 2d number vector")
 
     else:
         z_eff = convert.vpec2zobs(readvelocity(snapfile, units='km/s', suppress=1)[:, proj_index],  # [km/s]

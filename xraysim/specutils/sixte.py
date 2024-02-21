@@ -100,8 +100,7 @@ def cube2simputfile(spcube: dict, simput_file: str, tag='', pos=(0., 0.), npix=N
     try:
         ra0, dec0 = float(pos[0]), float(pos[1])
     except BaseException:
-        print("Invalid center: ", pos, "Must be a 2d number vector")
-        raise ValueError
+        raise ValueError("Invalid center: ", pos, "Must be a 2d number vector")
 
     # Correcting energy to photons, if necessary
     if spcube_struct.get('flag_ene'):
@@ -291,10 +290,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
     else:
-        print("ERROR in create_eventlist. Invalid instrument", instrument,
-              ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
-              "instruments configuration file: " + instruments_config_file)
-        raise ValueError
+        raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
+                         ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
+                         "instruments configuration file: " + instruments_config_file)
 
     if pointing is None:
         ra = fits.open(simputfile)[0].header.get('RA_C')
@@ -303,8 +301,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         try:
             ra, dec = float(pointing[0]), float(pointing[1])
         except BaseException:
-            print("ERROR in create_eventlist. Invalid pointing: ", pointing, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("ERROR in create_eventlist. Invalid pointing: ", pointing, "Must be a 2d number vector")
 
     background_ = 'yes' if background else 'no'
     clobber_ = 'yes' if overwrite else 'no'
@@ -365,8 +362,7 @@ def show_fluxmap(inp, gadget_units=False):
     elif type(inp) is dict:
         flux_map = inp
     else:
-        print("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
-        raise ValueError
+        raise ValueError("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
 
     if gadget_units and flux_map['l_pix'] is not None:
         extent = [
@@ -447,11 +443,9 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
             tag_grading += ")'"
             filter_list.append(tag_grading)
         else:
-            print(error_msg_grading)
-            raise ValueError
+            raise ValueError(error_msg_grading)
     else:
-        print(error_msg_grading)
-        raise ValueError
+        raise ValueError(error_msg_grading)
 
     # Pixel Id
     error_msg_pixid = "ERROR in make_pha. Pixid values must be integer, iterable of integers or None."
@@ -467,11 +461,9 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
             tag_pixid += ")'"
             filter_list.append(tag_pixid)
         else:
-            print(error_msg_pixid)
-            raise ValueError
+            raise ValueError(error_msg_pixid)
     else:
-        print(error_msg_pixid)
-        raise ValueError
+        raise ValueError(error_msg_pixid)
 
     # If rsppath is not provided I try to recover it from the evtfile
     rsppath_ = get_rsppath(evtfile) if rsppath is None else rsppath
