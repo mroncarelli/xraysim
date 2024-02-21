@@ -100,8 +100,7 @@ def cube2simputfile(spcube: dict, simput_file: str, tag='', pos=(0., 0.), npix=N
     try:
         ra0, dec0 = float(pos[0]), float(pos[1])
     except BaseException:
-        print("Invalid center: ", pos, "Must be a 2d number vector")
-        raise ValueError
+        raise ValueError("Invalid center: ", pos, "Must be a 2d number vector")
 
     # Correcting energy to photons, if necessary
     if spcube_struct.get('flag_ene'):
@@ -225,12 +224,14 @@ def cube2simputfile(spcube: dict, simput_file: str, tag='', pos=(0., 0.), npix=N
     return hdulist.writeto(simput_file, overwrite=overwrite)
 
 
-def inherit_keywords(input_file: str, output_file: str) -> int:
+def inherit_keywords(input_file: str, output_file: str, file_type=None) -> int:
     """
     Writes a list of keywords (if present) from the Primary header of the input file into the Primary header of the
     output file.
     :param input_file: (str) Input FITS file.
     :param output_file: (str) Output FITS file that will be modified.
+    :param file_type: (str) Output file type: can be either "evt", "evtlist" or "pha". Default None, i.e. derived
+    from file extension.
     :return: (int) System output of the writing operation
     """
     keyword_list = ['INFO', 'SIM_TYPE', 'SIM_FILE', 'SP_FILE', 'PROJ', 'X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN',
@@ -238,6 +239,19 @@ def inherit_keywords(input_file: str, output_file: str) -> int:
                     'NSAMPLE', 'NH', 'RA_C', 'DEC_C', 'FLUXSC', 'T_CUT']
     header_inp = fits.getheader(input_file, 0)
     hdulist = fits.open(output_file)
+
+    if type(file_type) == str:
+        dummy = file_type.lower().strip()
+        file_type_ = dummy if dummy in ["evt", "evtlist", "pha"] else output_file.split(".")[-1]
+    else:
+        file_type_ = output_file.split(".")[-1]
+
+    if file_type_ in ["evt", "evtlist"]:
+        hdulist[0].header.set("SIMPUT_F", input_file)
+    elif file_type_ == "pha":
+        hdulist[0].header.set("EVT_FILE", input_file)
+    else:
+        hdulist[0].header.set("PARENT_F", input_file, "UNKNOWN_TYPE")
 
     for key in keyword_list:
         if key in header_inp:
@@ -276,10 +290,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
     else:
-        print("ERROR in create_eventlist. Invalid instrument", instrument,
-              ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
-              "instruments configuration file: " + instruments_config_file)
-        raise ValueError
+        raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
+                         ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
+                         "instruments configuration file: " + instruments_config_file)
 
     if pointing is None:
         ra = fits.open(simputfile)[0].header.get('RA_C')
@@ -288,8 +301,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         try:
             ra, dec = float(pointing[0]), float(pointing[1])
         except BaseException:
-            print("ERROR in create_eventlist. Invalid pointing: ", pointing, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("ERROR in create_eventlist. Invalid pointing: ", pointing, "Must be a 2d number vector")
 
     background_ = 'yes' if background else 'no'
     clobber_ = 'yes' if overwrite else 'no'
@@ -315,7 +327,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     else:
         sys_out = os.system(command)
         if sys_out == 0:
-            inherit_keywords(simputfile, evtfile)
+            inherit_keywords(simputfile, evtfile, file_type="evt")
         return sys_out
 
 
@@ -350,8 +362,7 @@ def show_fluxmap(inp, gadget_units=False):
     elif type(inp) is dict:
         flux_map = inp
     else:
-        print("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
-        raise ValueError
+        raise ValueError("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
 
     if gadget_units and flux_map['l_pix'] is not None:
         extent = [
@@ -432,11 +443,9 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
             tag_grading += ")'"
             filter_list.append(tag_grading)
         else:
-            print(error_msg_grading)
-            raise ValueError
+            raise ValueError(error_msg_grading)
     else:
-        print(error_msg_grading)
-        raise ValueError
+        raise ValueError(error_msg_grading)
 
     # Pixel Id
     error_msg_pixid = "ERROR in make_pha. Pixid values must be integer, iterable of integers or None."
@@ -452,11 +461,9 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
             tag_pixid += ")'"
             filter_list.append(tag_pixid)
         else:
-            print(error_msg_pixid)
-            raise ValueError
+            raise ValueError(error_msg_pixid)
     else:
-        print(error_msg_pixid)
-        raise ValueError
+        raise ValueError(error_msg_pixid)
 
     # If rsppath is not provided I try to recover it from the evtfile
     rsppath_ = get_rsppath(evtfile) if rsppath is None else rsppath
@@ -479,6 +486,5 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     else:
         sys_out = os.system(command)
         if sys_out == 0:
-            inherit_keywords(evtfile, phafile)
+            inherit_keywords(evtfile, phafile, file_type="pha")
         return sys_out
-

@@ -148,11 +148,9 @@ cdef add_to_map(double[:, ::1] qty_map, double[:, ::1] nrm_map, float qty, float
     # Checks to avoid bound errors
     # (checks that qty_map and nrm_map have the same shape must be done before calling this method)
     if not (i0 >= 0 and i0 + len_wx <= qty_map.shape[0]):
-        print("ERROR in add_to_map. Out of bounds in 1st index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_map. Out of bounds in 1st index.")
     if not (j0 >= 0 and j0 + len_wy <= qty_map.shape[1]):
-        print("ERROR in add_to_map. Out of bounds in 2nd index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_map. Out of bounds in 2nd index.")
 
     for i in range(len_wx):
         qty_wx = qty * wx[i]
@@ -183,11 +181,9 @@ cdef add_to_map2(double[:, ::1] qty_map, double[:, ::1] qty2_map, double[:, ::1]
     # Checks to avoid bound errors
     # (checks that qty_map, qty2_map and nrm_map have the same shape must be done before calling this method)
     if not (i0 >= 0 and i0 + len_wx <= qty_map.shape[0]):
-        print("ERROR in add_to_map2. Out of bounds in 1st index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_map2. Out of bounds in 1st index.")
     if not (j0 >= 0 and j0 + len_wy <= qty_map.shape[1]):
-        print("ERROR in add_to_map2. Out of bounds in 2nd index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_map2. Out of bounds in 2nd index.")
 
     for i in range(len_wx):
         qty_wx = qty * wx[i]
@@ -218,14 +214,11 @@ cdef add_to_spcube(double[:, :, ::1] spcube, float[:] spectrum, float[:] wx, flo
 
     # Checks to avoid bound errors
     if not (i0 >= 0 and i0 + len_wx <= spcube.shape[0]):
-        print("ERROR in add_to_spcube. Out of bounds in 1st index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_spcube. Out of bounds in 1st index.")
     if not (j0 >= 0 and j0 + len_wy <= spcube.shape[1]):
-        print("ERROR in add_to_spcube. Out of bounds in 2nd index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_spcube. Out of bounds in 2nd index.")
     if nz > spcube.shape[2]:
-        print("ERROR in add_to_spcube. Out of bounds in 3rd index.")
-        raise ValueError
+        raise ValueError("ERROR in add_to_spcube. Out of bounds in 3rd index.")
 
     for i in range(len_wx):
         w = wx[i]
@@ -243,8 +236,7 @@ def make_map_loop(double[:, ::1] qty_map, double[:, ::1] nrm_map, iter_, float[:
     Cython version of make_map loop in mapping.py.
     """
     if not isomorphic(qty_map, nrm_map):
-        print("ERROR in make_map_loop. Arguments qty_map and nrm_map must have the same shape")
-        raise ValueError
+        raise ValueError("ERROR in make_map_loop. Arguments qty_map and nrm_map must have the same shape")
 
     cdef float[:] wx, wy
     cdef int nx = qty_map.shape[0]
@@ -267,8 +259,7 @@ def make_map_loop2(double[:, ::1] qty_map, double[:, ::1] qty2_map, double[:, ::
     Cython version of second make_map loop in mapping.py.
     """
     if not (isomorphic(qty_map, nrm_map) and isomorphic(qty_map, qty2_map)):
-        print("ERROR in make_map_loop2. Arguments qty_map, nrm_map and qty2_map must have the same shape")
-        raise ValueError
+        raise ValueError("ERROR in make_map_loop2. Arguments qty_map, nrm_map and qty2_map must have the same shape")
 
     cdef float[:] wx, wy
     cdef int nx = qty_map.shape[0]

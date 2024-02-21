@@ -102,8 +102,8 @@ def ra_corr(ra, units=None, zero=False):
     elif units_ in ['deg', 'degree']:
         full = 360.  # [deg]
     else:
-        print("ERROR IN ra_corr. Invalid unit: ", units, "Must be one of 'rad', 'radians', 'deg', 'degree' or None")
-        raise ValueError
+        raise ValueError("ERROR IN ra_corr. Invalid unit: ", units, "Must be one of 'rad', 'radians', 'deg', 'degree' "
+                                                                    "or None")
 
     result = ra % full  # in range [0, 2pi[ or [0, 360[
 

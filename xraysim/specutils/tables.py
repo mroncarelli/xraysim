@@ -15,7 +15,7 @@ def nearest_index_sorted(array, value) -> int:
     return idx
 
 
-def largest_index_smaller(array, value) -> int:
+def largest_index_smaller(array, value):
     """
     Returns the largest index whose value is smaller than the input value. Assumes the array is sorted in ascending
     order.
@@ -33,7 +33,7 @@ def largest_index_smaller(array, value) -> int:
         return None
 
 
-def smallest_index_larger(array, value) -> int:
+def smallest_index_larger(array, value):
     """
     Returns the smallest index whose value is larger than the input value. Assumes the array is sorted in ascending
     order.
@@ -68,8 +68,7 @@ def reversed_fits_axis_order(inp) -> bool:
     elif input_type == fits.hdu.HDUList:
         hdulist = inp
     else:
-        print("Invalid input in reversed_fits_axis_order: must be a string or HDUList")
-        raise ValueError
+        raise ValueError("Invalid input in reversed_fits_axis_order: must be a string or HDUList")
 
     if hdulist[0].header.comments['SIMPLE'].lower().startswith('written by idl'):
         result = True
@@ -105,8 +104,7 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
         try:
             z0, z1 = float(z_cut[0]), float(z_cut[1])
         except BaseException:
-            print("Invalid tcut: ", z_cut, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid tcut: ", z_cut, "Must be a 2d number vector")
         i0, i1 = largest_index_smaller(z, z0), smallest_index_larger(z, z1)
         if i0 is None:
             i0 = 0  # TODO: WARNING
@@ -119,8 +117,7 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
         try:
             t0, t1 = float(temperature_cut[0]), float(temperature_cut[1])
         except BaseException:
-            print("Invalid tcut: ", temperature_cut, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid tcut: ", temperature_cut, "Must be a 2d number vector")
         i0, i1 = largest_index_smaller(temperature, t0), smallest_index_larger(temperature, t1)
         if i0 is None:
             i0 = 0  # TODO: WARNING
@@ -137,8 +134,7 @@ def read_spectable(filename: str, z_cut=None, temperature_cut=None, energy_cut=N
         try:
             e0, e1 = float(energy_cut[0]), float(energy_cut[1])
         except BaseException:
-            print("Invalid tcut: ", energy_cut, "Must be a 2d number vector")
-            raise ValueError
+            raise ValueError("Invalid tcut: ", energy_cut, "Must be a 2d number vector")
         i0, i1 = largest_index_smaller(energy, e0), smallest_index_larger(energy, e1)
         if i0 is None:
             i0 = 0  # TODO: WARNING
