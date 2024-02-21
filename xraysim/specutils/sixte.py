@@ -225,12 +225,14 @@ def cube2simputfile(spcube: dict, simput_file: str, tag='', pos=(0., 0.), npix=N
     return hdulist.writeto(simput_file, overwrite=overwrite)
 
 
-def inherit_keywords(input_file: str, output_file: str) -> int:
+def inherit_keywords(input_file: str, output_file: str, file_type=None) -> int:
     """
     Writes a list of keywords (if present) from the Primary header of the input file into the Primary header of the
     output file.
     :param input_file: (str) Input FITS file.
     :param output_file: (str) Output FITS file that will be modified.
+    :param file_type: (str) Output file type: can be either "evt", "evtlist" or "pha". Default None, i.e. derived
+    from file extension.
     :return: (int) System output of the writing operation
     """
     keyword_list = ['INFO', 'SIM_TYPE', 'SIM_FILE', 'SP_FILE', 'PROJ', 'X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN',
@@ -238,6 +240,19 @@ def inherit_keywords(input_file: str, output_file: str) -> int:
                     'NSAMPLE', 'NH', 'RA_C', 'DEC_C', 'FLUXSC', 'T_CUT']
     header_inp = fits.getheader(input_file, 0)
     hdulist = fits.open(output_file)
+
+    if type(file_type) == str:
+        dummy = file_type.lower().strip()
+        file_type_ = dummy if dummy in ["evt", "evtlist", "pha"] else output_file.split(".")[-1]
+    else:
+        file_type_ = output_file.split(".")[-1]
+
+    if file_type_ in ["evt", "evtlist"]:
+        hdulist[0].header.set("SIMPUT_F", input_file)
+    elif file_type_ == "pha":
+        hdulist[0].header.set("EVT_FILE", input_file)
+    else:
+        hdulist[0].header.set("PARENT_F", input_file, "UNKNOWN_TYPE")
 
     for key in keyword_list:
         if key in header_inp:
@@ -315,7 +330,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     else:
         sys_out = os.system(command)
         if sys_out == 0:
-            inherit_keywords(simputfile, evtfile)
+            inherit_keywords(simputfile, evtfile, file_type="evt")
         return sys_out
 
 
@@ -479,6 +494,5 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     else:
         sys_out = os.system(command)
         if sys_out == 0:
-            inherit_keywords(evtfile, phafile)
+            inherit_keywords(evtfile, phafile, file_type="pha")
         return sys_out
-
