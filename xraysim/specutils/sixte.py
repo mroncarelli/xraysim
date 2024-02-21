@@ -234,9 +234,9 @@ def inherit_keywords(input_file: str, output_file: str, file_type=None) -> int:
     from file extension.
     :return: (int) System output of the writing operation
     """
-    keyword_list = ['INFO', 'SIM_TYPE', 'SIM_FILE', 'SP_FILE', 'PROJ', 'X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN',
-                    'Z_MAX', 'Z_COS', 'D_C', 'NPIX', 'NENE', 'ANG_PIX', 'ANG_MAP', 'ISO_T', 'SMOOTH', 'VPEC',
-                    'NSAMPLE', 'NH', 'RA_C', 'DEC_C', 'FLUXSC', 'T_CUT']
+    keyword_list = ['INFO', 'SIM_TYPE', 'SIM_FILE', 'SP_FILE', 'SIMPUT_F', 'PARENT_F', 'PROJ', 'X_MIN', 'X_MAX',
+                    'Y_MIN', 'Y_MAX', 'Z_MIN', 'Z_MAX', 'Z_COS', 'D_C', 'NPIX', 'NENE', 'ANG_PIX', 'ANG_MAP', 'ISO_T',
+                    'SMOOTH', 'VPEC', 'NSAMPLE', 'NH', 'RA_C', 'DEC_C', 'FLUXSC', 'T_CUT']
     header_inp = fits.getheader(input_file, 0)
     hdulist = fits.open(output_file)
 
