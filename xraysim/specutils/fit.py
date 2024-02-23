@@ -54,19 +54,23 @@ def get_param_names(model: xsp.Model) -> list:
 
 
 def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False, False, False, False, False),
-            method="chi", niterations=100, criticaldelta=1.e-3) -> xsp.Model:
+            method="chi", niterations=100, criticaldelta=1.e-3, rmf=None, arf=None) -> xsp.Model:
     """
-    Generic fit
-    TODO
-    :param spectrum:
-    :param model:
-    :param erange:
-    :param start:
-    :param fixed:
-    :param method:
-    :param niterations:
-    :param criticaldelta:
-    :return:
+    Generic procedure to fit spectra.
+    :param spectrum: (str or xsp.Spectrum) Spectrum to be fitted.
+    :param model: (str) Model used for the fit.
+    :param erange: (float, float) Energy range [keV]. If the first (second) elements is None the lower (higher) energy
+        limit is not set. Default (None, None), i.e. all energy channels are considered.
+    :param start: (float n) Starting parameters for the fit. The size depends on the model.
+    :param fixed: (bool n) Indicates whether a parameter is fixed (True) or free (False). Default all False.
+    :param method: (str) Fitting method, can be 'chi' or 'cstat'. Default 'chi'.
+    :param niterations: (int) Number of iterations. Default 100.
+    :param criticaldelta: (float) The absolute change in the fit statistic between iterations, less than which the fit
+        is deemed to have converged.
+    :param rmf: (str) Response matrix file. Default None, i.e. it is derived from the spectrum.
+    :param arf: (str) Ancillary response file. Default None, i.e. it is derived from the spectrum.
+    :return: (xsp.Model) An Xspec model containing the fit result, including a fitResult property with the summary of
+        the fit results stored in a dictionary.
     """
 
     if type(spectrum) == str:
@@ -108,6 +112,12 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     # Critical delta
     if criticaldelta is not None:
         xsp.Fit.criticalDelta = criticaldelta
+
+    if rmf is not None:
+        spectrum_.response.rmf = rmf
+
+    if arf is not None:
+        spectrum_.response.arf = arf
 
     # Fitting
     xsp.Fit.perform()
