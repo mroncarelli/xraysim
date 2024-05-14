@@ -77,17 +77,16 @@ def assert_generic_object_matches_reference(inp, reference) -> None:
 
     assert type(inp) == type(reference)
 
-    # Checks if the input object is iterable
-    if hasattr(inp, '__iter__'):
-        assert len(inp) == len(reference)
-        # Case of iterable with only one element (i.e. strings
-        if len(inp) == 1:
-            assert inp[0] == pytest.approx(reference[0])
-        else:
-            for inp_element, reference_element in zip(inp, reference):
-                assert_generic_object_matches_reference(inp_element, reference_element)
-    else:
-        assert inp == pytest.approx(reference)
+    try:
+        check = bool(np.all(inp == pytest.approx(reference)))
+        assert check
+    except ValueError:
+        # If the elements in inp are also iterable the previous check will lead to an error. In this case it is
+        # necessary to evaluate each element separately. This may require a recursive call.
+        for obj, obj_reference in zip(inp, reference):
+            assert_generic_object_matches_reference(obj, obj_reference)
+
+    return None
 
 
 def assert_fits_rec_matches_reference(inp: fits.FITS_rec, reference: fits.FITS_rec) -> None:
