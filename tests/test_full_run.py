@@ -66,17 +66,61 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
     return None
 
 
+def assert_generic_object_matches_reference(inp, reference) -> None:
+    """
+    Checks that a generic object matches reference. This function works for objects whose elements may be iterable, by
+    calling itself recursively.
+    :param inp: (obj) Object to check.
+    :param reference: (obj) Reference object.
+    :return: None
+    """
+
+    assert type(inp) == type(reference)
+
+    # Checks if the input object is iterable
+    if hasattr(inp, '__iter__'):
+        assert len(inp) == len(reference)
+        # Case of iterable with only one element (i.e. strings
+        if len(inp) == 1:
+            assert inp[0] == pytest.approx(reference[0])
+        else:
+            for inp_element, reference_element in zip(inp, reference):
+                assert_generic_object_matches_reference(inp_element, reference_element)
+    else:
+        assert inp == pytest.approx(reference)
+
+
+def assert_fits_rec_matches_reference(inp: fits.FITS_rec, reference: fits.FITS_rec) -> None:
+    """
+    Checks that a FITS_rec object (i.e. FITS table) matches reference.
+    :param inp: (FITS_rec) FITS table to check.
+    :param reference: (FITS_rec) Reference FITS table.
+    :return: None
+    """
+
+    assert len(inp) == len(reference)
+    for rec, rec_reference in zip(inp, reference):
+        for obj, obj_reference in zip(rec, rec_reference):
+            assert_generic_object_matches_reference(obj, obj_reference)
+
+    return None
+
+
 def assert_hdu_list_matches_reference(inp: fits.hdu.hdulist.HDUList, reference: fits.hdu.hdulist.HDUList) -> None:
     """
     Checks that a speccube file matches a reference one
     :param inp: (HDUList) HDUList to check.
     :param reference: (HDUList) Reference HDUList.
-    :return: (bool) True if the HDUList content matches the reference, False otherwise.
+    :return: None
     """
 
     for hdu, hdu_reference in zip(inp, reference):
         assert_header_has_all_keywords_and_values_of_reference(hdu.header, hdu_reference.header)
-        assert bool(np.all(hdu.data == hdu_reference.data))
+        if type(hdu.data) == fits.FITS_rec:
+            assert type(hdu.data) == fits.FITS_rec
+            assert_fits_rec_matches_reference(hdu.data, hdu_reference.data)
+        else:
+            assert bool(np.all(hdu.data == pytest.approx(hdu_reference.data)))
 
     return None
 
