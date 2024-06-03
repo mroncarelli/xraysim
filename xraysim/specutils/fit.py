@@ -7,6 +7,17 @@ xsp.Xset.chatter = 0
 xsp.Xset.allowNewAttributes = True
 
 
+def xspec_clear() -> None:
+    """
+    Deletes all models, data and chains from the Xspec session.
+    :return: None
+    """
+    xsp.AllModels.clear()
+    xsp.AllData.clear()
+    xsp.AllChains.clear()
+    return None
+
+
 def ignore_string(x) -> str:
     """
     Turns a variable containing a number into a string that contains a dot ('.') for floating points.
@@ -72,6 +83,8 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     :return: (xsp.Model) An Xspec model containing the fit result, including a fitResult property with the summary of
         the fit results stored in a dictionary.
     """
+
+    xspec_clear()
 
     if type(spectrum) == str:
         spectrum_ = xsp.Spectrum(spectrum)  # Pha file
