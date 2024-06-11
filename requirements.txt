@@ -1,8 +1,8 @@
-numpy==1.25.2
-tqdm==4.66.1
-setuptools==63.4.1
-h5py==3.9.0
-astropy==5.3.3
-pytest==7.4.2
-cython==3.0.2
-matplotlib==3.7.3
+numpy==1.26.4
+tqdm==4.66.4
+setuptools==69.5.1
+h5py==3.11.0
+astropy==6.1.0
+pytest==8.2.0
+cython==3.0.10
+matplotlib==3.8.4
