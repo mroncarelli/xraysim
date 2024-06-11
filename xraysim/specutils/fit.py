@@ -41,9 +41,10 @@ def ignore(spectrum: xsp.Spectrum, erange=(None, None)) -> None:
     :return: None
     """
     if len(erange) >= 2:
-        if erange[1] <= erange[0]:
-            print("ERROR in ignore: invalid input:", erange, "Second argument must be larger than the first")
-            raise ValueError
+        if erange[0] is not None and erange[1] is not None:
+            if erange[1] <= erange[0]:
+                print("ERROR in ignore: invalid input:", erange, "Second argument must be larger than the first")
+                raise ValueError
 
     # Setting lower energy limit
     if erange[0] is not None:
@@ -65,7 +66,8 @@ def get_param_names(model: xsp.Model) -> list:
 
 
 def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False, False, False, False, False),
-            method="chi", niterations=100, criticaldelta=1.e-3, rmf=None, arf=None) -> xsp.Model:
+            method="chi", niterations=100, criticaldelta=1.e-3, bkg='USE_DEFAULT', rmf='USE_DEFAULT',
+            arf='USE_DEFAULT') -> xsp.Model:
     """
     Generic procedure to fit spectra.
     :param spectrum: (str or xsp.Spectrum) Spectrum to be fitted.
@@ -78,8 +80,9 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     :param niterations: (int) Number of iterations. Default 100.
     :param criticaldelta: (float) The absolute change in the fit statistic between iterations, less than which the fit
         is deemed to have converged.
-    :param rmf: (str) Response matrix file. Default None, i.e. it is derived from the spectrum.
-    :param arf: (str) Ancillary response file. Default None, i.e. it is derived from the spectrum.
+    :param bkg: (str) Background file. Default 'USE_DEFAULT', i.e. it is derived from the spectrum.
+    :param rmf: (str) Response matrix file. Default 'USE_DEFAULT', i.e. it is derived from the spectrum.
+    :param arf: (str) Ancillary response file. Default 'USE_DEFAULT', i.e. it is derived from the spectrum.
     :return: (xsp.Model) An Xspec model containing the fit result, including a fitResult property with the summary of
         the fit results stored in a dictionary.
     """
@@ -87,7 +90,7 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     xspec_clear()
 
     if type(spectrum) == str:
-        spectrum_ = xsp.Spectrum(spectrum)  # Pha file
+        spectrum_ = xsp.Spectrum(spectrum, backFile=bkg, respFile=rmf, arfFile=arf)  # Pha file
     elif type(spectrum) == xsp.Spectrum:
         spectrum_ = spectrum
     else:
@@ -125,12 +128,6 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     # Critical delta
     if criticaldelta is not None:
         xsp.Fit.criticalDelta = criticaldelta
-
-    if rmf is not None:
-        spectrum_.response.rmf = rmf
-
-    if arf is not None:
-        spectrum_.response.arf = arf
 
     # Fitting
     xsp.Fit.perform()
