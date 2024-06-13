@@ -20,6 +20,7 @@ simputFile = referenceDir + "simput_file_created_for_test.simput"
 evtFile = referenceDir + "evt_file_created_for_test.evt"
 phaFile = referenceDir + "pha_file_created_for_test.pha"
 
+
 def test_full_run():
     """
     A full run from Gadget snapshot to pha file, checking that each intermediate step produces a file compatible with
