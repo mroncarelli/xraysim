@@ -5,11 +5,12 @@ directory. They are all meant to be both light and representative of the ones us
 
 ### `bapec_fakeit_for_test.pha`  
 This file was created with `fakeit` using the `bapec` model (*kT* = 5 keV, *Abund* = 0.3 Z<sub>Sun</sub>, *z* = 0.2, 
-*b* = 300 km/s, *norm* = 0.1). The response files are `LAD_M4_v2.0.rmf` and `LAD_M4_v2.0.arf`, the exposure was set to 
+*b* = 300 km/s, *norm* = 0.1). The response files are `resolve_h5ev_2019a.rmf` and 
+`resolve_pnt_heasim_noGV_20190701.arf`, the exposure was set to 
 1500 s.  
 
-### `LAD_M4_v2.0.arf`, `LAD_M4_v2.0.rmf`  
-*LOFT-LAD* response files. They was chosen between the ones available in Xspec as they are the largest ones below 10MB
+### `resolve_pnt_heasim_noGV_20190701.arf`, `resolve_h5ev_2019a.rmf`  
+*XRISM-Resolve* response files. They were chosen between the ones available in Xspec as they are the largest ones below 10MB
 (the Github file size limit).  
 
 ### `snap_Gadget_sample`, `snap_sample.hdf5`
