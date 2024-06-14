@@ -65,6 +65,21 @@ def get_param_names(model: xsp.Model) -> list:
     return [model(model.startParIndex + index).name for index in range(model.nParameters)]
 
 
+def set_fit_result(model: xsp.Model) -> None:
+    model.fitResult = {
+        "parnames": get_param_names(model),
+        "values": [model(model.startParIndex + index).values[0] for index in range(model.nParameters)],
+        "sigma": [model(model.startParIndex + index).sigma for index in range(model.nParameters)],
+        "statistic": xsp.Fit.statistic,
+        "dof": xsp.Fit.dof,
+        "rstat": xsp.Fit.statistic / (xsp.Fit.dof-1),
+        "covariance": xsp.Fit.covariance,
+        "method": xsp.Fit.statMethod,
+        "nIterations": xsp.Fit.nIterations,
+        "criticalDelta": xsp.Fit.criticalDelta
+    }
+
+
 def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False, False, False, False, False),
             method="chi", niterations=100, criticaldelta=1.e-3, bkg='USE_DEFAULT', rmf='USE_DEFAULT',
             arf='USE_DEFAULT') -> xsp.Model:
@@ -101,8 +116,6 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
 
     # Model
     model_ = xsp.Model(model)
-    param_list = get_param_names(model_)
-    index_start = model_.startParIndex
 
     # Energy range
     ignore(spectrum_, erange)
@@ -110,12 +123,12 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     # Initial conditions
     if start is not None:
         for index, par in enumerate(start):
-            model_(index_start + index).values = par
+            model_(model_.startParIndex + index).values = par
 
     # Fixed/free parameter
     if fixed is not None:
         for index, frozen in enumerate(fixed):
-            model_(index_start + index).frozen = frozen
+            model_(model_.startParIndex + index).frozen = frozen
 
     # Statistic method
     if method is not None:
@@ -133,16 +146,6 @@ def generic(spectrum, model: str, erange=(None, None), start=None, fixed=(False,
     xsp.Fit.perform()
 
     # Output
-    model_.fitResult = {
-        "parnames": param_list,
-        "values": [model_(index_start + index).values[0] for index in range(model_.nParameters)],
-        "sigma": [model_(index_start + index).sigma for index in range(model_.nParameters)],
-        "statistic": xsp.Fit.statistic,
-        "dof": xsp.Fit.dof,
-        "covariance": xsp.Fit.covariance,
-        "method": method,
-        "nIterations": niterations,
-        "criticalDelta": criticaldelta
-    }
+    set_fit_result(model_)
 
     return model_

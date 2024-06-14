@@ -1,8 +1,3 @@
-import sys
-import os
-sys.path.append(os.environ.get("HEADAS") + "/lib/python")
-import xspec as xsp
-
 from xraysim.specutils.fit import *
 
 indir = os.environ.get('XRAYSIM') + '/tests/inp/'
@@ -32,5 +27,5 @@ def test_bapec_fit_start_with_correct_parameters():
     # Fitting the bapec spectrum produced with fakeit, and starting from the correct parameters should
     # lead to the correct result, within tolerance
     true_pars = (5., 0.3, 0.2, 300., 0.1)
-    fit_result = generic(spectrum_bapec, "bapec", start=(5., 0.3, 0.25, 300., 0.1), method="cstat", rmf=rmf, arf=arf)
+    fit_result = generic(spectrum_bapec, "bapec", start=true_pars, method="cstat", rmf=rmf, arf=arf)
     assert_fit_results_within_tolerance(fit_result, true_pars, tol=2.)
