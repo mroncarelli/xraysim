@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.environ.get("HEADAS") + "/lib/python")
-# TODO: the three lines above are necessary only to make the code work in IntelliJ (useful for debugging)
 import xspec as xsp
 xsp.Xset.chatter = 0
 xsp.Xset.allowNewAttributes = True

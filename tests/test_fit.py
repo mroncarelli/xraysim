@@ -1,15 +1,16 @@
+import os
+
 from xraysim.specutils.fit import *
 
-indir = os.environ.get('XRAYSIM') + '/tests/inp/'
-
-spectrum_bapec = indir + 'bapec_fakeit_for_test.pha'
-rmf = indir + 'resolve_h5ev_2019a.rmf'
-arf = indir + 'resolve_pnt_heasim_noGV_20190701.arf'
+input_dir = os.environ.get('XRAYSIM') + '/tests/inp/'
+spectrum_bapec = input_dir + 'bapec_fakeit_for_test.pha'
+rmf = input_dir + 'resolve_h5ev_2019a.rmf'
+arf = input_dir + 'resolve_pnt_heasim_noGV_20190701.arf'
 
 
 def assert_fit_results_within_tolerance(fit_result: xsp.Model, reference, tol=1.) -> None:
     """
-    Checks that an Xspec model containing a fit result matches the reference values within
+    Checks that a Xspec model containing a fit result matches the reference values within
     tolerance
     :param fit_result: (xspec.Model) Xspec model containing the fit results
     :param reference: (float, tuple) Reference values
