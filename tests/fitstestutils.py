@@ -1,11 +1,12 @@
-import pytest
-import numpy as np
 import os
 import warnings
+
+import numpy as np
+import pytest
 from astropy.io import fits
 
 # List of environment variables that may appear in the path of files written in FITS headers
-environmentVariablesList = ['XRAYSIM', 'SIXTE_INSTRUMENTS']
+environmentVariablesList = ['XRAYSIM', 'SIXTE']
 environmentVariablesPathList = [os.environ.get(envVar) for envVar in environmentVariablesList]
 
 

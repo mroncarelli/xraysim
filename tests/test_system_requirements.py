@@ -1,9 +1,9 @@
-from importlib.util import find_spec
 import os
 from distutils.spawn import find_executable
+from importlib.util import find_spec
 
 commandList = ['xifupipeline', 'makespec']
-envVariableList = ['XRAYSIM', 'SIXTE_INSTRUMENTS']
+envVariableList = ['XRAYSIM', 'SIXTE']
 packageList = ['xspec']
 
 

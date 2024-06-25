@@ -1,14 +1,15 @@
-import pytest
 import os
+
+import pytest
 from astropy.io import fits
 
-from xraysim.specutils.sixte import cube2simputfile
-from xraysim.sphprojection.mapping import make_speccube
-from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.gadgetutils.phys_const import keV2K
+from xraysim.specutils.sixte import cube2simputfile
+from xraysim.specutils.tables import read_spectable, calc_spec
+from xraysim.sphprojection.mapping import make_speccube
 from .fitstestutils import assert_hdu_list_matches_reference
 
-environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE_INSTRUMENTS')]
+environmentVariablesPathList = [os.environ.get('XRAYSIM'), os.environ.get('SIXTE')]
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'
 snapshotFile = inputDir + 'snap_Gadget_sample'

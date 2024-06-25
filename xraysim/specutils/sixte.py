@@ -1,23 +1,27 @@
+import copy as cp
+import json
+import os
+
+import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
-from xraysim.specutils import absorption
-import copy as cp
+
 from xraysim.gadgetutils import phys_const
-import os
-import json
-import matplotlib.pyplot as plt
+from xraysim.specutils import absorption
 
 # Initialization of global variables
 instruments_config_file = os.path.join(os.path.dirname(__file__), 'sixte_instruments.json')
 with open(instruments_config_file) as file:
     json_data = json.load(file)
 
+sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
+
 instruments = {}
 for instr in json_data:
     instruments[instr['name'].lower()] = {
         'command': instr.get('command'),
-        'xml': os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['xml'],
-        'adv_xml': os.environ.get('SIXTE_INSTRUMENTS') + '/' + instr['subdir'] + '/' + instr['adv_xml']
+        'xml': sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['xml'],
+        'adv_xml': sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
     }
 
 del file, json_data, instr
