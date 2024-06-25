@@ -10,7 +10,7 @@ from xraysim.gadgetutils import phys_const
 from xraysim.specutils import absorption
 
 # Initialization of global variables
-instruments_config_file = os.path.join(os.path.dirname(__file__), 'sixte_instruments.json')
+instruments_config_file = os.path.join(os.path.dirname(__file__), '../../sixte_instruments.json')
 with open(instruments_config_file) as file:
     json_data = json.load(file)
 
@@ -369,19 +369,19 @@ def show_fluxmap(inp, gadget_units=False):
         raise ValueError("ERROR in show_fluxmap. Invalid input type, must be either str or dict")
 
     if gadget_units and flux_map['l_pix'] is not None:
-        extent = [
+        extent = (
             flux_map['x'][0] - 0.5 * flux_map['l_pix'],
             flux_map['x'][-1] + 0.5 * flux_map['l_pix'],
             flux_map['y'][0] - 0.5 * flux_map['l_pix'],
             flux_map['y'][-1] + 0.5 * flux_map['l_pix']
-        ]
+        )
     else:
-        extent = [
+        extent = (
             flux_map['ra'][0] - 0.5 * flux_map['ang_pix'],
             flux_map['ra'][-1] + 0.5 * flux_map['ang_pix'],
             flux_map['dec'][0] - 0.5 * flux_map['ang_pix'],
             flux_map['dec'][-1] + 0.5 * flux_map['ang_pix']
-        ]
+        )
     plt.imshow(flux_map.get('data').transpose(), origin='lower', extent=extent)
     plt.show()
     return None
