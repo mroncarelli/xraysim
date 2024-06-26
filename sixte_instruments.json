@@ -26,5 +26,12 @@
     "command": "xifupipeline",
     "xml": "resolve_baseline_test.xml",
     "adv_xml": "resolve_detector_test.xml"
+  },
+  {
+    "name": "erosita",
+    "subdir": "srg/erosita",
+    "command": "erosim",
+    "xml": "",
+    "adv_xml": ""
   }
 ]
