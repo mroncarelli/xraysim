@@ -6,19 +6,37 @@ sys.path.append(os.environ.get("HEADAS") + "/lib/python")
 
 import xspec as xsp
 
-xsp.Xset.chatter = 0
 xsp.Xset.allowNewAttributes = True
+xsp.Xset.chatter = 0
 
 
-def xspec_clear() -> None:
-    """
-    Deletes all models, data and chains from the Xspec session.
-    :return: None
-    """
-    xsp.AllModels.clear()
-    xsp.AllData.clear()
-    xsp.AllChains.clear()
-    return None
+def save_notice_state(self):
+    self.noticeState = []
+    for i in range(self.nSpectra):
+        self.noticeState.append(self(i + 1).noticed)
+
+
+xsp.DataManager.saveNoticeState = save_notice_state
+
+
+def restore_notice_state(self):
+    for i in range(self.nSpectra):
+        for channel in self.noticeState[i]:
+            self(i + 1).notice(str(channel))
+    del self.noticeState
+
+
+xsp.DataManager.restoreNoticeState = restore_notice_state
+
+
+def highlight_spectrum(self, index):
+    self.saveNoticeState()
+    for i in range(1, self.nSpectra + 1):
+        if i != index:
+            self(i).ignore("**")
+
+
+xsp.DataManager.highlightSpectrum = highlight_spectrum
 
 
 def ignore_string(x) -> str:
@@ -61,7 +79,6 @@ def ignore(spectrum: xsp.Spectrum, erange=(None, None)) -> None:
 
 class SpecFit(xsp.Model):
     def __init__(self, spectrum, model, bkg='USE_DEFAULT', rmf='USE_DEFAULT', arf='USE_DEFAULT', setPars=None):
-        xspec_clear()
         xsp.Model.__init__(self, model, sourceNum=1, setPars=setPars)
         self.spectrum = xsp.Spectrum(spectrum, backFile=bkg, respFile=rmf, arfFile=arf)
 
@@ -135,4 +152,6 @@ class SpecFit(xsp.Model):
             xsp.Fit.criticalDelta = criticaldelta
 
         # Fitting
+        xsp.AllData.highlightSpectrum(self.spectrum.index)
         xsp.Fit.perform()
+        xsp.AllData.restoreNoticeState()

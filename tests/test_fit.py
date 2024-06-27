@@ -35,8 +35,6 @@ def test_bapec_fit_start_with_correct_parameters():
     true_pars = (5., 0.3, 0.2, 300., 0.1)
     specfit = SpecFit(spectrum_bapec, "bapec", rmf=rmf, arf=arf)
     specfit.fit(start=true_pars, method="cstat")
-    xsp.AllModels.clear()
-    xsp.AllData.clear()
     #    xsp.Plot.device = "/xs"
     #    xsp.Plot("ld resid")
     assert_fit_results_within_tolerance(specfit, true_pars, tol=2.)
