@@ -10,26 +10,75 @@ xsp.Xset.allowNewAttributes = True
 xsp.Xset.chatter = 0
 
 
+def notice_list_split(notice) -> list:
+    """
+    Splits a list with notice channels into intervals to be used with the notice command.
+    :param notice: (list of int) Notice channels, in increasing order
+    :return: (list of tuples) List containg tuples with the starting and endpoint of the intervals
+    """
+    result = []
+    if notice is not None:
+        index = 0
+        start = notice[index]
+        if len(notice) == 1:
+            result.append((notice[0], notice[0]))
+        else:
+            while index < len(notice) - 1:
+                index += 1
+                while notice[index] == notice[index - 1] + 1 and index < len(notice) - 1:
+                    index += 1
+                if index != len(notice) - 1:
+                    result.append((start, notice[index - 1]))
+                    start = notice[index]
+                else:
+                    if notice[index] == notice[index - 1] + 1:
+                        result.append((start, notice[index]))
+                    else:
+                        result.append((start, notice[index - 1]))
+                        result.append((notice[index], notice[index]))
+
+    return result
+
+
 def save_notice_state(self):
+    """
+    Saves the state of the notice arrays in the xsp.AllData object by creating the attribute noticeState. Useful to
+    restore it after the fit has been performed.
+    :param self: (xspec.DataManager) xspec.AllData
+    """
     self.noticeState = []
-    for i in range(self.nSpectra):
-        self.noticeState.append(self(i + 1).noticed)
+    for index in range(self.nSpectra):
+        self.noticeState.append(self(index + 1).noticed)
 
 
 xsp.DataManager.saveNoticeState = save_notice_state
 
 
 def restore_notice_state(self):
-    for i in range(self.nSpectra):
-        for channel in self.noticeState[i]:
-            self(i + 1).notice(str(channel))
+    """
+    Restores the state of the notice arrays in the xsp.AllData object. Deletes the noticeState attribute after.
+    :param self: (xspec.DataManager) xspec.AllData
+    """
+    for index in range(self.nSpectra):
+        intervals_list = notice_list_split(self.noticeState[index])
+        if len(intervals_list) >= 1:
+            command_string = str(intervals_list[0][0]) + '-' + str(intervals_list[0][1])
+            for i in range(1, len(intervals_list)):
+                command_string += ',' + str(intervals_list[i][0]) + '-' + str(intervals_list[i][1])
+            self(index + 1).notice(command_string)
+
     del self.noticeState
 
 
 xsp.DataManager.restoreNoticeState = restore_notice_state
 
 
-def highlight_spectrum(self, index):
+def highlight_spectrum(self, index=1):
+    """
+    Highlights a single spectrum to prepare it for the fit by ignoring all channel of all the other spectra
+    :param self: (xspec.DataManager) xspec.AllData
+    :param index: Index of the spectrum, default 1
+    """
     self.saveNoticeState()
     for i in range(1, self.nSpectra + 1):
         if i != index:
@@ -79,8 +128,8 @@ def ignore(spectrum: xsp.Spectrum, erange=(None, None)) -> None:
 
 class SpecFit(xsp.Model):
     def __init__(self, spectrum, model, bkg='USE_DEFAULT', rmf='USE_DEFAULT', arf='USE_DEFAULT', setPars=None):
-        xsp.Model.__init__(self, model, sourceNum=1, setPars=setPars)
         self.spectrum = xsp.Spectrum(spectrum, backFile=bkg, respFile=rmf, arfFile=arf)
+        xsp.Model.__init__(self, model, setPars=setPars)
 
     def parnames(self) -> list:
         """
