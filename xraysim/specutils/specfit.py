@@ -8,6 +8,9 @@ import xspec as xsp
 
 xsp.Xset.allowNewAttributes = True
 xsp.Xset.chatter = 0
+xsp.Xset.addModelString("APECROOT", "3.0.9")
+xsp.Xset.addModelString("APECTHERMAL", "yes")
+xsp.Xset.abund = "angr"
 
 
 def notice_list_split(notice) -> list:
@@ -40,46 +43,55 @@ def notice_list_split(notice) -> list:
     return result
 
 
-def save_notice_state(self):
+def save_xspec_state(self) -> None:
     """
-    Saves the state of the notice arrays in the xsp.AllData object by creating the attribute noticeState. Useful to
-    restore it after the fit has been performed.
-    :param self: (xspec.DataManager) xspec.AllData
+    Saves the state of some global Xspec variables before fitting, ready to be restored after the fit has been
+    performed. In detail, it saves the notice arrays in the xspec.AllData object by creating the `noticeState`
+    attribute, and the name of the active Model in the xspec.AllModels object by creating the `activeModel` attribute.
+    :param self: (xspec.XspecSettings) xspec.Xset
+    :return: None
     """
     self.noticeState = []
-    for index in range(self.nSpectra):
-        self.noticeState.append(self(index + 1).noticed)
+    for index in range(xsp.AllData.nSpectra):
+        self.noticeState.append(xsp.AllData(index + 1).noticed)
+
+    self.activeModel = xsp.AllModels.sources[1]
 
 
-xsp.DataManager.saveNoticeState = save_notice_state
+xsp.XspecSettings.saveXspecState = save_xspec_state
 
 
-def restore_notice_state(self):
+def restore_xspec_state(self) -> None:
     """
-    Restores the state of the notice arrays in the xsp.AllData object. Deletes the noticeState attribute after.
-    :param self: (xspec.DataManager) xspec.AllData
+    Restores the state of the notice arrays in `xspec.AllData` object and of the active Model in `xspec.AllModels`.
+    Deletes the `noticeState` and `activeModel` attributes from `xspec.Xset` after.
+    :param (xspec.XspecSettings) xspec.Xset
+    :return: None
     """
-    for index in range(self.nSpectra):
+    for index in range(xsp.AllData.nSpectra):
         intervals_list = notice_list_split(self.noticeState[index])
         if len(intervals_list) >= 1:
             command_string = str(intervals_list[0][0]) + '-' + str(intervals_list[0][1])
             for i in range(1, len(intervals_list)):
                 command_string += ',' + str(intervals_list[i][0]) + '-' + str(intervals_list[i][1])
-            self(index + 1).notice(command_string)
+            xsp.AllData(index + 1).notice(command_string)
 
     del self.noticeState
 
+    xsp.AllModels.setActive(xsp.Xset.activeModel)
+    del xsp.Xset.activeModel
 
-xsp.DataManager.restoreNoticeState = restore_notice_state
+
+xsp.XspecSettings.restoreXspecState = restore_xspec_state
 
 
-def highlight_spectrum(self, index=1):
+def highlight_spectrum(self, index=1) -> None:
     """
     Highlights a single spectrum to prepare it for the fit by ignoring all channel of all the other spectra
     :param self: (xspec.DataManager) xspec.AllData
     :param index: Index of the spectrum, default 1
+    :return: None
     """
-    self.saveNoticeState()
     for i in range(1, self.nSpectra + 1):
         if i != index:
             self(i).ignore("**")
@@ -129,15 +141,31 @@ def ignore(spectrum: xsp.Spectrum, erange=(None, None)) -> None:
 class SpecFit(xsp.Model):
     def __init__(self, spectrum, model, bkg='USE_DEFAULT', rmf='USE_DEFAULT', arf='USE_DEFAULT', setPars=None):
         self.spectrum = xsp.Spectrum(spectrum, backFile=bkg, respFile=rmf, arfFile=arf)
-        xsp.Model.__init__(self, model, setPars=setPars)
+        xsp.Model.__init__(self, model, modName='SpecFit' + str(self.spectrum.index), setPars=setPars)
 
-    def parnames(self) -> list:
+    def get_parnames(self) -> tuple:
         """
-        Return the list of model parameter names.
+        Returns a tuple with the model parameter names.
         :param self: (ModelFit)
-        :return: (list) List with string containing the parameter names.
+        :return: (tuple) Tuple of strings containing the parameter names.
         """
-        return [self(self.startParIndex + index).name for index in range(self.nParameters)]
+        return tuple(self(self.startParIndex + index).name for index in range(self.nParameters))
+
+    def get_parvals(self) -> tuple:
+        """
+        Returns a tuple with the model parameter values.
+        :param self: (ModelFit)
+        :return: (tuple) Tuple containing the parameter values.
+        """
+        return tuple(self(self.startParIndex + index).values[0] for index in range(self.nParameters))
+
+    def get_errors(self) -> tuple:
+        """
+        Returns a tuple with the model parameter errors.
+        :param self: (ModelFit)
+        :return: (tuple) Tuple containing the parameter errors.
+        """
+        return tuple(self(self.startParIndex + index).sigma for index in range(self.nParameters))
 
     def fitresult(self) -> dict:
         """
@@ -145,9 +173,9 @@ class SpecFit(xsp.Model):
         :return: (dict) The fit result.
         """
         return {
-            "parnames": self.parnames(),
-            "values": [self(self.startParIndex + index).values[0] for index in range(self.nParameters)],
-            "sigma": [self(self.startParIndex + index).sigma for index in range(self.nParameters)],
+            "parnames": self.get_parnames(),
+            "values": self.get_parvals(),
+            "sigma": self.get_errors(),
             "statistic": xsp.Fit.statistic,
             "dof": xsp.Fit.dof,
             "rstat": xsp.Fit.statistic / (xsp.Fit.dof - 1),
@@ -157,7 +185,20 @@ class SpecFit(xsp.Model):
             "criticalDelta": xsp.Fit.criticalDelta
         }
 
-    def fit(self, erange=(None, None), start=None, fixed=None, method="chi", niterations=100, criticaldelta=1.e-3):
+    def perform(self) -> None:
+        """
+        Equivalent of the `xspec.Fit.perform` method adapted to the `SpecFit` class. It allows to run the fit of the
+        `xspec.Spectrum` loaded in the `spectrum` attribute with the `xspec.Model` of the instance while preserving the
+        state of the `xspec` global objects (i.e. `xspec.AllData` and `xspec.AllModels`).
+        :return: None
+        """
+        xsp.Xset.saveXspecState()
+        xsp.AllData.highlightSpectrum(self.spectrum.index)
+        xsp.AllModels.setActive(self.name)
+        xsp.Fit.perform()
+        xsp.Xset.restoreXspecState()
+
+    def run(self, erange=(None, None), start=None, fixed=None, method="chi", niterations=100, criticaldelta=1.e-3):
         """
         Standard procedure to fit spectra.
         :param erange: (float, float) Energy range [keV]. If the first (second) elements is None the lower (higher)
@@ -169,8 +210,6 @@ class SpecFit(xsp.Model):
         :param criticaldelta: (float) The absolute change in the fit statistic between iterations, less than which the
             fit is deemed to have converged.
         """
-
-        xsp.AllData.ignore("bad")
 
         # Energy range
         ignore(self.spectrum, erange)
@@ -201,6 +240,4 @@ class SpecFit(xsp.Model):
             xsp.Fit.criticalDelta = criticaldelta
 
         # Fitting
-        xsp.AllData.highlightSpectrum(self.spectrum.index)
-        xsp.Fit.perform()
-        xsp.AllData.restoreNoticeState()
+        self.perform()
