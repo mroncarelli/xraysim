@@ -9,7 +9,7 @@ from astropy.io import fits
 from xraysim.gadgetutils import phys_const
 from xraysim.specutils import absorption
 
-# Initialization of global variables
+# Initialization of the `instruments` global variable
 instruments_config_file = os.path.join(os.path.dirname(__file__), '../../sixte_instruments.json')
 with open(instruments_config_file) as file:
     json_data = json.load(file)
@@ -18,11 +18,23 @@ sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
 
 instruments = {}
 for instr in json_data:
-    instruments[instr['name'].lower()] = {
-        'command': instr.get('command'),
-        'xml': sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['xml'],
-        'adv_xml': sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
-    }
+    name = instr.get('name').lower()
+    command = instr.get('command')
+    instruments[name] = {'command': command}
+    if command == 'erosim':
+        # eROSITA special case
+        instruments[name]['xml'] = None
+        instruments[name]['adv_xml'] = None
+        attitude = instr.get('attitude')
+        if attitude is None:
+            # eROSITA pointed observation
+            instruments[name]['attitude'] = None
+        else:
+            # eROSITA survey
+            instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
+    else:
+        instruments[name]['xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['xml']
+        instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
 
 del file, json_data, instr
 
@@ -310,26 +322,26 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     background_ = 'yes' if background else 'no'
     clobber_ = 'yes' if overwrite else 'no'
 
-    command = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
-              str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
-              evtfile + ' clobber=' + clobber_
+    command_ = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
+               str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
+               evtfile + ' clobber=' + clobber_
 
     if type(seed) is int:
-        command += ' seed=' + str(seed)
+        command_ += ' seed=' + str(seed)
 
     if type(verbosity) is int:
         if verbosity < 0:
-            command += ' chatter=0'
+            command_ += ' chatter=0'
         else:
-            command += ' chatter=' + str(verbosity)
+            command_ += ' chatter=' + str(verbosity)
 
     if type(logfile) is str and logfile != '':
-        command += ' > ' + logfile + ' 2>&1'
+        command_ += ' > ' + logfile + ' 2>&1'
 
     if no_exec:
-        return command
+        return command_
     else:
-        sys_out = os.system(command)
+        sys_out = os.system(command_)
         if sys_out == 0:
             inherit_keywords(simputfile, evtfile, file_type="evt")
         return sys_out

@@ -29,9 +29,12 @@
   },
   {
     "name": "erosita",
+    "command": "erosim"
+  },
+  {
+    "name": "erass1",
     "subdir": "srg/erosita",
     "command": "erosim",
-    "xml": "",
-    "adv_xml": ""
+    "attitude": "eRASS1_attitude.fits"
   }
 ]
