@@ -36,13 +36,13 @@ def gadget2xspecnorm(mass, rho, d_c, h, ne=None):
     return result
 
 
-def vpec2zobs(v_pec, z_h, units=None):
+def vpec2zobs(v_pec, z_h, units=None) -> float:
     """
     Converts a peculiar velocity into observed redshift, considering also a Hubble-flow redshift.
-    :param v_pec: (float) peculiar velocity, in units of light-speed (unless argument units specifies otherwise)
+    :param v_pec: (float) Peculiar velocity, in units of light-speed (unless argument 'units' specifies otherwise)
     :param z_h: (float) Hubble flow redshift, i.e. the one corresponding to comoving distance
-    :param units: (str) can be either 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s', default None, i.e. v/c_light
-    :return: the corresponding observed redshift
+    :param units: (str) Can be either 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s', default None, i.e. v/c_light
+    :return: (float) The corresponding observed redshift
     """
 
     if units:
@@ -61,13 +61,40 @@ def vpec2zobs(v_pec, z_h, units=None):
     return np.sqrt((1. + v_pec / conv) / (1. - v_pec / conv)) * (1. + z_h) - 1.
 
 
+def zobs2vpec(z_obs, z_h, units=None) -> float:
+    """
+    TODO: test!
+    Converts a peculiar velocity into observed redshift, considering also a Hubble-flow redshift.
+    :param z_obs: (float) Observed redshift
+    :param z_h: (float) Hubble flow redshift, i.e. the one corresponding to comoving distance
+    :param units: (str) Can be either 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s', default None, i.e. v/c_light
+    :return: The corresponding peculiar velocity, in units of light-speed (unless argument 'units' specifies otherwise)
+    """
+
+    if units:
+        if units in ['cgs', 'cm/s']:
+            conv = c_light
+        elif units in ['mks', 'm/s']:
+            conv = c_light * 1e-2
+        elif units == 'km/s':
+            conv = c_light * 1e-5
+        else:
+            raise ValueError("ERROR IN vpec2zobs. Invalid unit: ", units,
+                             "Must be one of 'cgs', 'mks', 'm/s', 'cm/s' or 'km/s' or None")
+    else:
+        conv = 1.
+
+    z_ratio = (1. + z_obs) ** 2 / (1. + z_h) ** 2
+    return (z_ratio - 1.) / (z_ratio + 1.) * conv
+
+
 def ra_corr(ra, units=None, zero=False):
     """
     Converts right ascension coordinates in the interval [0, 2pi[
     :param ra: (float) Right ascension [rad] or [deg]
     :param units: (str) Units of the ra array, can be radians ('rad') or degrees ('deg'), default [rad]
     :param zero: (bool) If True coordinates are converted in zero-centered interval, i.e. [-pi, pi[, default False
-    :return:
+    :return: (float) Corrected value of right ascension
     """
     units_ = units.lower() if units else 'rad'
     if units_ in ['rad', 'radians']:

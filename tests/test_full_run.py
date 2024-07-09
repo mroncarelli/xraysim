@@ -1,8 +1,10 @@
 import os
+
+import pytest
 from astropy.io import fits
 
-from xraysim.sphprojection.mapping import make_speccube, write_speccube, read_speccube
 from xraysim.specutils.sixte import cube2simputfile, create_eventlist, make_pha
+from xraysim.sphprojection.mapping import make_speccube, write_speccube, read_speccube
 from .fitstestutils import assert_hdu_list_matches_reference
 
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
@@ -21,7 +23,15 @@ evtFile = referenceDir + "evt_file_created_for_test.evt"
 phaFile = referenceDir + "pha_file_created_for_test.pha"
 
 
-def test_full_run():
+# Introduced this option to address Issue #12. With the `standard` option the code does not test that the content of
+# evtFile and phaFile match the reference as it may fail in some operative systems. With the `complete` option (pytest
+# --full_run complete) the contents are checked and the test fails if they don't match.
+@pytest.fixture(scope="session")
+def run_type(pytestconfig):
+    return pytestconfig.getoption("full_run").lower()
+
+
+def test_full_run(run_type):
     """
     A full run from Gadget snapshot to pha file, checking that each intermediate step produces a file compatible with
     reference one.
@@ -67,8 +77,14 @@ def test_full_run():
     create_eventlist(simputFile, 'xrism-resolve-test', 1.e5, evtFile, background=False, seed=42, verbosity=0)
     os.remove(simputFile)
 
-    # Checking that file content matches reference
-    assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
+    if run_type == 'standard':
+        # Checking only that the file was created
+        assert os.path.isfile(evtFile)
+    elif run_type == 'complete':
+        # Checking that file content matches reference
+        assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
+    else:
+        raise ValueError("ERROR in test_full_run.py: unknown option " + run_type)
 
     # Creating a pha from the event-list file
     if os.path.isfile(phaFile):
@@ -76,7 +92,13 @@ def test_full_run():
     make_pha(evtFile, phaFile)
     os.remove(evtFile)
 
-    # Checking that file content matches reference
-    assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
+    if run_type == 'standard':
+        # Checking only that the file was created
+        assert os.path.isfile(phaFile)
+    elif run_type == 'complete':
+        # Checking that file content matches reference
+        assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
+    else:
+        raise ValueError("ERROR in test_full_run.py: unknown option " + run_type)
 
     os.remove(phaFile)
