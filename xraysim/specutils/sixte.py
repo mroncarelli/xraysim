@@ -307,7 +307,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
     else:
         raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
-                         ": must be one of " + str(list(instruments.keys())) + ". To configure other instruments modify the " +
+                         ": must be one of " + str(
+                             list(instruments.keys())) + ". To configure other instruments modify the " +
                          "instruments configuration file: " + instruments_config_file)
 
     if pointing is None:
@@ -322,29 +323,94 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     background_ = 'yes' if background else 'no'
     clobber_ = 'yes' if overwrite else 'no'
 
-    command_ = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + ' Exposure=' + \
-               str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ + ' evtfile=' + \
-               evtfile + ' clobber=' + clobber_
-
-    if type(seed) is int:
-        command_ += ' seed=' + str(seed)
-
-    if type(verbosity) is int:
-        if verbosity < 0:
-            command_ += ' chatter=0'
-        else:
-            command_ += ' chatter=' + str(verbosity)
-
-    if type(logfile) is str and logfile != '':
-        command_ += ' > ' + logfile + ' 2>&1'
-
-    if no_exec:
-        return command_
+    if sixte_command == 'erosim':
+        # eROSITA special case
+        command_ = erosita_run(simputfile, instruments[instrument]['attitude'], exposure, evtfile, pointing=pointing,
+                               background=background, seed=seed, overwrite=overwrite, verbosity=verbosity,
+                               logfile=logfile, no_exec=no_exec)
     else:
-        sys_out = os.system(command_)
-        if sys_out == 0:
-            inherit_keywords(simputfile, evtfile, file_type="evt")
-        return sys_out
+        # Standard instrument
+
+        command_ = sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile + \
+                   ' Exposure=' + str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' background=' + background_ \
+                   + ' evtfile=' + evtfile + ' clobber=' + clobber_
+
+        if type(seed) is int:
+            command_ += ' seed=' + str(seed)
+
+        if type(verbosity) is int:
+            if verbosity < 0:
+                command_ += ' chatter=0'
+            else:
+                command_ += ' chatter=' + str(verbosity)
+
+        if type(logfile) is str and logfile != '':
+            command_ += ' > ' + logfile + ' 2>&1'
+
+        if no_exec:
+            return command_
+        else:
+            sys_out = os.system(command_)
+            if sys_out == 0:
+                inherit_keywords(simputfile, evtfile, file_type="evt")
+            return sys_out
+
+
+def erosita_run(simputfile: str, attitude: str, exposure: float, evtfile: str) -> list:
+    """
+    Sixte wrapper for the eROSITA simulations. It handles both pointed observations and survey model.
+    :param simputfile: (str) Simput file
+    :param attitude: (str) Attitude file: if present (not None) simulates on observation of an eROSITa survey,
+        otherwise a pointed observation
+    :param exposure: (float) Pointed observations: exposure [s]; Survey mode: the time elapsed from the start
+    of the survey [s], if set to None considers all the survey from the attitude file
+    :param evtfile: (str) Output FITS file containing the simulation results, defines also the name of the 7 eROSITA
+    telescope outputs
+    :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg]. Default: None. i.e. uses the RA, DEC
+        keywords of the simputfile header (valid only for pointed observation)
+    :param background: (bool) If set to True includes the instrumental background, default True
+    :param seed: (int) Random seed, default None
+    :param overwrite: (bool) If set overwrites previous output files (evtfile) if they exist, default True
+    :param verbosity: (int) Verbosity level, with 0 being the lowest (see SIXTE manual 'chatter') and 7 highest.
+    Default: None, i.e. SIXTE default (4).
+    :param logfile: (str) if set the output is not written on screen but saved in the file
+    :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead. Default:
+        False.
+    :return: (list) List of strings of SIXTE commands
+    """
+
+    # Defining file names
+    split_list = evtfile.split('.')
+    extension = split_list[-1] if len(split_list) >= 2 else ''
+    root_file_name = '.'.join(split_list[0:-1])
+
+    result = []
+    erosim_command = 'erosim Prefix=' + root_file_name + '_' + ' Simput=' + simputfile
+    if attitude is not None:
+        # Survey mode
+        hdu_list = fits.open(attitude)
+        t0 = hdu_list[1].data['TIME'][0]  # MJD of the survey start [s]
+        exposure_ = exposure if type(exposure) == float else hdu_list[1].data['TIME'][-1]
+        gti_file_name = root_file_name + '.gti'
+        ero_vis_command = 'ero_vis GTIFile=' + gti_file_name + ' Attitude=' + attitude + \
+                          ' TSTART=' + str(t0) + ' Exposure=' + str(exposure_) + ' dt=1.0 visibility_range=1.0'
+        result.append(ero_vis_command)
+        erosim_command += 'GTIFile=' + gti_file_name
+    else:
+        # Pointed observation
+        erosim_command += ' Exposure=' + str(exposure)
+
+    result.append(erosim_command)
+
+    # ftmerge command to merge the 7 eROSITA event-lists, corresponding to the different CCDs, into one single
+    # event-list
+    ftmerge_command = 'ftmerge '
+    for ccd in ('1', '2', '3', '4', '5', '6', '7'):
+        ftmerge_command += root_file_name + 'ccd' + ccd + '_evt.fits '
+    ftmerge_command += evtfile
+    result.append(ftmerge_command)
+
+    return result
 
 
 def get_fluxmap(simputfile: str):
