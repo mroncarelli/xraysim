@@ -1,2 +1,2 @@
 def pytest_addoption(parser):
-    parser.addoption("--full_run", action="store", default="standard")
+    parser.addoption("--eventlist", action="store", default="standard")

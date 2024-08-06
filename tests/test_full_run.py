@@ -25,10 +25,10 @@ phaFile = referenceDir + "pha_file_created_for_test.pha"
 
 # Introduced this option to address Issue #12. With the `standard` option the code does not test that the content of
 # evtFile and phaFile match the reference as it may fail in some operative systems. With the `complete` option (pytest
-# --full_run complete) the contents are checked and the test fails if they don't match.
+# --eventlist complete) the contents are checked and the test fails if they don't match.
 @pytest.fixture(scope="session")
 def run_type(pytestconfig):
-    return pytestconfig.getoption("full_run").lower()
+    return pytestconfig.getoption("eventlist").lower()
 
 
 def test_full_run(run_type):
