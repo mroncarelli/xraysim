@@ -373,16 +373,22 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
                 xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
                 hdulist = fits.open(evtfile)
                 iline = xmlfile_line(hdulist[0].header['HISTORY'])
+                nmax = 72  # Maximum charachters in a FITS header line
                 if iline is None:
-                    # Adding line
-                    # TODO: consider the case when the line is too long
-                    hdulist[0].header['HISTORY'] = 'P1 XMLFile = ' + xml_file
+                    # Adding line: since it may exceed the 72 characters I add the 'Pn' at the beginning of each line
+                    # beyond the first
+                    hline = 'P1 XMLFile = ' + xml_file
+                    modif_hline = 'P1 '.join([hline[i:i + nmax] for i in range(0, len(hline), nmax)])
+                    hdulist[0].header['HISTORY'] = modif_hline
                 else:
                     # Substituing record, presumably 'none' with the XML file
                     line = hdulist[0].header['HISTORY'][iline]
-                    # TODO: consider the case when the line is too long
-                    hdulist[0].header['HISTORY'][iline] = ' '.join(line.split(' ')[0:3]) + ' ' + xml_file
-                    hdulist.writeto(evtfile, overwrite=True)
+                    line_split = line.split(' ')
+                    hline = ' '.join(line_split[0:3]) + ' ' + xml_file
+                    modif_hline = (line_split[0] + ' ').join([hline[i:i + nmax] for i in range(0, len(hline), nmax)])
+                    hdulist[0].header['HISTORY'][iline] = modif_hline
+
+                hdulist.writeto(evtfile, overwrite=True)
         return result
 
 
