@@ -26,10 +26,7 @@ for instr in json_data:
         instruments[name]['xml'] = None
         instruments[name]['adv_xml'] = None
         attitude = instr.get('attitude')
-        if attitude is None:
-            # eROSITA pointed observation
-            instruments[name]['attitude'] = None
-        else:
+        if attitude is not None:
             # eROSITA survey
             instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
     else:
@@ -276,7 +273,7 @@ def inherit_keywords(input_file: str, output_file: str, file_type=None) -> int:
     return hdulist.writeto(output_file, overwrite=True)
 
 
-def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile: str, pointing=None, xmlfile=None,
+def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, pointing=None, xmlfile=None,
                      advxml=None, background=True, seed=None, overwrite=True, verbosity=None, logfile=None,
                      no_exec=False):
     """
@@ -284,7 +281,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
     http://www.sternwarte.uni-erlangen.de/~sixte/data/simulator_manual.pdf).
     :param simputfile: (str) Simput file
     :param instrument: (str) Instrument
-    :param exposure: (float) Exposure [s]
+    :param exposure: (float or None) Exposure [s], may be set to None in case of eROSITA survey mode to consider the
+        full survey
     :param evtfile: (str) Output FITS file containing the simulation results
     :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg]. Default: None. i.e. uses the RA, DEC
         keywords of the simputfile header
@@ -335,9 +333,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
         # ftmerge command to merge the 7 eROSITA event-lists, corresponding to the different CCDs, into one single
         # event-list
         ftmerge_command = 'ftmerge '
-        for ccd in ('1', '2', '3', '4', '5', '6', '7'):
-            ftmerge_command += os.path.splitext(evtfile)[0] + 'ccd' + ccd + '_evt.fits '
-        ftmerge_command += evtfile
+        for ccd in ('1', '2', '3', '4', '5', '6'):
+            ftmerge_command += os.path.splitext(evtfile)[0] + '_ccd' + ccd + '_evt.fits,'
+        ftmerge_command += os.path.splitext(evtfile)[0] + '_ccd7_evt.fits ' + evtfile
         command_list.append(ftmerge_command)
 
     else:
@@ -369,6 +367,22 @@ def create_eventlist(simputfile: str, instrument: str, exposure: float, evtfile:
             result.append(sys_out)
         if all(value == 0 for value in result):
             inherit_keywords(simputfile, evtfile, file_type="evt")
+            if command_list[itask].startswith('erosim '):
+                # For the eROSITA simulation I also need to add manually the XML file in the header history, as SIXTE
+                # does not do it. I take for reference the one of CCD 1.
+                xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
+                hdulist = fits.open(evtfile)
+                iline = xmlfile_line(hdulist[0].header['HISTORY'])
+                if iline is None:
+                    # Adding line
+                    # TODO: consider the case when the line is too long
+                    hdulist[0].header['HISTORY'] = 'P1 XMLFile = ' + xml_file
+                else:
+                    # Substituing record, presumably 'none' with the XML file
+                    line = hdulist[0].header['HISTORY'][iline]
+                    # TODO: consider the case when the line is too long
+                    hdulist[0].header['HISTORY'][iline] = ' '.join(line.split(' ')[0:3]) + ' ' + xml_file
+                    hdulist.writeto(evtfile, overwrite=True)
         return result
 
 
@@ -392,14 +406,14 @@ def erosita_pointed(simputfile: str, exposure: float, evtfile: str, ra: float, d
     return result
 
 
-def erosita_survey(simputfile: str, attitude: str, exposure: float, evtfile: str) -> list:
+def erosita_survey(simputfile: str, attitude: str, exposure, evtfile: str) -> list:
     """
     Sixte wrapper for the eROSITA simulations. It handles both pointed observations and survey model.
     :param simputfile: (str) Simput file
     :param attitude: (str) Attitude file: if present (not None) simulates on observation of an eROSITa survey,
         otherwise a pointed observation
-    :param exposure: (float) Survey mode: the time elapsed from the start, default None, i.e. full survey
-    of the survey [s], if set to None considers all the survey from the attitude file
+    :param exposure: (float or None) The time elapsed from the start of the survey [s], default None, i.e. considers
+        all the survey from the attitude file
     :param evtfile: (str) Output FITS file containing the simulation results, defines also the name of the 7 eROSITA
     telescope outputs
     :return: (list) List with two SIXTE commands
@@ -412,10 +426,10 @@ def erosita_survey(simputfile: str, attitude: str, exposure: float, evtfile: str
     t0 = hdu_list[1].data['TIME'][0]  # MJD of the survey start [s]
     exposure_ = exposure if type(exposure) == float else hdu_list[1].data['TIME'][-1] - t0
     gti_file_name = root_file_name + '.gti'
-    ero_vis_command = 'ero_vis GTIFile=' + gti_file_name + ' Attitude=' + attitude + \
+    ero_vis_command = 'ero_vis GTIFile=' + gti_file_name + ' Simput=' + simputfile + ' Attitude=' + attitude + \
                       ' TSTART=' + str(t0) + ' Exposure=' + str(exposure_) + ' dt=1.0 visibility_range=1.0'
     result.append(ero_vis_command)
-    erosim_command += 'GTIFile=' + gti_file_name
+    erosim_command += ' GTIFile=' + gti_file_name
 
     result.append(erosim_command)
 
@@ -474,16 +488,32 @@ def show_fluxmap(inp, gadget_units=False):
     return None
 
 
-def get_rsppath(evtfile: str):
-    history = fits.open(evtfile)[0].header['HISTORY']
+def xmlfile_line(history: fits.header._HeaderCommentaryCards) -> int:
+    """
+
+    :param history: (astropy.io.fits.header._HeaderCommentaryCards) Header history
+    :return: (int) Index of the line containing the record of the XML file, None if not found
+    """
     found = False
     iline = -1
     while not found and iline < len(history) - 1:
         iline += 1
         found = 'XMLFile = ' in history[iline]
 
-    if not found:
-        rsppath = None
+    return iline if found else None
+
+
+def get_xmlpath(evtfile: str):
+    """
+    Finds the path of the XML file in an event-lits. Useful as it is usually also the path of the RSP and ARF.
+    :param evtfile: (str) Event-list file.
+    :return: (str) Path of the XML file, None if not found.
+    """
+    history = fits.open(evtfile)[0].header['HISTORY']
+    iline = xmlfile_line(history)
+
+    if iline is None:
+        xmlpath = None
     else:
         line_split = history[iline].split(' ')
         if len(line_split) == 4:
@@ -498,9 +528,9 @@ def get_rsppath(evtfile: str):
             addon = (line_split[0] == p)
             if addon and len(line_split) >= 2:
                 filename += line_split[1]
-        rsppath = filename[0:filename.rindex('/')]
+        xmlpath = filename[0:filename.rindex('/')]
 
-    return rsppath
+    return xmlpath
 
 
 def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, logfile=None, overwrite=True,
@@ -517,26 +547,35 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
     :return: System output of SIXTE makespec command (or string containing the command if no_exec is set to True)
     """
 
+    # List of columns in the eventfile
+    column_list = fits.open(evtfile)[1].data.names
+
     # Defining filter list to be used (if not empty) with the EventFilter keyword of makespec
     filter_list = []
 
     # Grading
     error_msg_grading = "ERROR in make_pha. Grading values must be integer, iterable of integers or None."
+    warning_msg_grading = "WARNING: " + evtfile + " does not contain the GRADING column. Ignoring grading option."
     if isinstance(grading, type(None)):
         pass
-    elif isinstance(grading, int):
-        filter_list.append("GRADING==" + str(grading))
-    elif isinstance(grading, tuple) or isinstance(grading, list):
-        if all(type(item) is int for item in grading):
-            tag_grading = " '(GRADING==" + str(grading[0])
-            for item in grading[1:]:
-                tag_grading += " || GRADING==" + str(item)
-            tag_grading += ")'"
-            filter_list.append(tag_grading)
-        else:
-            raise ValueError(error_msg_grading)
     else:
-        raise ValueError(error_msg_grading)
+        if 'GRADING' in column_list:
+            if isinstance(grading, int):
+                filter_list.append("GRADING==" + str(grading))
+            elif isinstance(grading, tuple) or isinstance(grading, list):
+                if all(type(item) is int for item in grading):
+                    tag_grading = " '(GRADING==" + str(grading[0])
+                    for item in grading[1:]:
+                        tag_grading += " || GRADING==" + str(item)
+                    tag_grading += ")'"
+                    filter_list.append(tag_grading)
+                else:
+                    raise ValueError(error_msg_grading)
+            else:
+                raise ValueError(error_msg_grading)
+        else:
+            # Grading filter is ignored as it is not present in the event-list (warning issued)
+            print(warning_msg_grading)
 
     # Pixel Id
     error_msg_pixid = "ERROR in make_pha. Pixid values must be integer, iterable of integers or None."
@@ -557,7 +596,7 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
         raise ValueError(error_msg_pixid)
 
     # If rsppath is not provided I try to recover it from the evtfile
-    rsppath_ = get_rsppath(evtfile) if rsppath is None else rsppath
+    rsppath_ = get_xmlpath(evtfile) if rsppath is None else rsppath
     tag_rsppath = "" if rsppath_ is None else " RSPPath=" + rsppath_
 
     clobber_ = 'yes' if overwrite else 'no'

@@ -33,7 +33,6 @@
   },
   {
     "name": "erass1",
-    "subdir": "srg/erosita",
     "command": "erosim",
     "attitude": "eRASS1_attitude.fits"
   }

@@ -61,6 +61,7 @@ def test_full_run(run_type):
 
     # Checking that file content matches reference
     assert_hdu_list_matches_reference(fits.open(spcubeFile2), reference_speccube)
+    os.remove(spcubeFile2)
 
     # Creating a SIMPUT file from a speccube
     if os.path.isfile(simputFile):
