@@ -67,7 +67,8 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
                         [s.split(' ')[0] for s in history_reference
                          if ' EvtFile = ' in s
                          or ' Simput = ' in s
-                         or ' Prefix = ' in s]
+                         or ' Prefix = ' in s
+                         or ' GTIFile = ' in s]
 
             for history_record, history_record_reference in zip(history, history_reference):
                 if any(history_record_reference.startswith(tag) for tag in skip_tags):
