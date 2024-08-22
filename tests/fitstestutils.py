@@ -64,7 +64,10 @@ def assert_header_has_all_keywords_and_values_of_reference(header: fits.header, 
             history = history_unpack(val)
             history_reference = history_unpack(val_reference)
             skip_tags = ['START PARAMETER '] + \
-                        [s.split(' ')[0] for s in history_reference if ' EvtFile = ' in s or ' Simput = ' in s]
+                        [s.split(' ')[0] for s in history_reference
+                         if ' EvtFile = ' in s
+                         or ' Simput = ' in s
+                         or ' Prefix = ' in s]
 
             for history_record, history_record_reference in zip(history, history_reference):
                 if any(history_record_reference.startswith(tag) for tag in skip_tags):
