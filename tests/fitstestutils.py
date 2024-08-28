@@ -114,7 +114,7 @@ def assert_data_matches_reference(inp, reference) -> None:
             assert np.all(inp == pytest.approx(reference))
 
     else:
-        warnings.warn(UserWarning("Found unknown data type in FITS hdu:" + str(type(inp))))
+        warnings.warn("Found unknown data type in FITS hdu:" + str(type(inp)))
 
     return None
 

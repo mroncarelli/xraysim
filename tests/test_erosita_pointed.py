@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import pytest
 from astropy.io import fits
@@ -47,6 +48,7 @@ def test_erosita_pointed(run_type):
     if run_type == 'standard':
         # Checking only that the file was created
         assert os.path.isfile(evtFile)
+        warnings.warn("Eventlist not checked. Run pytest --eventlist complete to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
         assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
@@ -62,6 +64,7 @@ def test_erosita_pointed(run_type):
     if run_type == 'standard':
         # Checking only that the file was created
         assert os.path.isfile(phaFile)
+        warnings.warn("Pha file not checked. Run pytest --eventlist complete to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
         assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
