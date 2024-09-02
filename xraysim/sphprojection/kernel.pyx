@@ -5,6 +5,14 @@ cimport cython
 
 from xraysim.specutils.tables import calc_spec
 
+cimport
+numpy as np
+cimport
+cython
+import numpy as np
+
+from xraysim.specutils.tables import calc_spec
+
 def intkernel(x):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
@@ -97,11 +105,11 @@ cdef float[:] kernel_weight(float[:] x):
 @cython.nonecheck(False)
 cdef kernel_mapping(float x, float h, int n):
     """
-    Calculates a 1d-kernel weight based on the coordinates and the smoothing length. Thee coordinates and the 
-    smoothing length must be normalized to map units, i.e. in pixel units with value 0 corresponding to the starting 
-    border (e.g. left/bottom border) and 1 to the end border (e.g. right/top border) of the map.
-    :param x: (float) The normalized coordinate, must be in increasing order.
-    :param h: (float) The normalized smoothing length.
+    Calculates a 1d-kernel weight based on the coordinates and the smoothing length. The coordinates and the smoothing 
+    length must be in pixel units, with value 0 corresponding to the starting edge (e.g. left/bottom edge) and `n` (the 
+    number of pixels) to the end border (e.g. right/top border). 
+    :param x: (float) The normalized coordinate, must be in increasing order [pixel units].
+    :param h: (float) The normalized smoothing length [pixel units].
     :param n: (int) Number of map pixels in the coordinate direction.
     :return: A 2-elements tuple with these elements:
         0: (float) the 1d-kernel weight,
