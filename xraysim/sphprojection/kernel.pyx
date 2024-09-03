@@ -5,14 +5,6 @@ cimport cython
 
 from xraysim.specutils.tables import calc_spec
 
-cimport
-numpy as np
-cimport
-cython
-import numpy as np
-
-from xraysim.specutils.tables import calc_spec
-
 def intkernel(x):
     """
     Computes the integral of the 1D SPH smoothing kernel w(x): W(x) = Int_{-1}^{x} w(x) dx.
