@@ -40,7 +40,7 @@ def test_full_run(run_type):
 
     # Creating a speccube file from a calculated speccube
     speccube_calculated = make_speccube(snapshotFile, spFile, 1.05, 25, redshift=0.1, center=[2500., 2500.], proj='z',
-                                        tcut=1.e6, nh=0.01, nsample=1)
+                                        tcut=1.e6, nh=0.01, nsample=1, method='Tables')
     if os.path.isfile(spcubeFile):
         os.remove(spcubeFile)
     write_speccube(speccube_calculated, spcubeFile)
