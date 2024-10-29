@@ -624,3 +624,59 @@ def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, lo
         if sys_out == 0:
             inherit_keywords(evtfile, phafile, file_type="pha")
         return sys_out
+
+
+def events_to_image(evt_file: str, image_file: str, x_npix: int, y_npix: int,
+                    crval1: float, crval2: float, crpix1: float, crpix2: float,
+                    cdelt1: float, cdelt2: float):
+    """
+    Converts an events file into an image FITS file by changing RA and DEC from the event data to pixel positions.
+
+    :param evt_file: (str) Path to the input event file from sixte.
+    :param image_file: (str) Path to the output image file in FITS format.
+    :param x_npix: (int) Number of pixels along the x-axis.
+    :param y_npix: (int) Number of pixels along the y-axis.
+    :param crval1: (float) Reference value for RA at the reference pixel.
+    :param crval2: (float) Reference value for DEC at the reference pixel.
+    :param crpix1: (float) Reference pixel coordinate along the x-axis.
+    :param crpix2: (float) Reference pixel coordinate along the y-axis.
+    :param cdelt1: (float) Pixel width.
+    :param cdelt2: (float) Pixel width.
+    :return: None. The function saves the output image.
+    """
+
+    # Initialize the image array
+    image = np.zeros((x_npix, y_npix), dtype=np.int32)
+    # Currently supported for just 'TAN'
+    projection = 'TAN'
+    # Open the events FITS file
+    with fits.open(evt_file) as hdu_list:
+        events = hdu_list[1].data
+
+    # Extract RA and DEC from the events
+    ra = events['RA']
+    dec = events['DEC']
+
+    # Define WCS for the image
+    wcs = WCS(naxis=2)
+    wcs.wcs.crpix = [crpix1, crpix2]
+    wcs.wcs.cdelt = [cdelt1, cdelt2]
+    wcs.wcs.crval = [crval1, crval2]
+    wcs.wcs.ctype = [f'RA---{projection}', f'DEC--{projection}']
+
+    # Convert RA/DEC to pixel coordinates
+    pixel_coordinates = wcs.wcs_world2pix(np.column_stack((ra, dec)), 1)
+    pixel_x = np.round(pixel_coordinates[:, 0]).astype(int)
+    pixel_y = np.round(pixel_coordinates[:, 1]).astype(int)
+
+    # Filter out-of-bounds coordinates
+    mask = (0 <= pixel_x) & (pixel_x < x_npix) & (0 <= pixel_y) & (pixel_y < y_npix)
+    pixel_x = pixel_x[mask]
+    pixel_y = pixel_y[mask]
+
+    # Increment pixel counts
+    np.add.at(image, (pixel_x, pixel_y), 1)
+
+    # Write the image to a FITS file
+    hdu = fits.PrimaryHDU(image)
+    hdu.writeto(image_file, overwrite=True)
