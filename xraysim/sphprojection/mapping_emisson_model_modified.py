@@ -29,7 +29,6 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
     lock = Lock()
 
     def add_to_final(result):
-        """Callback to safely accumulate results into the shared cube."""
         with lock:
             final_cube_container[0] += result  # Modify the array inside the list
 
@@ -44,7 +43,7 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
             pool.apply_async(
                 spectrum_and_add_to_cube, 
                 args, 
-                callback=add_to_final  # No nonlocal needed; list is mutable
+                callback=add_to_final  
             )
         
         pool.close()
