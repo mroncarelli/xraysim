@@ -1,6 +1,7 @@
 import copy as cp
 import json
 import os
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +20,7 @@ sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
 instruments = {}
 for instr in json_data:
     name = instr.get('name').lower()
-    command = instr.get('command')
+    command = instr.get('command') if 'command' in instr else 'sixtesim'
     instruments[name] = {'command': command}
     if command == 'erosim':
         # eROSITA special case
@@ -30,10 +31,35 @@ for instr in json_data:
             # eROSITA survey
             instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
     else:
-        instruments[name]['xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['xml']
-        instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
+        subdir = sixte_instruments_dir + '/' + instr['subdir'] + '/'
+        # Manipulating xml string to account for multiple xml files
+        instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
+        # From Sixte 3 adv_xml is not present anymore
+        if 'adv_xml' in instr:
+            instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
+        else:
+            instruments[name]['adv_xml'] = None
 
 del file, json_data, instr
+
+
+def version():
+    """
+    Gets SIXTE version
+    :return: (str) String containing the SIXTE version, None if undetermined (warning)
+    """
+    svout = os.popen('sixteversion').read().split('\n')
+    svout_line0 = svout[0].split(' ')
+    warnmsg = "Unable to verify SIXTE version"
+    if len(svout_line0) == 3:
+        if svout_line0[0].lower() == 'sixte' and svout_line0[1].lower() == 'version':
+            return svout_line0[2]
+        else:
+            warnings.warn(warnmsg)
+            return None
+    else:
+        warnings.warn(warnmsg)
+        return None
 
 
 def set_simput_src_cat_header(header: fits.header):
@@ -274,8 +300,8 @@ def inherit_keywords(input_file: str, output_file: str, file_type=None) -> int:
 
 
 def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, pointing=None, xmlfile=None,
-                     advxml=None, background=True, seed=None, overwrite=True, verbosity=None, logfile=None,
-                     no_exec=False):
+                     advxml=None, attitude=None, background=True, seed=None, overwrite=True, verbosity=None,
+                     logfile=None, no_exec=False):
     """
     Creates a simulated X-ray event-list by running the SIXTE simulator (see the manuale from the SIXTE webpage
     http://www.sternwarte.uni-erlangen.de/~sixte/data/simulator_manual.pdf).
@@ -287,7 +313,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
     :param pointing: (float 2) RA, DEC coordinates of the telescope pointing [deg]. Default: None. i.e. uses the RA, DEC
         keywords of the simputfile header
     :param xmlfile: (str) XML file for the telescope configuration
-    :param advxml: (str) Advanced XML configuration file
+    :param advxml: (str) Advanced XML configuration file (only for SIXTE version 2 or earlier)
+    :param attitude: (str) Attitude file
     :param background: (bool) If set to True includes the instrumental background, default True
     :param seed: (int) Random seed, default None
     :param overwrite: (bool) If set overwrites previous output file (evtfile) if exists, default True
@@ -299,10 +326,17 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
     :return: System output of SIXTE command (or string containing the command if no_exec is set to True)
     """
 
+    sixte_version = version()
+    sixte_v2 = sixte_version is not None and sixte_version.startswith('2.')
+
     if instrument.lower() in instruments:
         sixte_command = instruments[instrument]['command']
         xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
+        if attitude:
+            attitude_ = attitude if attitude else instruments[instrument].get('attitude')
+        else:
+            attitude_ = None
     else:
         raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
                          ": must be one of " + str(
@@ -321,7 +355,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
     background_ = 'yes' if background else 'no'
     clobber_ = 'yes' if overwrite else 'no'
 
-    if sixte_command == 'erosim':
+    if sixte_v2 and sixte_command == 'erosim':
         # eROSITA special case
         if 'attitude' in instruments[instrument]:
             command_list = erosita_survey(simputfile, instruments[instrument]['attitude'], exposure, evtfile)
@@ -340,8 +374,11 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
 
     else:
         # Standard instrument
-        command_list = [sixte_command + ' XMLFile=' + xmlfile_ + ' AdvXml=' + advxml_ + ' Simput=' + simputfile +
+        command_list = [sixte_command + ' XMLFile=' + xmlfile_ + ' Simput=' + simputfile +
                         ' Exposure=' + str(exposure) + ' RA=' + str(ra) + ' Dec=' + str(dec) + ' evtfile=' + evtfile]
+        if sixte_v2 and advxml_:  # only for Sixte version 2
+            command_list[0] += ' AdvXml=' + advxml_
+
         itask = 0
 
     command_list[itask] += ' background=' + background_ + ' clobber=' + clobber_
@@ -373,7 +410,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
                 xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
                 hdulist = fits.open(evtfile)
                 iline = xmlfile_line(hdulist[0].header['HISTORY'])
-                nmax = 72  # Maximum charachters in a FITS header line
+                nmax = 72  # Maximum characters in a FITS header line
                 if iline is None:
                     # Adding line: since it may exceed the 72 characters I add the 'Pn' at the beginning of each line
                     # beyond the first
@@ -394,7 +431,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
 
 def erosita_pointed(simputfile: str, exposure: float, evtfile: str, ra: float, dec: float) -> list:
     """
-    Sixte wrapper for the eROSITA simulations. It handles both pointed observations and survey model.
+    Sixte wrapper for the eROSITA pointed simulations.
     :param simputfile: (str) Simput file
     :param exposure: (float) Exposure [s]
     of the survey [s], if set to None considers all the survey from the attitude file
@@ -414,10 +451,9 @@ def erosita_pointed(simputfile: str, exposure: float, evtfile: str, ra: float, d
 
 def erosita_survey(simputfile: str, attitude: str, exposure, evtfile: str) -> list:
     """
-    Sixte wrapper for the eROSITA simulations. It handles both pointed observations and survey model.
+    Sixte wrapper for the eROSITA simulations in survey mode.
     :param simputfile: (str) Simput file
-    :param attitude: (str) Attitude file: if present (not None) simulates on observation of an eROSITa survey,
-        otherwise a pointed observation
+    :param attitude: (str) Attitude file
     :param exposure: (float or None) The time elapsed from the start of the survey [s], default None, i.e. considers
         all the survey from the attitude file
     :param evtfile: (str) Output FITS file containing the simulation results, defines also the name of the 7 eROSITA

@@ -4,7 +4,7 @@ import warnings
 import pytest
 from astropy.io import fits
 
-from xraysim.specutils.sixte import cube2simputfile, create_eventlist, make_pha
+from xraysim.specutils.sixte import cube2simputfile, create_eventlist, make_pha, version
 from xraysim.sphprojection.mapping import make_speccube, write_speccube, read_speccube
 from .fitstestutils import assert_hdu_list_matches_reference
 
@@ -37,6 +37,10 @@ def test_full_run(run_type):
     A full run from Gadget snapshot to pha file, checking that each intermediate step produces a file compatible with
     reference one.
     """
+
+    if version().startswith('2.'):
+        warnings.warn("Test full run operates only with SIXTE version 3")
+        return
 
     # Creating a speccube file from a calculated speccube
     speccube_calculated = make_speccube(snapshotFile, spFile, 1.05, 25, redshift=0.1, center=[2500., 2500.], proj='z',

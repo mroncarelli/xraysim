@@ -2,38 +2,32 @@
   {
     "name": "athena-xifu",
     "subdir": "athena-xifu",
-    "command": "xifupipeline",
-    "xml": "xifu_baseline.xml",
-    "adv_xml": "xifu_detector_lpa25_tdm_33_275um_20211103.xml"
+    "xml": "xifu_baseline.xml"
   },
   {
     "name": "athena-xifu-test",
     "subdir": "athena-xifu",
-    "command": "xifupipeline",
-    "xml": "xifu_baseline_test.xml",
-    "adv_xml": "xifu_detector_lpa25_tdm_33_275um_20211103_test.xml"
+    "xml": "xifu_baseline_test.xml"
   },
   {
     "name": "xrism-resolve",
-    "subdir": "xrism-resolve",
-    "command": "xifupipeline",
-    "xml": "resolve_baseline.xml",
-    "adv_xml": "resolve_detector.xml"
+    "subdir": "xrism/resolve",
+    "xml": "resolve_baseline.xml"
   },
   {
     "name": "xrism-resolve-test",
-    "subdir": "xrism-resolve",
-    "command": "xifupipeline",
-    "xml": "resolve_baseline_test.xml",
-    "adv_xml": "resolve_detector_test.xml"
+    "subdir": "xrism/resolve",
+    "xml": "resolve_baseline_test.xml"
   },
   {
     "name": "erosita",
-    "command": "erosim"
+    "subdir": "srg/erosita",
+    "xml": "erosita_1.xml, erosita_2.xml, erosita_3.xml, erosita_4.xml, erosita_5.xml, erosita_6.xml, erosita_7.xml"
   },
   {
     "name": "erass1",
-    "command": "erosim",
+    "subdir": "srg/erosita",
+    "xml": "erosita_1.xml, erosita_2.xml, erosita_3.xml, erosita_4.xml, erosita_5.xml, erosita_6.xml, erosita_7.xml",
     "attitude": "eRASS1_attitude.fits"
   }
 ]
