@@ -333,10 +333,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
         sixte_command = instruments[instrument]['command']
         xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
         advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
-        if attitude:
-            attitude_ = attitude if attitude else instruments[instrument].get('attitude')
-        else:
-            attitude_ = None
+        attitude_ = attitude if attitude else instruments[instrument].get('attitude')
+
     else:
         raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
                          ": must be one of " + str(
@@ -357,7 +355,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
 
     if sixte_v2 and sixte_command == 'erosim':
         # eROSITA special case
-        if 'attitude' in instruments[instrument]:
+        if attitude_:
             command_list = erosita_survey(simputfile, instruments[instrument]['attitude'], exposure, evtfile)
             itask = 1
         else:
