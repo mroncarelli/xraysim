@@ -495,28 +495,32 @@ def correct_erosita_history_header(evtfile: str, xmlfile=None):
     else:
         xml_file = xmlfile.split(',')[0]
 
-    index_line = xmlfile_line(hdulist[0].header['HISTORY'])  # index of the line with XMLFile
+    history = list(hdulist[0].header['HISTORY'])
+    index_line = xmlfile_line(history)  # index of the line with XMLFile
     if index_line is None:
         # If the XMLFile is not present the file is left as it is. It should not happen as SIXTE does put the keyword.
         return None
     else:
         # Substituing record, presumably 'none' with the XML file
         # line prefix ('P1 ', # 'P2 ' or similar)
-        hprefix = hdulist[0].header['HISTORY'][index_line].split('XMLFile =')[0]
-        line = hdulist[0].header['HISTORY'][index_line]
+        hprefix = history[index_line].split('XMLFile =')[0]
+        line = history[index_line]
         line_split = line.split(' ')
         hline = ' '.join(line_split[0:3]) + ' ' + xml_file
         # Adding line: since it may exceed the 72 characters I add the 'Pn' at the beginning of each line
         # beyond the first
         nmax = 72  # Maximum characters in a FITS header line
         modif_hline = hprefix.join([hline[i:i + nmax] for i in range(0, len(hline), nmax)])
-        hdulist[0].header['HISTORY'][index_line] = modif_hline
+        history[index_line] = modif_hline
         # Removing lines from previous record
         index_line += 1
-        while (len(hdulist[0].header['HISTORY']) > index_line and
-               hdulist[0].header['HISTORY'][index_line].startswith(hprefix)):
-            hdulist[0].header['HISTORY'][index_line] = ''
-            index_line += 1
+        while (len(history) > index_line and history[index_line].startswith(hprefix)):
+            history.pop(index_line)
+
+        # Removing history in the original header and substituting with the corrected one
+        hdulist[0].header.pop('HISTORY')
+        for item in history:
+            hdulist[0].header['HISTORY'] = item
 
     return hdulist.writeto(evtfile, overwrite=True)
 
@@ -584,10 +588,10 @@ def show_fluxmap(inp, gadget_units=False):
     return None
 
 
-def xmlfile_line(history: fits.header._HeaderCommentaryCards) -> int:
+def xmlfile_line(history) -> int:
     """
     Finds the line corresponding to the XMLFile keyword
-    :param history: (astropy.io.fits.header._HeaderCommentaryCards) Header history
+    :param history: (list or astropy.io.fits.header._HeaderCommentaryCards) Header history
     :return: (int) Index of the line containing the record of the XML file, None if not found
     """
     found = False
