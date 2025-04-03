@@ -367,8 +367,8 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
         # event-list
         ftmerge_command = 'ftmerge '
         for ccd in range(1, 7):
-            ftmerge_command += erosita_ccd_file(evtfile, ccd) + ','
-        ftmerge_command += erosita_ccd_file(evtfile, 7) + ' ' + evtfile
+            ftmerge_command += erosita_ccd_eventfile(evtfile, ccd) + ','
+        ftmerge_command += erosita_ccd_eventfile(evtfile, 7) + ' ' + evtfile
         command_list.append(ftmerge_command)
 
     else:
@@ -405,28 +405,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
             inherit_keywords(simputfile, evtfile, file_type="evt")
             if (sixte_version >= (3,) and special == 'erosita') or (sixte_version < (3,) and sixte_command == 'erosim'):
                 # For the eROSITA simulation I also need to add manually the XML file in the header history, as SIXTE
-                # does not do it. I take for reference the one of CCD 1.
-                if sixte_version < (3,):
-                    xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
-                    hdulist = fits.open(evtfile)
-                    iline = xmlfile_line(hdulist[0].header['HISTORY'])
-                    nmax = 72  # Maximum characters in a FITS header line
-                    if iline is None:
-                        # Adding line: since it may exceed the 72 characters I add the 'Pn' at the beginning of each line
-                        # beyond the first
-                        hline = 'P1 XMLFile = ' + xml_file
-                        modif_hline = 'P1 '.join([hline[i:i + nmax] for i in range(0, len(hline), nmax)])
-                        hdulist[0].header['HISTORY'] = modif_hline
-                    else:
-                        # Substituing record, presumably 'none' with the XML file
-                        line = hdulist[0].header['HISTORY'][iline]
-                        line_split = line.split(' ')
-                        hline = ' '.join(line_split[0:3]) + ' ' + xml_file
-                        modif_hline = (line_split[0] + ' ').join(
-                            [hline[i:i + nmax] for i in range(0, len(hline), nmax)])
-                        hdulist[0].header['HISTORY'][iline] = modif_hline
+                # does not do it or does it wrong. I take for reference the one of CCD 1.
+                correct_erosita_history_header(evtfile, xmlfile_)
 
-                hdulist.writeto(evtfile, overwrite=True)
         return result
 
 
@@ -488,12 +469,12 @@ def erosita_survey(simputfile: str, attitude: str, exposure, evtfile: str) -> li
     return result
 
 
-def erosita_ccd_file(evtfile: str, ccd: int):
+def erosita_ccd_eventfile(evtfile: str, ccd: int):
     """
-
+    Returns the corresponding eROSITA CCD eventfile
     :param evtfile: (str) Eventlist file
     :param ccd: (int) CCD number
-    :return:
+    :return: (str) eROSITA ventfile
     """
     if sixte_version < (3,):
         return os.path.splitext(evtfile)[0] + '_ccd' + str(ccd) + '_evt.fits'
@@ -501,7 +482,51 @@ def erosita_ccd_file(evtfile: str, ccd: int):
         return os.path.dirname(evtfile) + '/tel' + str(ccd) + '_' + os.path.basename(evtfile)
 
 
+def correct_erosita_history_header(evtfile: str, xmlfile=None):
+    """
+    Corrects the eROSITA eventfile header
+    :param evtfile: (str) The eventfile to correct
+    :param xmlfile: (str) XML file as in the SIXTE input
+    :return: (int) Output of the FITS file writing
+    """
+    hdulist = fits.open(evtfile)
+    if sixte_version < (3,):
+        xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
+    else:
+        xml_file = xmlfile.split(',')[0]
+
+    index_line = xmlfile_line(hdulist[0].header['HISTORY'])  # index of the line with XMLFile
+    if index_line is None:
+        # If the XMLFile is not present the file is left as it is. It should not happen as SIXTE does put the keyword.
+        return None
+    else:
+        # Substituing record, presumably 'none' with the XML file
+        # line prefix ('P1 ', # 'P2 ' or similar)
+        hprefix = hdulist[0].header['HISTORY'][index_line].split('XMLFile =')[0]
+        line = hdulist[0].header['HISTORY'][index_line]
+        line_split = line.split(' ')
+        hline = ' '.join(line_split[0:3]) + ' ' + xml_file
+        # Adding line: since it may exceed the 72 characters I add the 'Pn' at the beginning of each line
+        # beyond the first
+        nmax = 72  # Maximum characters in a FITS header line
+        modif_hline = hprefix.join([hline[i:i + nmax] for i in range(0, len(hline), nmax)])
+        hdulist[0].header['HISTORY'][index_line] = modif_hline
+        # Removing lines from previous record
+        index_line += 1
+        while (len(hdulist[0].header['HISTORY']) > index_line and
+               hdulist[0].header['HISTORY'][index_line].startswith(hprefix)):
+            hdulist[0].header['HISTORY'][index_line] = ''
+            index_line += 1
+
+    return hdulist.writeto(evtfile, overwrite=True)
+
+
 def get_fluxmap(simputfile: str):
+    """
+    Gets a flux map from a SIMPUT file
+    :param simputfile: (str) SIMPUT file
+    :return: (dict) Dictionary containing the flux map and the coordinates.
+    """
     hdul = fits.open(simputfile)
     npix = hdul[0].header.get('NPIX')
     ra = np.linspace(hdul[1].data['RA'].min(), hdul[1].data['RA'].max(), npix)  # [deg]
@@ -527,6 +552,12 @@ def get_fluxmap(simputfile: str):
 
 
 def show_fluxmap(inp, gadget_units=False):
+    """
+    Shows the flux map of a SIMPUT file or a map file.
+    :param inp: (str or dict) Input
+    :param gadget_units: (bool) If True sides are shown in comoving length, otherwise in angular size. Default False
+    :return: None
+    """
     if type(inp) is str:
         flux_map = get_fluxmap(inp)
     elif type(inp) is dict:
@@ -555,7 +586,7 @@ def show_fluxmap(inp, gadget_units=False):
 
 def xmlfile_line(history: fits.header._HeaderCommentaryCards) -> int:
     """
-
+    Finds the line corresponding to the XMLFile keyword
     :param history: (astropy.io.fits.header._HeaderCommentaryCards) Header history
     :return: (int) Index of the line containing the record of the XML file, None if not found
     """
