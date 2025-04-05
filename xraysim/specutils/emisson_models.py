@@ -1,10 +1,10 @@
 import json
 import os
 
+import gadgetutils.convert
 import numpy as np
-import xspec as xsp
-import pyatomdb
-import pyspex as spex
+
+from xraysim.specutils.xraylibraries import XspecModel, AtomdbModel, SpexModel
 
 from gadgetutils.phys_const import kpc2cm, Xp, m_p, Msun2g
 from astropy.cosmology import FlatLambdaCDM
@@ -42,18 +42,6 @@ def spex_norm(mi, rhoi, nei, h):
     return mi * rhoi * nei * conversion_factor
 
 
-def str2bool(v):
-    """
-
-    :param v: 
-    :return:
-    """
-    if v == 'True':
-        return True
-    elif v == 'False':
-        return False
-
-
 # current_directory = os.getcwd()
 
 # models_config_file = os.path.join(current_directory, 'em_reference.json')
@@ -66,181 +54,8 @@ with open(models_config_file) as file:
     json_data = json.load(file)
 
 
-class XspecModel:
-    def __init__(self, model_name: str, energy: np.array) -> None:
-        """
-        This Xspec Model constructor sets the PyXspec model energies, initializes the APEC version, and configures the
-        emission model based on the string variable model_name. It can be either APEC or VVAPEC.
-        :param model_name: str - type of X-ray Emission Model apec/vvapec
-        :param energy: list of float - Represents the range of energy values in KeV for spectrum calculation in pyxspec.
-        """
-        self.xspec_model_name = model_name
-        xsp.AllModels.setEnergies(f"{energy.min()} {energy.max()} {len(energy) - 1} lin")
-        xsp.Xset.addModelString("APECROOT", "3.0.9")
-
-        # This is to turn off the logs
-        xsp.Xset.chatter = 0
-        self.xspec_model = xsp.Model(self.xspec_model_name)
-
-    # doesn't change the object itself, that's why we have this warning
-    def set_xspec_commands(self, commands: dict) -> None:
-        """
-        This class method set up all the commands for the XSPEC model
-        :param commands: dict : dictionary of commands specific to XSPEC which are set up iteratively inside a loop
-        :return: None
-        """
-        xspec_settings = {
-            'abund': lambda cmd: setattr(xsp.Xset, cmd['method'], cmd['arg']),
-            'addModelString': lambda cmd: xsp.Xset.addModelString(cmd['arg'][0], cmd['arg'][1]),
-        }
-
-        for command in commands:
-            xspec_settings.get(command['method'], lambda cmd: None)(command)
-
-    def calculate_spectrum(self, z, temperature, metallicity, element_index,
-                           norm) -> np.array:
-        """
-        This class method computes the X-ray emission spectra for a gas particle using Pyxspec.
-        :param z: float - redshift for the gas particle
-        :param temperature: float - Temperature in keV in for the gas particle
-        :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
-        :param element_index: list of abundance to set
-        :param norm: float - xspec normalization value, units - 10^-14 cm^-5
-        :return: the emission spectra for the gas particle in the units -
-                norm * units from xspec module--->(10^-14 cm^-5) * (photons s^-1 cm^3)---->10^-14 photons s^-1 cm-2
-        """
-        params = {1: temperature, 32: z, 33: norm} if self.xspec_model_name == 'vvapec' \
-            else {1: temperature, 3: z, 4: norm} if self.xspec_model_name == 'apec' \
-            else None
-
-        if params is not None:
-            params.update({i + 2: metallicity[i] for i in element_index.tolist()})
-
-        params = {key: np.float64(value) for key, value in params.items()}
-
-        # for key, value in params.items():
-        #    print(f"Data type of {key}: {type(value)}")
-
-        self.xspec_model.setPars(params)
-
-        # self.xspec_model.show()
-        result = self.xspec_model.values(0)
-
-        return np.array(result)
-
-
-class AtomdbModel:
-
-    def __init__(self, model_name: str, energy: np.array) -> None:
-        """
-        This AtomDB Model constructor sets the AtomDB model energies and set up the AtomDB CIESession.
-        :param model_name:str - type of X-ray Emission Model, only vvapec
-        :param energy:list of float - Represents the range of energy values in KeV for spectrum calculation in pyatomDB
-        """
-        self.atomdb_model_name = model_name
-        self.atomdb_model = pyatomdb.spectrum.CIESession()
-        self.energy = energy
-
-    def set_atomdb_commands(self, commands: dict) -> None:
-        """
-        This class method set up all the commands for the pyatomdb model
-        :param commands: dict : dictionary of commands specific to pyatomdb which are set up iteratively inside a loop
-        :return: None
-        """
-        atomdb_settings = {
-            'abundset': lambda cmd: setattr(self.atomdb_model, cmd['method'], cmd['arg']),
-            'do_eebrems': lambda cmd: setattr(self.atomdb_model, cmd['method'], str2bool(cmd['arg'][0])),
-            'set_broadening': lambda cmd: self.atomdb_model.set_broadening(thermal_broadening=str2bool(cmd['arg'][0])),
-        }
-        for command in commands:
-            atomdb_settings.get(command['method'], lambda cmd: None)(command)
-
-    def calculate_spectrum(self, z, temperature, metallicity, element_index, norm) -> np.array:
-        """
-        This class method computes the X-ray emission spectra for a gas particle using pyatomdb.
-        :param z: float - redshift for the gas particle
-        :param temperature: float - Temperature in keV in for the gas particle
-        :param metallicity: list of float - metallicity array normalized to Anders and Grevesse solar abundance values
-        :param element_index:index of elements to set
-        :param norm: float - atomdb normalization value, units-cm^-5
-        :return: norm * units from atomdb module--->(cm^-5) * (photons s^-1 cm^3)---->photons s^-1 cm-2
-        """
-        self.atomdb_model.set_response(self.energy * (1 + z), raw=True)
-        # print(element_index,metallicity[element_index])
-        self.atomdb_model.set_abund(element_index + 1, metallicity[element_index])
-        result = self.atomdb_model.return_spectrum(temperature, log_interp=False, teunit='KeV') * norm * (
-                1 / (1 + z)) ** 1
-
-        # This extra condition is due the difference between the two libraries when no corresponding spectrum is found
-        # in table. The xspec returns an array of 0.0 with size equivalent to number of energy bins whereas atomdb
-        # returns simply zero. Therefore, to be consistent next part is required.
-        result = np.zeros(len(self.energy) - 1, dtype=np.float32) if isinstance(result, float) else result
-        # to match up with xspec
-        return np.array(result) * 1E14
-
-
-class SpexModel:
-
-    def __init__(self, model_name: str, energy: np.array) -> None:
-        # model name
-        self.spex_model_name = model_name
-
-        # initiate the spex session
-        self.spex_model = spex.Session()
-
-        # cosmo settings
-        self.spex_model.dist_cosmo(h0, omega_m, omega_l, omega_r)
-
-        # energy grid - not in logspace
-        self.spex_model.egrid(energy.min(), energy.max(), len(energy) - 1, 'kev', False)
-
-        # CIE model with cosmological redshift on to it
-        self.spex_model.mod.comp_new('red', isect=1)
-        self.spex_model.mod.comp_new('cie', isect=1)
-        self.spex_model.com_rel(1, 2, np.array([1]))
-
-    def set_spex_commands(self, commands: dict) -> None:
-        """
-        This class method set up all the commands for the spex model
-        :param commands: dict : dictionary of commands specific to pyatomdb which are set up iteratively inside a loop
-        :return: None
-        """
-        spex_settings = {
-            'abundset': lambda cmd: self.spex_model.abun(cmd['arg'])
-        }
-        for command in commands:
-            spex_settings.get(command['method'], lambda cmd: None)(command)
-
-    def calculate_spectrum(self, z, temperature, metallicity, element_index, norm) -> np.array:
-        element_index = [i.zfill(2) for i in element_index.astype(str)]
-
-        # this is required for cosmological distance calculation which is required in final spectrum calculation
-        self.spex_model.dist(1, z, 'z')
-
-        # this is required for applying redshift to CIE model - energy shift and S(E) - redshift correction
-        self.spex_model.par(1, 1, 'z', z)
-        # the redshift is cosmo for flag - 0 and peculiar velocity for flag - 1, for now let us consider 0
-        self.spex_model.par(1, 1, 'flag', 0)
-
-        # this nenhV, I have to set it according to spex unit, spex just take nenhV and in multiple of E64 m-3
-        self.spex_model.par(1, 2, 'norm', norm)  # 1 * E64 m-3
-        self.spex_model.par(1, 2, 't', temperature)
-        # we want interpolation on temperature for spectrum to be linear, therefore zero
-        self.spex_model.par(1, 2, 'logt', 0)
-
-        # to visualize the parameters for the spex model
-        # self.spex_model.par_show()
-
-        for element_index_i, abund_i in zip(element_index, metallicity):
-            self.spex_model.par(1, 2, element_index_i, abund_i)
-
-        self.spex_model.calc()
-        self.spex_model.mod_spectrum.get(1)
-
-        # The spectrum given by spex is in ph bin-1 s-1 m-2. In order to compare with xspec cgs unit is required
-        # i.e. ph bin-1 cm-2 s-1 (hence, multiplied by 1E-4)
-        return np.array(self.spex_model.mod_spectrum.spectrum) * 1E-4
-
+# this is the collection of models and their commands setting-abundance setting, broadening and metal reference
+# [print(i) for i in json_data ]
 
 class EmissionModels:
     def __init__(self, model_name: str, energy: np.array):
@@ -252,12 +67,15 @@ class EmissionModels:
         """
         self.json_record = next((i for i in json_data if i['name'] == model_name), None)
 
+        # setting all the variables for the instances of the class - self
         if self.json_record is None:
             raise ValueError(f"Model with name '{model_name}' not found in the json file.")
 
         self.json_record['metals_ref'] = np.array(self.json_record['metals_ref'], dtype=float)
         self.json_record['chemical_elements'] = np.array(self.json_record['chemical_elements'], dtype=str)
         self.energy = energy
+        # check all the set instances variable
+        # print(self.json_record)
 
         if self.json_record['code'] == 'xspec':
             self.model = XspecModel(self.json_record['model'], self.energy)
@@ -293,12 +111,15 @@ class EmissionModels:
 
             idx = metal_idx.get((self.json_record['model'], self.json_record['n_metals'] > 1))
             np.put(self.json_record['metals_ref'], idx, metal)
-            # print(Abundance_Table['Symbols'][idx], idx, '\n')
+            #print(self.json_record['metals_ref'],idx,Abundance_Table['Symbols'][idx])
+            #print(Abundance_Table['Symbols'][idx], idx, '\n')
 
-            self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / \
-                                                  Abundance_Table['AbundanceTable'][idx] \
-                if self.json_record['n_metals'] > 1 \
-                else self.json_record['metals_ref'][idx] / Z_solar
+            # scaling with respect to Anders and Grevesse values
+            if self.json_record['n_metals'] > 1:
+                self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / Abundance_Table['AbundanceTable'][idx]
+            else:
+                self.json_record['metals_ref'][idx] = self.json_record['metals_ref'][idx] / Z_solar
+
         else:
             raise ValueError(f"wrong setting n_metals is'{self.json_record['n_metals']} and len of metal'{len(metal)}.")
 
@@ -338,5 +159,26 @@ class EmissionModels:
         for item in test:
             if item.endswith(".dum"):
                 os.remove(os.path.join(dir_name, item))
-
+                
+                
 # testing line for gadget
+#T = 9.0404 # KeV
+#Z = [0.000192149] # Metallicity
+#energy_bins = np.linspace(0.1, 2.4, 101)
+#model_atom_db = EmissionModels(model_name='TheThreeHundred-2', energy=energy_bins)
+# print(model_atom_db.compute_spectrum(0.2, T, Z, 1.0))
+#import matplotlib.pyplot as plt
+
+# norm_1 = gadgetutils.convert.gadget2xspecnorm(0.0239, 124.807E-9, ((1/100)*(3E5)*1000),.677)
+
+# norm_3 = gadgetutils.convert.gadget2xspecnorm(0.0239, 124.807E-9, ((3/100)*(3E5)*1000),.677)
+
+# energy_bins = 0.5*(energy_bins[1:]+energy_bins[:-1])
+# plt.plot(energy_bins, model_atom_db.compute_spectrum(1, T, Z, norm_1*(1/(1+1))**2), color='r')
+# plt.plot(energy_bins*2, 3*3*2*2*model_atom_db.compute_spectrum(3, T, Z, norm_3*(1/(1+3))**2), color = 'k')
+# plt.xscale('log')
+# plt.yscale('log')
+# plt.show()
+
+# integrated_lum = np.sum( energy_bins*model_atom_db.compute_spectrum(1, T, Z, norm_1*(1/(1+1))**2) )
+# print(integrated_lum)
