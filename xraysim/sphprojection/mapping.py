@@ -50,7 +50,7 @@ def get_map_coord(simfile: str, proj_index: int, z=False):
     y = pos[:, index_list[1]]
 
     if z:
-        return x, y, pos[:, index_list[1]]
+        return x, y, pos[:, index_list[2]]
     else:
         return x, y
 
