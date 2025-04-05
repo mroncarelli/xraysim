@@ -29,6 +29,7 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
     lock = Lock()
 
     def add_to_final(result):
+        """Callback to safely accumulate results into the shared cube."""
         with lock:
             final_cube_container[0] += result  # Modify the array inside the list
 
@@ -43,7 +44,7 @@ def make_spectrum_cube(iterator, nx, ny, nz, iter_, x, y, hsml, norm, z_eff, tem
             pool.apply_async(
                 spectrum_and_add_to_cube, 
                 args, 
-                callback=add_to_final  
+                callback=add_to_final  # No nonlocal needed; list is mutable
             )
         
         pool.close()
@@ -58,10 +59,13 @@ def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, 
     """Process a chunk of particles and return their contributions to the spectral cube."""
     spcube = np.zeros((nx, ny, nz), dtype=np.float64)
     progress_bar = tqdm(total=len(z_eff), position=0, leave=True, desc=chunk_name)
-
+       
     with EmissionModels(method, energy) as em:
         for (redshift, temperature, Z, normalization, xi, yi, hsml_i) in zip(z_eff, temp_kev, metals, norm, x, y, hsml):
-            spectrum = em.compute_spectrum(redshift, temperature, Z, normalization, flag_ene)
+            # print(Z)
+            spectrum = em.compute_spectrum(redshift, temperature, Z, normalization, flag_ene)    
+            # Method 1 based on vecotrization
+            
             wx, i0 = kernel_mapping_p(xi, hsml_i, nx)
             wy, j0 = kernel_mapping_p(yi, hsml_i, ny)
 
@@ -76,10 +80,22 @@ def spectrum_and_add_to_cube(z_eff, temp_kev, metals, norm, x, y, hsml, nx, ny, 
 
             matrix_wx, matrix_wy = np.meshgrid(wx, wy)
             weight_matrix = (matrix_wx * matrix_wy).T
-            spcube[i0:i0+len(wx), j0:j0+len(wy), :] += weight_matrix[..., np.newaxis] * spectrum
+            spcube[i0:i0+len(wx), j0:j0+len(wy), :] += weight_matrix[..., np.newaxis] * spectrum #np.ones(spectrum.shape)
+
+            # same method as above but using loops
+
+            #index_iterable = np.ndindex(*weight_matrix.shape)
+            #for ix in index_iterable:
+            #    spcube[i0 + ix[0], j0 + ix[1], :] = spcube[i0 + ix[0], j0 + ix[1], :] + weight_matrix[
+            #       ix[0], ix[1]] * spectrum
+            #nearnest grid point method 
+            #ix = np.argmin(np.abs(np.arange(nx) - xi))
+            #iy = np.argmin(np.abs(np.arange(ny) - yi))
+            # print(ix,iy)
+            #spcube[ix,iy,:] = spcube[ix,iy,:] + spectrum
 
             progress_bar.update(1)
-    
+
     progress_bar.close()
     return spcube
 
@@ -151,10 +167,11 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
         valid_mask = valid_mask & (readtemperature(simfile, f_cooling=f_cooling, suppress=1) > tcut)
         valid_mask = valid_mask & (readtemperature(simfile, f_cooling=f_cooling, suppress=1) < 798391320.4242) #highest limit for xspec
 
+    
     # If zrange is set, cutting out particles outside the l.o.s. range
     if zrange:
         valid_mask = valid_mask & (z + hsml_z > zrange[0]) & (z - hsml_z < zrange[1])
-
+        
     valid = np.where(valid_mask)[0]
     del valid_mask
 
@@ -165,13 +182,15 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     # Calculating quantity (q) to integrate and weight (w)
     mass = pygr.readsnap(simfile, 'mass', 'gas', units=0, suppress=1)  # [10^10 h^-1 M_Sun]
     print(mass[particle_list])
-    if zrange:
-        # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
-        for ipart in particle_list[::1]:
-            mass[ipart] *= intkernel_vec((zrange[1] - z[ipart]) / hsml_z[ipart]) - intkernel_vec((zrange[0] - z[ipart]))
-        del z, hsml_z
-    print(mass[particle_list])
+    
+    #if zrange:
+    #    # If a l.o.s. range is defined I modify the particle mass according to the smoothing kernel
+    #    for ipart in particle_list[::1]:
+    #        mass[ipart] *= intkernel_vec((zrange[1] - z[ipart]) / hsml_z[ipart]) - intkernel_vec((zrange[0] - z[ipart]))
+    #    del z, hsml_z
+    #print(mass[particle_list])
     # Calculating effective redshift (Hubble + peculiar velocity) of the particles
+    
     if novel:
         # If peculiar velocities are switched off all particles effective redshift are set to the cosmological one
         z_eff = np.full(ngas, redshift)
@@ -218,7 +237,7 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     elif len(metallicity.shape) == 2:
         metallicity = metallicity[:, 2:]
 
-    print(metallicity)
+    print('Metallicity',metallicity)
     # Calculating Xspec normalization [10^14 cm^-5]
     norm = convert.gadget2xspecnorm(mass, rho, 1.e3 * cosmo.comoving_distance(z_eff).to_value(), h_hubble, ne)
 
@@ -228,7 +247,7 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     for i in np.argwhere(norm < 0):
         idx = np.argwhere(particle_list == i)
         particle_list = np.delete(particle_list, idx)
-
+    # np.save("particle_list.npy",particle_list)
     # Logic for just simulating a halo
 
     # Defining iterable to iterate through particles
@@ -271,20 +290,9 @@ def make_simput_emission_model(simfile: str, size: float, emin: float, emax: flo
     if zrange:
         result['zrange'] = zrange  # [h^-1 kpc] comoving
 
-    write_speccube(result, f'{simfile}.speccube')
+    write_speccube(result, f'xraysim-snap.speccube')
     #cube2simputfile(result, f'{simfile}.simput')
 
     return spectrum_cube
 
-#import os
 
-#inputDir = os.environ.get('XRAYSIM') + '/Gadget_simulations/'
-#snapshotFile = inputDir + 'snap_119'
-#print(snapshotFile)
-#spectrumcube = make_simput_emission_model(snapshotFile, size=10 * (0.1974122751756834), emin=0.1, emax=1, bins=1001,
-#                                          method='TheThreeHundred-2',
-#                                          proj='z', npix=128,
-#                                          n_jobs=1,
-#                                          tcut=937645.6204982,chunk_size=1)
-
-#print(spectrumcube)
