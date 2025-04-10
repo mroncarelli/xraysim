@@ -10,39 +10,6 @@ from astropy.io import fits
 from xraysim.gadgetutils import phys_const
 from xraysim.specutils import absorption
 
-# Initialization of the `instruments` global variable
-instruments_config_file = os.path.join(os.path.dirname(__file__), '../../sixte_instruments.json')
-with open(instruments_config_file) as file:
-    json_data = json.load(file)
-
-sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
-
-instruments = {}
-for instr in json_data:
-    name = instr.get('name').lower()
-    command = instr.get('command') if 'command' in instr else 'sixtesim'
-    special = instr.get('special')
-    instruments[name] = {'command': command, 'special': special}
-    if command == 'erosim':
-        # eROSITA special case
-        instruments[name]['xml'] = None
-        instruments[name]['adv_xml'] = None
-        attitude = instr.get('attitude')
-        if attitude is not None:
-            # eROSITA survey
-            instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
-    else:
-        subdir = sixte_instruments_dir + '/' + instr['subdir'] + '/'
-        # Manipulating xml string to account for multiple xml files
-        instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
-        # From Sixte 3 adv_xml is not present anymore
-        if 'adv_xml' in instr:
-            instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
-        else:
-            instruments[name]['adv_xml'] = None
-
-del file, json_data, instr
-
 
 def version():
     """
@@ -64,6 +31,43 @@ def version():
 
 
 sixte_version = version()
+
+# Initialization of the `instruments` global variable
+instruments_config_file = os.path.join(os.path.dirname(__file__), '../../sixte_instruments.json')
+with open(instruments_config_file) as file:
+    json_data = json.load(file)
+
+sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
+
+instruments = {}
+for instr in json_data:
+    name = instr.get('name').lower()
+    subdir = sixte_instruments_dir + '/' + instr['subdir'] + '/'
+    command = instr.get('command') if 'command' in instr else 'sixtesim'
+    special = instr.get('special')
+    instruments[name] = {'command': command, 'special': special}
+    if (sixte_version >= (3,) and special == 'erosita') or sixte_version < (3,) and command == 'erosim':
+        # eROSITA special case
+        if sixte_version >= (3,):
+            instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
+        else:
+            instruments[name]['xml'] = None
+        instruments[name]['adv_xml'] = None
+        attitude = instr.get('attitude')
+        if attitude is not None:
+            # eROSITA survey
+            instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
+    else:
+        # Manipulating xml string to account for multiple xml files
+        instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
+        # From Sixte 3 adv_xml is not present anymore
+        if 'adv_xml' in instr:
+            instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
+        else:
+            instruments[name]['adv_xml'] = None
+
+del file, json_data, instr
+
 
 def set_simput_src_cat_header(header: fits.header):
     """
@@ -453,7 +457,8 @@ def erosita_survey(simputfile: str, attitude: str, exposure, evtfile: str) -> li
     if sixte_version < (3,):
         runsim_command = 'erosim Prefix=' + root_file_name + '_' + ' Simput=' + simputfile
     else:
-        runsim_command = 'sixtesim Prefix=' + root_file_name + '_' + ' Simput=' + simputfile
+        runsim_command = ('sixtesim Prefix=' + os.path.dirname(evtfile) + '/' + ' Simput=' + simputfile +
+                          ' Exposure=0 MJDREF=51543.8750 evtfile=' + os.path.basename(evtfile))
 
     hdu_list = fits.open(attitude)
     t0 = hdu_list[1].data['TIME'][0]  # MJD of the survey start [s]

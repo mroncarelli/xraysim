@@ -4,11 +4,15 @@ import warnings
 import pytest
 from astropy.io import fits
 
-from xraysim.specutils.sixte import create_eventlist, make_pha
+from xraysim.specutils.sixte import create_eventlist, make_pha, version, erosita_ccd_eventfile
 from .fitstestutils import assert_hdu_list_matches_reference
+
+sixte_version = version()
 
 inputDir = os.environ.get('XRAYSIM') + '/tests/inp/'
 referenceDir = os.environ.get('XRAYSIM') + '/tests/reference_files/'
+if sixte_version < (3,):
+    referenceDir += 'sixte_v2/'
 referenceSimputFile = referenceDir + 'reference.simput'
 referenceGTIFile = referenceDir + 'reference_erosita_survey.gti'
 referenceEvtFile = referenceDir + 'reference_erosita_survey.evt'
@@ -18,8 +22,8 @@ simputFile = referenceDir + "reference.simput"
 GTIFile = referenceDir + "evt_file_erosita_survey_created_for_test.gti"
 evtFile = referenceDir + "evt_file_erosita_survey_created_for_test.evt"
 evtFile_ccdList = []
-for ccd in ('1', '2', '3', '4', '5', '6', '7'):
-    evtFile_ccdList.append(os.path.splitext(evtFile)[0] + '_ccd' + ccd + '_evt.fits')
+for ccd in range(1, 8):
+    evtFile_ccdList.append(erosita_ccd_eventfile(evtFile, ccd))
 phaFile = referenceDir + "pha_file_erosita_survey_created_for_test.pha"
 
 
@@ -42,7 +46,7 @@ def test_erosita_survey(run_type):
         os.remove(GTIFile)
     if os.path.isfile(evtFile):
         os.remove(evtFile)
-    sys_out = create_eventlist(simputFile, 'erass1', None, evtFile, background=False, seed=42, verbosity=0)
+    sys_out = create_eventlist(referenceSimputFile, 'erass1', None, evtFile, background=False, seed=42, verbosity=0)
     assert sys_out == [0, 0, 0]
 
     # Checking GTI file
@@ -56,7 +60,7 @@ def test_erosita_survey(run_type):
     if run_type == 'standard':
         # Checking only that the file was created
         assert os.path.isfile(evtFile)
-        warnings.warn("Eventlist not checked. Run pytest --eventlist complete to check it.")
+        warnings.warn("Eventlist not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
         assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
@@ -72,7 +76,7 @@ def test_erosita_survey(run_type):
     if run_type == 'standard':
         # Checking only that the file was created
         assert os.path.isfile(phaFile)
-        warnings.warn("Pha file not checked. Run pytest --eventlist complete to check it.")
+        warnings.warn("Pha file not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
         assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))

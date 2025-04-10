@@ -12,7 +12,7 @@
   {
     "name": "xrism-resolve",
     "subdir": "xrism/resolve",
-    "xml": "resolve_baseline.xml"
+    "xml": "resolve_baseline_GVclosed.xml "
   },
   {
     "name": "xrism-resolve-test",
