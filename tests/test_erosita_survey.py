@@ -73,7 +73,7 @@ def test_erosita_survey(run_type):
     # Creating a pha from the event-list file
     if os.path.isfile(phaFile):
         os.remove(phaFile)
-    make_pha(referenceEvtFile, phaFile)
+    make_pha(referenceEvtFile, phaFile, grading=1) if version() < (3,) else make_pha(referenceEvtFile, phaFile)
     os.remove(evtFile)
 
     if run_type == 'standard':

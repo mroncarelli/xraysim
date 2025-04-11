@@ -38,10 +38,6 @@ def test_full_run(run_type):
     reference one.
     """
 
-    if version() < (3,):
-        warnings.warn("Test full run operates only with SIXTE version 3")
-        return
-
     # Creating a speccube file from a calculated speccube
     speccube_calculated = make_speccube(snapshotFile, spFile, 1.05, 25, redshift=0.1, center=[2500., 2500.], proj='z',
                                         tcut=1.e6, nh=0.01, nsample=1)
@@ -100,7 +96,8 @@ def test_full_run(run_type):
     # Creating a pha from the event-list file
     if os.path.isfile(phaFile):
         os.remove(phaFile)
-    make_pha(referenceEvtFile, phaFile)
+    make_pha(referenceEvtFile, phaFile, grading=1) if version() < (3,) else make_pha(referenceEvtFile, phaFile)
+
     os.remove(evtFile)
 
     if run_type == 'standard':

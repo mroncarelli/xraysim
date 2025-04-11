@@ -638,14 +638,14 @@ def get_xmlpath(evtfile: str):
     return xmlpath
 
 
-def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=1, logfile=None, overwrite=True,
+def make_pha(evtfile: str, phafile: str, rsppath=None, pixid=None, grading=None, logfile=None, overwrite=True,
              no_exec=False):
     """ Creates a .pha file containing the spectrum extracted from an event file using the SIXTE makespec command
     :param evtfile: (str) Event file
     :param phafile: (str) Output file
     :param rsppath: (str) Path to the .rmf and .arf files
     :param pixid: (int or int list) Pixel id of photons to be included in the spectrum (default, None, i.e. all pixels)
-    :param grading: (int or int list) Grading of photons to be included in the spectrum (default, 1)
+    :param grading: (int or int list) Grading of photons to be included in the spectrum (default, None, i.e. all photons)
     :param logfile: (str) If set the output is not written on screen but saved in the file
     :param overwrite: (bool) If set overwrites previous output file (phafile) if exists, default True
     :param no_exec: (bool) If set to True no simulation is run but the SIXTE command is printed out instead
