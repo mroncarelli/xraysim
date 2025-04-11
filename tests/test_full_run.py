@@ -4,7 +4,7 @@ import warnings
 import pytest
 from astropy.io import fits
 
-from xraysim.specutils.sixte import cube2simputfile, create_eventlist, make_pha, version
+from xraysim.sixte import cube2simputfile, create_eventlist, make_pha, version
 from xraysim.sphprojection.mapping import make_speccube, write_speccube, read_speccube
 from .fitstestutils import assert_hdu_list_matches_reference
 

@@ -4,7 +4,7 @@ import warnings
 import pytest
 from astropy.io import fits
 
-from xraysim.specutils.sixte import create_eventlist, make_pha, version, erosita_ccd_eventfile
+from xraysim.sixte import create_eventlist, make_pha, version, erosita_ccd_eventfile
 from .fitstestutils import assert_hdu_list_matches_reference
 
 sixte_version = version()

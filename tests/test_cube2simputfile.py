@@ -4,7 +4,7 @@ import pytest
 from astropy.io import fits
 
 from xraysim.gadgetutils.phys_const import keV2K
-from xraysim.specutils.sixte import cube2simputfile
+from xraysim.sixte import cube2simputfile
 from xraysim.specutils.tables import read_spectable, calc_spec
 from xraysim.sphprojection.mapping import make_speccube
 from .fitstestutils import assert_hdu_list_matches_reference
