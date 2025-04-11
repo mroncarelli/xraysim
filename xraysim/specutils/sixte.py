@@ -1,6 +1,7 @@
 import copy as cp
 import json
 import os
+import tempfile
 import warnings
 
 import matplotlib.pyplot as plt
@@ -397,6 +398,9 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
 
     if type(logfile) is str and logfile != '':
         command_list[itask] += ' > ' + logfile + ' 2>&1'
+    elif verbosity == 0:
+        # If verbosity=0 creates a temporary file where to put the SIXTE screen output, which is usually quite large
+        command_list[itask] += ' > ' + tempfile.NamedTemporaryFile().name + ' 2>&1'
 
     if no_exec:
         return command_list
