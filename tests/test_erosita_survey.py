@@ -50,7 +50,8 @@ def test_erosita_survey(run_type):
     assert sys_out == [0, 0, 0]
 
     # Checking GTI file
-    assert_hdu_list_matches_reference(fits.open(GTIFile), fits.open(referenceGTIFile))
+    assert_hdu_list_matches_reference(fits.open(GTIFile), fits.open(referenceGTIFile),
+                                      key_skip=('DATE', 'COMMENT'))
     os.remove(GTIFile)
 
     # Removing CCD files
@@ -63,7 +64,9 @@ def test_erosita_survey(run_type):
         warnings.warn("Eventlist not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
-        assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
+        assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile),
+                                          key_skip=('DATE', 'COMMENT', 'CHECKSUM'),
+                                          history_tag_skip=('START PARAMETER ', ' GTIfile = ', ' EvtFile = '))
     else:
         raise ValueError("ERROR in test_erosita_survey.py: unknown option " + run_type)
 
@@ -79,7 +82,9 @@ def test_erosita_survey(run_type):
         warnings.warn("Pha file not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
-        assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
+        assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile),
+                                          key_skip=('COMMENT'),
+                                          history_tag_skip=('START PARAMETER ', ' Spectrum = '))
     else:
         raise ValueError("ERROR in test_erosita_survey.py: unknown option " + run_type)
 

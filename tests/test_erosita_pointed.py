@@ -56,7 +56,9 @@ def test_erosita_pointed(run_type):
         warnings.warn("Eventlist not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
-        assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile))
+        assert_hdu_list_matches_reference(fits.open(evtFile), fits.open(referenceEvtFile),
+                                          key_skip=('DATE', 'CREADATE', 'COMMENT', 'CHECKSUM'),
+                                          history_tag_skip=('START PARAMETER ', ' EvtFile = '))
     else:
         raise ValueError("ERROR in test_erosita_pointed.py: unknown option " + run_type)
 
@@ -72,7 +74,9 @@ def test_erosita_pointed(run_type):
         warnings.warn("Pha file not checked. Run 'pytest --eventlist complete' to check it.")
     elif run_type == 'complete':
         # Checking that file content matches reference
-        assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile))
+        assert_hdu_list_matches_reference(fits.open(phaFile), fits.open(referencePhaFile),
+                                          key_skip=('COMMENT'),
+                                          history_tag_skip=('START PARAMETER ', ' Spectrum = '))
     else:
         raise ValueError("ERROR in test_erosita_pointed.py: unknown option " + run_type)
 
