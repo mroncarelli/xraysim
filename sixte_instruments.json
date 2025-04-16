@@ -1,18 +1,13 @@
 [
   {
     "name": "athena-xifu",
-    "subdir": "athena-xifu",
-    "xml": "xifu_baseline.xml"
-  },
-  {
-    "name": "athena-xifu-test",
-    "subdir": "athena-xifu",
-    "xml": "xifu_baseline_test.xml"
+    "subdir": "athena-xifu/baseline",
+    "xml": "xifu_nofilt_defoc.xml"
   },
   {
     "name": "xrism-resolve",
     "subdir": "xrism/resolve",
-    "xml": "resolve_baseline_GVclosed.xml "
+    "xml": "resolve_baseline_GVclosed.xml"
   },
   {
     "name": "xrism-resolve-test",

@@ -10,7 +10,12 @@ from astropy.io import fits
 
 from xraysim.gadgetutils import phys_const
 from xraysim.specutils import absorption
+from .shared import instrumentsConfigFile, instrumentsDir
+from .classes import SixteInstruments
 
+# Instruments object
+instruments = SixteInstruments()
+instruments.load(instrumentsConfigFile)
 
 def version():
     """
@@ -32,42 +37,6 @@ def version():
 
 
 sixte_version = version()
-
-# Initialization of the `instruments` global variable
-instruments_config_file = os.path.join(os.path.dirname(__file__), '../../sixte_instruments.json')
-with open(instruments_config_file) as file:
-    json_data = json.load(file)
-
-sixte_instruments_dir = os.environ.get('SIXTE') + '/share/sixte/instruments'
-
-instruments = {}
-for instr in json_data:
-    name = instr.get('name').lower()
-    subdir = sixte_instruments_dir + '/' + instr['subdir'] + '/'
-    command = instr.get('command') if 'command' in instr else 'sixtesim'
-    special = instr.get('special')
-    instruments[name] = {'command': command, 'special': special}
-    if (sixte_version >= (3,) and special == 'erosita') or sixte_version < (3,) and command == 'erosim':
-        # eROSITA special case
-        if sixte_version >= (3,):
-            instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
-        else:
-            instruments[name]['xml'] = None
-        instruments[name]['adv_xml'] = None
-        attitude = instr.get('attitude')
-        if attitude is not None:
-            # eROSITA survey
-            instruments[name]['attitude'] = sixte_instruments_dir + '/srg/erosita/' + attitude
-    else:
-        # Manipulating xml string to account for multiple xml files
-        instruments[name]['xml'] = subdir + (',' + subdir).join(instr['xml'].replace(' ', '').split(','))
-        # From Sixte 3 adv_xml is not present anymore
-        if 'adv_xml' in instr:
-            instruments[name]['adv_xml'] = sixte_instruments_dir + '/' + instr['subdir'] + '/' + instr['adv_xml']
-        else:
-            instruments[name]['adv_xml'] = None
-
-del file, json_data, instr
 
 
 def set_simput_src_cat_header(header: fits.header):
@@ -334,18 +303,26 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
     :return: System output of SIXTE command (or string containing the command if no_exec is set to True)
     """
 
-    if instrument.lower() in instruments:
-        sixte_command = instruments[instrument]['command']
-        special = instruments[instrument]['special']
-        xmlfile_ = xmlfile if xmlfile else instruments[instrument]['xml']
-        advxml_ = advxml if advxml else instruments[instrument]['adv_xml']
-        attitude_ = attitude if attitude else instruments[instrument].get('attitude')
-
-    else:
+    instrument_ = instruments.get(instrument)
+    if instrument_ is None:
         raise ValueError("ERROR in create_eventlist. Invalid instrument", instrument,
                          ": must be one of " + str(
                              list(instruments.keys())) + ". To configure other instruments modify the " +
-                         "instruments configuration file: " + instruments_config_file)
+                         "instruments configuration file: " + instrumentsConfigFile)
+
+    else:
+        path = instrumentsDir + '/' + instrument_.subdir + '/'
+        sixte_command = instrument_.command
+        special = instrument_.special
+        xmlfile_ = xmlfile if xmlfile else path + instrument_.xml
+        if advxml:
+            advxml_ = advxml
+        else:
+            advxml_ = path + instrument_.adv_xml if instrument_.adv_xml else None
+        if attitude:
+            attitude_ = attitude
+        else:
+            attitude_ = path + instrument_.attitude if instrument_.attitude else None
 
     if pointing is None:
         ra = fits.open(simputfile)[0].header.get('RA_C')
@@ -362,7 +339,7 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
     # eROSITA special case
     if (sixte_version >= (3,) and special == 'erosita') or (sixte_version < (3,) and sixte_command == 'erosim'):
         if attitude_:
-            command_list = erosita_survey(simputfile, instruments[instrument]['attitude'], exposure, evtfile)
+            command_list = erosita_survey(simputfile, attitude_, exposure, evtfile)
             itask = 1
         else:
             command_list = erosita_pointed(simputfile, exposure, evtfile, ra=ra, dec=dec, xmlfile=xmlfile_)
@@ -500,7 +477,7 @@ def correct_erosita_history_header(evtfile: str, xmlfile=None):
     """
     hdulist = fits.open(evtfile)
     if sixte_version < (3,):
-        xml_file = sixte_instruments_dir + '/srg/erosita/erosita_1.xml'
+        xml_file = instrumentsDir + '/srg/erosita/erosita_1.xml'
     else:
         xml_file = xmlfile.split(',')[0]
 
