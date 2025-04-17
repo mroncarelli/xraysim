@@ -1,5 +1,4 @@
 import copy as cp
-import json
 import os
 import tempfile
 import warnings
@@ -314,11 +313,18 @@ def create_eventlist(simputfile: str, instrument: str, exposure, evtfile: str, p
         path = instrumentsDir + '/' + instrument_.subdir + '/'
         sixte_command = instrument_.command
         special = instrument_.special
-        xmlfile_ = xmlfile if xmlfile else path + instrument_.xml
+
+        if sixte_version < (3,) and sixte_command == 'erosim':
+            # SIXTE in version 2 or lower handles eROSITA in a special way, so that the xml file is not needed
+            xmlfile_ = None
+        else:
+            xmlfile_ = xmlfile if xmlfile else path + (',' + path).join(instrument_.xml.replace(' ', '').split(','))
+
         if advxml:
             advxml_ = advxml
         else:
             advxml_ = path + instrument_.adv_xml if instrument_.adv_xml else None
+
         if attitude:
             attitude_ = attitude
         else:
@@ -500,7 +506,7 @@ def correct_erosita_history_header(evtfile: str, xmlfile=None):
         history[index_line] = modif_hline
         # Removing lines from previous record
         index_line += 1
-        while (len(history) > index_line and history[index_line].startswith(hprefix)):
+        while len(history) > index_line and history[index_line].startswith(hprefix):
             history.pop(index_line)
 
         # Removing history in the original header and substituting with the corrected one
@@ -522,7 +528,7 @@ def get_fluxmap(simputfile: str):
     ra = np.linspace(hdul[1].data['RA'].min(), hdul[1].data['RA'].max(), npix)  # [deg]
     dec = np.linspace(hdul[1].data['DEC'].min(), hdul[1].data['DEC'].max(), npix)  # [deg]
     ang_pix = hdul[0].header.get('ANG_PIX') / 60.  # [deg]
-    if ('X_MIN' in hdul[0].header and 'X_MAX' in hdul[0].header):
+    if 'X_MIN' in hdul[0].header and 'X_MAX' in hdul[0].header:
         x_min, x_max = hdul[0].header['X_MIN'], hdul[0].header['X_MAX']  # [h^-1 kpc]
         l_pix = (x_max - x_min) / npix  # [h^-1 kpc]
         x = np.linspace(x_min + 0.5 * l_pix, x_max - 0.5 * l_pix, npix)
