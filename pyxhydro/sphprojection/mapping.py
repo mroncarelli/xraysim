@@ -484,7 +484,7 @@ def map2d_xyq(x: np.ndarray, y: np.ndarray, q: np.ndarray, hsml=None, weight=Non
 
 def specmap(snapfile: str, sptable, size: float, npix=256, redshift=None, center=None, proj='z', zrange=None,
             energy_cut=None, tcut=0., flag_ene=False, nsample=None, isothermal=None, novel=None, gaussvel=None,
-            seed=0, nosmooth=False, nh=None, simulation_type=None, progress=False):
+            seed=0, nosmooth=False, nh=None, abund='angr', simulation_type=None, progress=False):
     """
     Creates a spectral-map (spectral datacube) from a Gadget snapshot.
     :param snapfile: (str) Simulation snapshot file (Gadget)
@@ -509,8 +509,10 @@ def specmap(snapfile: str, sptable, size: float, npix=256, redshift=None, center
         0. Applies only if novel=False. Default: None.
     :param seed: (int) Seed for the random generator (used for gaussvel). Default: 0.
     :param nosmooth: (bool) If set the SPH smoothing is turned off, and particles ar treated as points. Default: False
-    :param nh: (float) Hydrogen column density [10^22 cm^-2], overrides the value from the spectral table. Default:
-        assumes the value in sofile.
+    :param nh: (float) Hydrogen column density [10^22 cm^-2] for Galactic absorption (tbabs), overrides the value from
+        the spectral table. Default: assumes the value in sofile.
+    :param abund: (str) Abundance table for the tbabs Galactic absorption model. Must be one of the Xspec tables.
+        Default 'angr'
     :param simulation_type: (str) The name of the simulation set of the snapshot file. Default: None.
     :param progress: (bool) If set the progress bar is shown in output. Default: False.
     :return: A structure (dictionary) containing some info, including:
@@ -656,7 +658,7 @@ def specmap(snapfile: str, sptable, size: float, npix=256, redshift=None, center
 
     # In nh is provided the spectral table is converted
     if nh is not None:
-        spectable = absorption.convert_nh(spectable, nh)
+        spectable = absorption.convert_nh(spectable, nh, abund=abund)
 
     energy = spectable.get('energy')  # [keV]
     nene = len(energy)
@@ -719,10 +721,14 @@ def specmap(snapfile: str, sptable, size: float, npix=256, redshift=None, center
     if nh is not None:
         result['nh'] = nh  # [10^22 cm^-2]
         result['nh_units'] = '10^22 cm^-2'
+        if abund is not None:
+            result['abund'] = abund  # Present only if nh is present
     else:
         if 'nh' in spectable:
             result['nh'] = spectable.get('nh')  # [10^22 cm^-2]
             result['nh_units'] = '10^22 cm^-2'
+            if 'abund' in spectable:
+                result['abund'] = spectable.get('abund')  # Present only if nh is present
 
     return result
 

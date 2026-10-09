@@ -6,23 +6,23 @@ def test_table_energy_ascending():
     """
     The energy column in the energy table must be in ascending order
     """
-    for index in range(1, len(spabs.energy_table)):
-        assert spabs.energy_table[index] > spabs.energy_table[index - 1]
+    for index in range(1, len(spabs.energyArr)):
+        assert spabs.energyArr[index] > spabs.energyArr[index - 1]
 
 
 def test_table_sigma_abs_gt_0():
     """
     Values of sigma_abs in the table must be strictly positive
     """
-    assert all(spabs.sigma_abs_table > 0.)
+    assert all(spabs.sigmaAbsTable > 0.)
 
 
 def test_table_values():
     """
     Values for input energy present in the table must be the corresponding table values
     """
-    for index, ene in enumerate(spabs.energy_table):
-        assert spabs.sigma_abs_galactic(ene) == pytest.approx(spabs.sigma_abs_table[index])
+    for index, ene in enumerate(spabs.energyArr):
+        assert spabs.sigma_abs_galactic(ene) == pytest.approx(spabs.sigmaAbsTable[index])
 
 
 def test_1kev():
