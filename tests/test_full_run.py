@@ -113,7 +113,7 @@ def test_full_run(run_type):
     os.remove(phaFile)
 
     # Fitting the spectrum in the pha file
-    specfit = SpecFit(referencePhaFile, "wabs(bapec)", respFile=rmf_file, arfFile=arf_file)
+    specfit = SpecFit(referencePhaFile, "tbabs(bapec)", respFile=rmf_file, arfFile=arf_file)
     assert_specfit_has_coherent_properties(specfit)
     startPars = (0.01, 6., 0.3, 0.1, 1000., 1e-3)
     fixedPars = (True, False, True, False, False, False)

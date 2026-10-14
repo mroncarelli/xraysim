@@ -21,7 +21,7 @@ A spectral-map file containing the data for the emission of a Gadget simulated c
 
 ### - `reference.spf`
 
-A SpecFit file with the fit result of the reference.pha file with a wabs(bapec) model.
+A SpecFit file with the fit result of the reference.pha file with a tbabs(bapec) model.
 
 ### - `reference_bapec_wrong_pars.spf`
 

@@ -95,9 +95,9 @@ evtFile = referenceDir + "evt_file_created_for_ideal_test.evt"
 phaFile = referenceDir + "pha_file_created_for_ideal_test.pha"
 
 
-def wabs_bapec(nh: float, t: float, met: float, redshift: float, broad: float, nrm: float) -> np.ndarray:
+def tbabs_bapec(nh: float, t: float, met: float, redshift: float, broad: float, nrm: float) -> np.ndarray:
     """
-    Returns an absorbed (wabs) bapec spectrum.
+    Returns an absorbed (tbabs) bapec spectrum.
     """
     xsp.Xset.chatter = 0
     xsp.Xset.addModelString("APECTHERMAL", "yes")
@@ -110,7 +110,7 @@ def wabs_bapec(nh: float, t: float, met: float, redshift: float, broad: float, n
     pars[33] = redshift
     pars[34] = broad
     pars[35] = nrm
-    model = xsp.Model('wabs(bvvapec)', 'test_ideal_run', sourceNum=0)
+    model = xsp.Model('tbabs(bvvapec)', 'test_ideal_run', sourceNum=0)
     model.setPars(pars)
     result = np.array(model.values(0))  # [photons s^-1 cm^-2] (already multiplied by norm)
     xsp.AllModels.setEnergies("reset")
@@ -124,7 +124,7 @@ def test_isothermal_no_velocities():
     """
 
     # Computing reference spectrum
-    sp_ref = wabs_bapec(nH, temp, metal, z, 0, norm)  # [photons s^-1 cm^-2] (already multiplied by norm)
+    sp_ref = tbabs_bapec(nH, temp, metal, z, 0, norm)  # [photons s^-1 cm^-2] (already multiplied by norm)
 
 
     # Creating the spectral map from the snapshot assuming isothermal gas with Gaussian velocity distribution
@@ -175,7 +175,7 @@ def test_isothermal_no_velocities():
     assert os.path.isfile(phaFile), errMsg
 
     # Fitting the spectrum in the pha file with parameters starting with the right values
-    spfit_right_start = SpecFit(phaFile, "wabs(bapec)")
+    spfit_right_start = SpecFit(phaFile, "tbabs(bapec)")
 
     fixed_pars = (True, False, False, False, True, False)
     spfit_right_start.run(start=fitParsV0, fixed=fixed_pars, method='cstat', abund=abund, erange=(e_min, e_max),
@@ -186,7 +186,7 @@ def test_isothermal_no_velocities():
     del spfit_right_start
 
     # Fitting the spectrum in the pha file starting with wrong parameters
-    spfit_wrong_start = SpecFit(phaFile, "wabs(bapec)")
+    spfit_wrong_start = SpecFit(phaFile, "tbabs(bapec)")
     os.remove(phaFile)
     fixed_pars = (True, False, False, False, True, False)
     spfit_wrong_start.run(start=startPV0, fixed=fixed_pars, method='cstat', abund=abund, erange=(e_min, e_max),
@@ -202,7 +202,7 @@ def test_isothermal_gaussian_velocities():
     """
 
     # Computing reference spectrum
-    sp_ref = wabs_bapec(nH, temp, metal, z, sigma_v, norm)  # [photons s^-1 cm^-2] (already multiplied by norm)
+    sp_ref = tbabs_bapec(nH, temp, metal, z, sigma_v, norm)  # [photons s^-1 cm^-2] (already multiplied by norm)
 
     # Creating the spectral map from the snapshot assuming isothermal gas with Gaussian velocity distribution
     sp_map = specmap(snapshotFile, specTable, testInstrumentFOV, npix, z, center=snapshotCenter, proj='z',
@@ -253,7 +253,7 @@ def test_isothermal_gaussian_velocities():
     assert os.path.isfile(phaFile), errMsg
 
     # Fitting the spectrum in the pha file with parameters starting with the right values
-    spfit_right_start = SpecFit(phaFile, "wabs(bapec)")
+    spfit_right_start = SpecFit(phaFile, "tbabs(bapec)")
 
     fixed_pars = (True, False, False, False, True, False)
     spfit_right_start.run(start=fitPars, fixed=fixed_pars, method='cstat', abund=abund, erange=(e_min, e_max),
@@ -264,7 +264,7 @@ def test_isothermal_gaussian_velocities():
     del spfit_right_start
 
     # Fitting the spectrum in the pha file starting with wrong parameters
-    spfit_wrong_start = SpecFit(phaFile, "wabs(bapec)")
+    spfit_wrong_start = SpecFit(phaFile, "tbabs(bapec)")
     os.remove(phaFile)
 
     fixed_pars = (True, False, False, False, False, False)
